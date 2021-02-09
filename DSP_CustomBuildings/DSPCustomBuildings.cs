@@ -37,13 +37,15 @@ namespace DSP_CustomBuildings
         
         public static AssetBundle bundle;
 
+        public static string pluginfolder;
+
 
         void Awake()
         {
             logger = Logger;
             
             //get location of the plugin
-            string pluginfolder = System.IO.Path.GetDirectoryName(GetType().Assembly.Location);
+            pluginfolder = System.IO.Path.GetDirectoryName(GetType().Assembly.Location);
 
             //asset bundle to load
             string assetBundle = "custombundle";
@@ -308,6 +310,22 @@ namespace DSP_CustomBuildings
                     __result = myPrefab;
                     return false;
                 }
+            }
+            return true;
+        }
+    }
+    
+    [HarmonyPatch(typeof(VertaBuffer), "LoadFromFile")]
+    static class VertaBufferPatch
+    {
+        [HarmonyPrefix]
+        public static bool LoadHook(ref string filename) {
+            
+            if (filename.Contains("custommachines"))
+            {
+                filename =  $"{DSPCustomBuildings.pluginfolder}/{filename}";
+                
+                DSPCustomBuildings.logger.LogInfo("Loading my verta file " + filename);
             }
             return true;
         }
