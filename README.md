@@ -4,7 +4,15 @@ An example how to add a custom model with your mesh and animations
 In the Editor folder you can find needed scripts to bake MeshDataAsset and Verta file. 
 Export Asset bundles script used to force unity to build asset bundles. 
 BetterMeshDataAsset makes sure that if you open MeshDataAsset in inspector nothing will break(Also is used to bake mesh data from Mesh object). 
-And finally AnimationBakerWindow is the baker. You need to have a prefab like ones game loads in unity editor with all its meshRenderers and Filters in there. You will also need animation clip either from game or yours. Then in Window->Verta Animation Baker and select prefabs root, enter name and hit bake. Once it has finished you will get a verta file and MeshDataAsset. Finally this all will only compile if you have Assembly-CSharp in your project(I used ThunderKit to make it all work)
+AnimationBakerWindow is the baker.
+
+## Steps on making this all work
+1. Create unity project and either put Assembly-CSharp to reference in scripts or use ThunderKit to automate that.
+2. Extract needed assets(Models, animations, prefabs, etc)
+3. Fix extracted prefab so that there is no missing scripts and all meshes and materials(Although i'm still unable to compile ingame's shaders) are there
+4. Make sure that animation clip works, by dragging fixed prefab into preview window(It should animate it)
+5. Open baker Window->Verta Animation Baker and select prefabs root, enter name and hit bake. You will get MeshDataAsset and .verta file. Both are needed to make this work
+6. Write code and import everything in.
 
 Project view:
 ![Project view](https://i.imgur.com/RULexSP.png)
