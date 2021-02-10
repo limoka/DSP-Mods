@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 
 namespace UnityEditor
 {
@@ -13,15 +11,31 @@ namespace UnityEditor
         [MenuItem("Window/DSP Tools/Fix prefab(Can crash unity!)")]
         public static void FixPrefabs()
         {
-            RemoveMissingScripts();
-            
             GameObject gameObject = Selection.activeGameObject;
-
+            
             if (gameObject == null)
             {
                 Debug.Log("You have nothing selected!");
                 return;
             }
+            
+            RemoveMissingScripts(gameObject);
+
+            if (gameObject.GetComponent<BuildConditionConfig>() == null)
+            {
+                gameObject.AddComponent<BuildConditionConfig>();
+                gameObject.AddComponent<SlotConfig>();
+                gameObject.AddComponent<AnimDesc>();
+                gameObject.AddComponent<MinimapConfig>();
+                gameObject.AddComponent<PowerDesc>();
+
+                Transform lodTrs = gameObject.transform.Find("LOD");
+                if (lodTrs != null)
+                {
+                    lodTrs.gameObject.AddComponent<LODModelDesc>();
+                }
+            }
+
 
             MeshFilter[] filters = gameObject.GetComponentsInChildren<MeshFilter>();
 
@@ -81,9 +95,8 @@ namespace UnityEditor
             UnityEditor.EditorUtility.SetDirty(gameObject);
         }
         
-        private static void RemoveMissingScripts()
+        private static void RemoveMissingScripts(GameObject target)
         {
-            GameObject target = Selection.activeGameObject;
 
             Queue<GameObject> queue = new Queue<GameObject>();
             queue.Enqueue(target);
