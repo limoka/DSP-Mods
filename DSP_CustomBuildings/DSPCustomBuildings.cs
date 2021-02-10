@@ -56,12 +56,12 @@ namespace DSP_CustomBuildings
             
             //Register and create buildings, items, models, etc
             
-            registerStrings("myAssembler", "My Assembler");
-            registerStrings("myAssemblerDesc", "This is not an assembler. Why? IDK");
+            registerStrings("myAssembler", "DoubleAssembler");
+            registerStrings("myAssemblerDesc", "Why make two, when this is two in a kit?");
             //Icons/ItemRecipe/assembler-1
             //int nugget = registerItem("ironNugget", "ironNuggetDesc", "Icons/ItemRecipe/iron-plate", 1512);
 
-            int modelID = registerModel("assets/custommachines/prefabs/assembler-mk-1");
+            int modelID = registerModel("assets/custommachines/prefabs/double-assembler");
             
             
             

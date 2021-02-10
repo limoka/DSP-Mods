@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEditor;
@@ -10,6 +12,8 @@ namespace UnityEditor
     public class AnimationBakerWindow : EditorWindow
     {
         private GameObject bakeObject;
+        private MeshFilter[] filters;
+        private SkinnedMeshRenderer[] renderers;
 
         private VertaBuffer buffer;
         private bool bufferReady = false;
@@ -27,26 +31,34 @@ namespace UnityEditor
 
         private string modelName = "";
 
-        [MenuItem("Window/Verta Animation Baker", false, 2000)]
+        [MenuItem("Window/DSP Tools/Verta Animation Baker", false)]
         public static void DoWindow()
         {
-            var window = GetWindowWithRect<AnimationBakerWindow>(new Rect(0, 0, 300, 80));
+            var window = GetWindowWithRect<AnimationBakerWindow>(new Rect(0, 0, 300, 100));
             window.Show();
         }
 
-        public static Mesh CombineMeshes(GameObject gameObject)
+        //Combine all meshes together
+        public Mesh CombineMeshes(GameObject gameObject)
         {
             //Temporarily set position to zero to make matrix math easier
             Vector3 position = gameObject.transform.position;
             gameObject.transform.position = Vector3.zero;
 
             //Get all mesh filters and combine
-            MeshFilter[] meshFilters = gameObject.GetComponentsInChildren<MeshFilter>();
-            CombineInstance[] combine = new CombineInstance[meshFilters.Length];
-            for (int i = 0; i < meshFilters.Length; i++)
+            CombineInstance[] combine = new CombineInstance[filters.Length + renderers.Length];
+            for (int i = 0; i < filters.Length; i++)
             {
-                combine[i].mesh = meshFilters[i].sharedMesh;
-                combine[i].transform = meshFilters[i].transform.localToWorldMatrix;
+                combine[i].mesh = filters[i].sharedMesh;
+                combine[i].transform = filters[i].transform.localToWorldMatrix;
+                combine[i].subMeshIndex = 0;
+            }
+            
+            for (int i = filters.Length; i < filters.Length + renderers.Length; i++)
+            {
+                combine[i].mesh = new Mesh();
+                renderers[i].BakeMesh(combine[i].mesh);
+                combine[i].transform = renderers[i].transform.localToWorldMatrix;
                 combine[i].subMeshIndex = 0;
             }
 
@@ -78,24 +90,23 @@ namespace UnityEditor
         // Main editor window
         public void OnGUI()
         {
+            if (AnimationMode.InAnimationMode())
+                AnimationMode.StopAnimationMode();
+            
             // Wait for user to select a GameObject
             if (bakeObject == null)
             {
                 EditorGUILayout.HelpBox("Please select a GameObject", MessageType.Info);
                 return;
             }
-
+            
             if (buffer == null)
             {
                 buffer = new VertaBuffer();
             }
-            
-            if (AnimationMode.InAnimationMode())
-                AnimationMode.StopAnimationMode();
 
-
-            // Slider to use when Animate has been ticked
             EditorGUILayout.BeginVertical();
+            EditorGUILayout.LabelField("Selected object: " + bakeObject.name);
 
             modelName = EditorGUILayout.TextField("Model Name", modelName);
             
@@ -132,11 +143,33 @@ namespace UnityEditor
             Animator animator = bakeObject.GetComponent<Animator>();
             if (animator != null && animator.runtimeAnimatorController == null)
                 return;
+            
+            //Collect information about gameObject
+            List<MeshFilter> tmpFilters = bakeObject.GetComponentsInChildren<MeshFilter>().ToList();
+            List<SkinnedMeshRenderer> tmpMeshRenderers = new List<SkinnedMeshRenderer>();
+                
+            for (int i = 0; i < tmpFilters.Count; i++)
+            {
+                MeshFilter filter = tmpFilters[i];
+                SkinnedMeshRenderer meshRenderer = filter.GetComponent<SkinnedMeshRenderer>();
+
+                if (meshRenderer != null)
+                {
+                    tmpFilters.RemoveAt(i);
+                    tmpMeshRenderers.Add(meshRenderer);
+                    i--;
+                }
+
+            }
+
+            filters = tmpFilters.ToArray();
+            renderers = tmpMeshRenderers.ToArray();
 
             Mesh firstFrame = new Mesh();
             
             EditorUtility.DisplayProgressBar("Mesh Animation Baker", "Baking", 0f);
 
+            //Now bake
             AnimationMode.StartAnimationMode();
             AnimationMode.BeginSampling();
 
@@ -177,22 +210,26 @@ namespace UnityEditor
                 }
             }
             
-            string filePath = Path.Combine(Application.dataPath, vertaPath, modelName);
-            filePath += ".verta";
-            
+            string filePath = Path.Combine(Application.dataPath, vertaPath);
+
             FileInfo fileInfo = new FileInfo(filePath);
             if (!Directory.Exists(fileInfo.Directory.FullName))
                 Directory.CreateDirectory(fileInfo.Directory.FullName);
             
+            filePath += $"/{modelName}.verta";
+            
             buffer.SaveToFile(filePath);
             
-            filePath = Path.Combine("Assets", meshDataPath, modelName);
-            filePath += ".asset";
+            filePath = Path.Combine("Assets", meshDataPath);
+
+            fileInfo = new FileInfo(filePath);
+            if (!Directory.Exists(fileInfo.Directory.FullName))
+                Directory.CreateDirectory(fileInfo.Directory.FullName);
+            
+            filePath += $"/{modelName}.asset";
 
             byte[] bytes = MeshDataAssetEditor.saveMeshToMeshAsset(firstFrame);
-
-
-
+            
             MeshDataAsset asset = new MeshDataAsset();
             asset.bytes = bytes;
             

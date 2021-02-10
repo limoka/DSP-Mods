@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ExportAssetBundles
 {
-    [MenuItem("Assets/Build AssetBundle")]
+    [MenuItem("Window/DSP Tools/Build AssetBundle")]
     static void ExportResource()
     {
         string folderName = "AssetBundles";
