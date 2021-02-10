@@ -9,7 +9,7 @@ In the Editor folder you can find needed scripts to bake MeshDataAsset and Verta
 
 ## Steps on making this all work
 1. Create unity project and either put Assembly-CSharp to reference in scripts or use [ThunderKit](https://github.com/PassivePicasso/ThunderKit) to automate that.
-2. Extract needed assets(Models, animations, prefabs, etc)
+2. Extract or create needed assets(Models, animations, prefabs, etc)
 3. Fix extracted prefab so that there is no missing scripts and all meshes and materials(Although i'm still unable to compile ingame's shaders) are there
 4. If you intent to use prefab ingame you also need to properly set all needed description scripts(Like BuildConditionConfig, SlotConfig, etc scrips). Game uses these scripts to figure out what is what and where
 5. Make sure that animation clip works, by dragging fixed prefab into preview window(It should animate it)
