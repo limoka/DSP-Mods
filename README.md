@@ -21,7 +21,7 @@ In the Editor folder you can find needed scripts to bake MeshDataAsset and Verta
 Project view:
 ![Project view](https://i.imgur.com/RULexSP.png)
 
-## Installation
+## Installation of example mod
 1. Download and unpack [BepInEx](https://github.com/BepInEx/BepInEx/releases) into game root directory
 2. Download and install [LDBTool](https://dsp.thunderstore.io/package/xiaoye97/LDBTool/)
 3. Download and install [DSP_CustomBuildings](https://github.com/kremnev8/DSP_CustomBuildings/releases)
