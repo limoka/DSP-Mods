@@ -13,9 +13,10 @@ In the Editor folder you can find needed scripts to bake MeshDataAsset and Verta
 3. Fix extracted prefab so that there is no missing scripts and all meshes and materials(Although i'm still unable to compile ingame's shaders) are there
 4. If you intent to use prefab ingame you also need to properly setup all needed description scripts(Like BuildConditionConfig, SlotConfig, etc). Game uses these scripts to figure out what is what and where
 5. Make sure that animation clip works, by dragging fixed prefab into preview window(It should animate it)
-6. Open baker Window->Verta Animation Baker and select prefabs root, enter name and hit bake. You will get MeshDataAsset and .verta file. Both are needed to make this work
+6. Open baker (Window->DSP Tools->Verta Animation Baker) and select prefabs root, enter name and hit bake. You will get MeshDataAsset and .verta file. Both are needed to make this work
 7. Make sure you correctly define names and references to two created files in LODModelDesc script
-8. Write code and import everything in.
+8. Create new Aseet Bundle and add all needed assets to it(You cannot add .verta file, becuse it won't let you). Then build Asset Bundle (Window->DSP Tools->Build AssetBundle)
+9. Write code and import everything in.
 
 Project view:
 ![Project view](https://i.imgur.com/RULexSP.png)
