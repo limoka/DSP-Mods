@@ -22,7 +22,7 @@ using xiaoye97;
 [assembly: SecurityPermission( SecurityAction.RequestMinimum, SkipVerification = true )]
 namespace DSPAdvancedMiner
 {
-    [BepInPlugin("org.kremnev8.plugin.dspadvancedminer", "DSP Advanced miner", "0.1.0.0")]
+    [BepInPlugin("org.kremnev8.plugin.dspadvancedminer", "DSP Advanced miner", "0.1.0.1")]
     public class DSPAdvancedMiner : BaseUnityPlugin
     {
         public static ManualLogSource logger;
@@ -406,7 +406,23 @@ namespace DSPAdvancedMiner
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             CodeMatcher matcher = new CodeMatcher(instructions)
-                .MatchForward(true,
+                .MatchForward(false,
+                    new CodeMatch(OpCodes.Ldc_R4),
+                    new CodeMatch(OpCodes.Ldarg_0),
+                    new CodeMatch(OpCodes.Ldfld),
+                    new CodeMatch(i => i.opcode == OpCodes.Callvirt && ((MethodInfo)i.operand).Name == "GetVeinsInAreaNonAlloc"))
+                .SetInstructionAndAdvance(new CodeInstruction(OpCodes.Ldloc_3))
+                .InsertAndAdvance(
+                    Transpilers.EmitDelegate<Func<BuildPreview, float>>(preview =>
+                    {
+                        float radius = MinerComponent.kFanRadius;
+                        if (preview.desc.beltSpeed == 1)
+                        {
+                            radius = DSPAdvancedMiner.configMinerMk2Range.Value;
+                        }
+                        return radius+4;
+                    })
+                ).MatchForward(true,
                     new CodeMatch(OpCodes.Call, AccessTools.Method(typeof(Vector3), nameof(Vector3.Dot))),
                     new CodeMatch(OpCodes.Stloc_S),
                     new CodeMatch(OpCodes.Ldloc_S),
@@ -448,39 +464,5 @@ namespace DSPAdvancedMiner
         }
     }
     
-    /*
-     * Array.Clear(this._tmp_ids, 0, this._tmp_ids.Length);
-							Vector3 vector3 = pose.position + pose.forward * -1.2f;
-							Vector3 rhs = -pose.forward;
-							Vector3 up = pose.up;
-							int veinsInAreaNonAlloc = this.nearcdLogic.GetVeinsInAreaNonAlloc(vector3, 12f, this._tmp_ids);
-							PrebuildData prebuildData = default(PrebuildData);
-							prebuildData.InitRefArray(veinsInAreaNonAlloc);
-							VeinData[] veinPool = this.factory.veinPool;
-							int refCount = 0;
-							for (int j = 0; j < veinsInAreaNonAlloc; j++)
-							{
-								if (this._tmp_ids[j] != 0 && veinPool[this._tmp_ids[j]].id == this._tmp_ids[j])
-								{
-									if (veinPool[this._tmp_ids[j]].type != EVeinType.Oil)
-									{
-										Vector3 pos = veinPool[this._tmp_ids[j]].pos;
-										Vector3 vector4 = pos - vector3;
-										float num8 = Vector3.Dot(up, vector4);
-										vector4 -= up * num8;
-										float sqrMagnitude = vector4.sqrMagnitude;
-										float num9 = Vector3.Dot(vector4.normalized, rhs);
-										if (sqrMagnitude <= 60.0625f && num9 >= 0.73f && Mathf.Abs(num8) <= 2f)
-										{
-											prebuildData.refArr[refCount++] = this._tmp_ids[j];
-										}
-									}
-								}
-								else
-								{
-									Assert.CannotBeReached();
-								}
-							}
-     */
     
 }
