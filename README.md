@@ -1,7 +1,7 @@
 # DSP_CustomBuildings
 An example how to add a custom model with your mesh and animations
 
-In the Editor folder you can find needed scripts to bake MeshDataAsset and Verta file. 
+In the Unity folder you can find needed scripts to create your own buildings. 
 * ExportAssetBundles script is used to force unity to build asset bundles. 
 * BetterMeshDataAsset makes sure that if you open MeshDataAsset in inspector nothing will break(Also is used to bake mesh data from Mesh object). 
 * AnimationBakerWindow is the baker.
