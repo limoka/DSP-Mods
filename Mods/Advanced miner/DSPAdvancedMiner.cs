@@ -116,7 +116,7 @@ namespace DSPAdvancedMiner
             registerRecipe(ERecipeType.Assemble, 60, new []{2301, 1106, 1303, 1206}, new []{1, 4, 2, 2}, new []{assemb}, new []{1}, "advancedMiningDrillDesc", 1202);
 
             
-            logger.LogInfo("DSP Custom Buildings is initialized!");
+            logger.LogInfo("DSP Advanced Miner is initialized!");
             
             
             
@@ -288,7 +288,7 @@ namespace DSPAdvancedMiner
                     Description = description,
                     GridIndex = first.GridIndex,
                     IconPath = first.IconPath,
-                    Name = first.Name,
+                    Name = first.Name+"Recipe",
                     preTech = tech,
                     ID = id
                 };
