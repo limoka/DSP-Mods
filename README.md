@@ -1,5 +1,5 @@
-# DSP_CustomBuildings
-An example how to add a custom model with your mesh and animations
+# DSP Mods
+Repo with source code for my mods. Also contains a mini guide on custom machine meshes and animations
 
 In the Unity folder you can find needed scripts to create your own buildings. 
 * ExportAssetBundles script is used to force unity to build asset bundles. 
