@@ -25,7 +25,6 @@ namespace kremnev8
         public static Dictionary<int, ModelProto> models = new Dictionary<int, ModelProto>();
         public static Dictionary<String, Material[]> modelMats = new Dictionary<String, Material[]>();
 
-        public static List<String> knownVertaFiles = new List<string>();
 
         public static AssetBundle bundle;
 
