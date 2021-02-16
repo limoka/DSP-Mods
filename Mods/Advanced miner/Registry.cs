@@ -85,6 +85,8 @@ namespace kremnev8
 
             LDBTool.PostAddDataAction += onPostAdd;
             LDBTool.EditDataAction += EditProto;
+            
+            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
         }
 
         //Post register fixups
@@ -413,13 +415,14 @@ namespace kremnev8
         {
             if (path.Contains(Registry.keyWord) && Registry.bundle != null)
             {
-                Registry.LogSource.LogDebug("Loading my asset " + path);
                 if (Registry.bundle.Contains(path + ".prefab") && systemTypeInstance == typeof(GameObject))
                 {
                     Material[] mats = Registry.modelMats[path];
                     UnityEngine.Object myPrefab = Registry.bundle.LoadAsset(path + ".prefab");
                     if (myPrefab != null)
                     {
+                        Registry.LogSource.LogDebug("Loading known asset " + path + $" ({(myPrefab != null ? "Success" : "Failure")})");
+                        
                         MeshRenderer[] renderers = ((GameObject) myPrefab).GetComponentsInChildren<MeshRenderer>();
                         foreach (MeshRenderer renderer in renderers)
                         {
@@ -439,8 +442,12 @@ namespace kremnev8
 
                 if (Registry.bundle.Contains(path + ".png"))
                 {
+                    Registry.LogSource.LogDebug("Loading known asset " + path);
                     UnityEngine.Object mySprite =
                         Registry.bundle.LoadAsset(path + ".png", systemTypeInstance);
+                    
+                    Registry.LogSource.LogDebug("Loading known asset " + path + $" ({(mySprite != null ? "Success" : "Failure")})");
+                    
                     __result = mySprite;
                     return false;
                 }
