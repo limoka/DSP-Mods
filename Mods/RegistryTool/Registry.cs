@@ -25,8 +25,6 @@ namespace kremnev8
         public static Dictionary<int, ModelProto> models = new Dictionary<int, ModelProto>();
         public static Dictionary<String, Material[]> modelMats = new Dictionary<String, Material[]>();
 
-        public static List<String> knownVertaFiles = new List<string>();
-
         public static AssetBundle bundle;
 
         public static string vertaFolder = "";
@@ -85,6 +83,8 @@ namespace kremnev8
 
             LDBTool.PostAddDataAction += onPostAdd;
             LDBTool.EditDataAction += EditProto;
+            
+            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
         }
 
         //Post register fixups
@@ -101,14 +101,14 @@ namespace kremnev8
                     pdesc.lodMaterials[0][i] = mats[i];
                 }
 
-                VFPreload.SaveGameObjectResources(pdesc.prefab);
-                VFPreload.SaveGameObjectResources(pdesc.colliderPrefab);
-                VFPreload.SaveObject(pdesc.mesh);
-                VFPreload.SaveMeshes(pdesc.meshes);
-                VFPreload.SaveObject(pdesc.meshCollider);
-                VFPreload.SaveMaterials(pdesc.materials);
-                VFPreload.SaveMeshes(pdesc.lodMeshes);
-                VFPreload.SaveMaterials(pdesc.lodMaterials);
+                /* VFPreload.SaveGameObjectResources(pdesc.prefab);
+                 VFPreload.SaveGameObjectResources(pdesc.colliderPrefab);
+                 VFPreload.SaveObject(pdesc.mesh);
+                 VFPreload.SaveMeshes(pdesc.meshes);
+                 VFPreload.SaveObject(pdesc.meshCollider);
+                 VFPreload.SaveMaterials(pdesc.materials);
+                 VFPreload.SaveMeshes(pdesc.lodMeshes);
+                 VFPreload.SaveMaterials(pdesc.lodMaterials);*/
                 LDB.models.modelArray[kv.Value.ID] = kv.Value;
             }
 
@@ -177,7 +177,7 @@ namespace kremnev8
 
             return id;
         }
-        
+
         /// <summary>
         /// Creates custom material with given shader name. Textures: albedo, normal, metallic, emission
         /// _MainTex ("Albedo (RGB) diffuse reflection (A) color mask", 2D)
@@ -189,16 +189,18 @@ namespace kremnev8
         /// <param name="materialName">Name of finished material, can be anything</param>
         /// <param name="color">Tint color</param>
         /// <param name="textures">Array of texture names in this order: albedo, normal, metallic, emission</param>
-        public static Material CreateMaterial(String shaderName, String materialName, String color, String[] textures = null)
+        /// <param name="keywords">Array of keywords to use</param>
+        public static Material CreateMaterial(String shaderName, String materialName, String color, String[] textures = null, String[] keywords = null)
         {
             ColorUtility.TryParseHtmlString(color, out Color newCol);
 
             Material mainMat = new Material(Shader.Find(shaderName))
             {
-                shaderKeywords = new[] {"_ENABLE_VFINST"}, 
+                shaderKeywords = keywords ?? new[] {"_ENABLE_VFINST"},
                 color = newCol, 
                 name = materialName
             };
+
             if (textures == null) return mainMat;
             
             for (int i = 0; i < textures.Length; i++)
@@ -245,6 +247,7 @@ namespace kremnev8
         /// <param name="name">LocalizedKey of name of the item</param>
         /// <param name="description">LocalizedKey of description of the item</param>
         /// <param name="iconPath">Path to icon, starting from assets folder of your unity project</param>
+        /// <param name="gridIndex">Index in craft menu, format : PYXX, P - page</param>
         public static ItemProto registerItem(int id, String name, String description, String iconPath,
             int gridIndex)
         {
@@ -413,13 +416,14 @@ namespace kremnev8
         {
             if (path.Contains(Registry.keyWord) && Registry.bundle != null)
             {
-                Registry.LogSource.LogDebug("Loading my asset " + path);
                 if (Registry.bundle.Contains(path + ".prefab") && systemTypeInstance == typeof(GameObject))
                 {
                     Material[] mats = Registry.modelMats[path];
                     UnityEngine.Object myPrefab = Registry.bundle.LoadAsset(path + ".prefab");
                     if (myPrefab != null)
                     {
+                        Registry.LogSource.LogDebug("Loading known asset " + path + $" ({(myPrefab != null ? "Success" : "Failure")})");
+                        
                         MeshRenderer[] renderers = ((GameObject) myPrefab).GetComponentsInChildren<MeshRenderer>();
                         foreach (MeshRenderer renderer in renderers)
                         {
@@ -439,8 +443,12 @@ namespace kremnev8
 
                 if (Registry.bundle.Contains(path + ".png"))
                 {
+                    Registry.LogSource.LogDebug("Loading known asset " + path);
                     UnityEngine.Object mySprite =
                         Registry.bundle.LoadAsset(path + ".png", systemTypeInstance);
+                    
+                    Registry.LogSource.LogDebug("Loading known asset " + path + $" ({(mySprite != null ? "Success" : "Failure")})");
+                    
                     __result = mySprite;
                     return false;
                 }
