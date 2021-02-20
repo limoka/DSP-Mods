@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Security;
@@ -10,6 +11,7 @@ using BepInEx.Logging;
 using HarmonyLib;
 using kremnev8;
 using UnityEngine;
+using UnityEngine.UI;
 
 
 [module: UnverifiableCode]
@@ -21,7 +23,7 @@ namespace DSPAdvancedMiner
     public class DSPAdvancedMiner : BaseUnityPlugin
     {
         public static ManualLogSource logger;
-        
+
         public static ConfigEntry<float> configMinerMk2Range;
 
 
@@ -30,13 +32,14 @@ namespace DSPAdvancedMiner
             logger = Logger;
 
             Registry.Init("minerbundle", "custommachines", true, true);
-            
+
             configMinerMk2Range = Config.Bind("General",
                 "MinerMk2Range",
                 10f,
                 "How much range miner mk.2 has(Range of miner mk.1 is 7.75m). Note that this applies only to new miners built, already existing will not have their range changed!");
-            
-            Material mainMat = Registry.CreateMaterial("VF Shaders/Forward/PBR Standard", "mining-drill-mk2", "#00FFE8FF",
+
+            Material mainMat = Registry.CreateMaterial("VF Shaders/Forward/PBR Standard", "mining-drill-mk2",
+                "#00FFE8FF",
                 new[]
                 {
                     "assets/custommachines/texture2d/mining-drill-a",
@@ -44,19 +47,20 @@ namespace DSPAdvancedMiner
                     "assets/custommachines/texture2d/mining-drill-s",
                     "assets/custommachines/texture2d/mining-drill-e"
                 });
-            
-            Material blackMat = Registry.CreateMaterial("VF Shaders/Forward/Black Mask", "mining-drill-black", "#FFFFFFFF");
+
+            Material blackMat =
+                Registry.CreateMaterial("VF Shaders/Forward/Black Mask", "mining-drill-black", "#FFFFFFFF");
 
             //Register and create buildings, items, models, etc
             Registry.registerString("advancedMiningDrill", "Mining drill Mk.II");
             Registry.registerString("advancedMiningDrillDesc",
                 "Thanks to some hard to pronounce tech this drill has better range!");
 
-            ModelProto model = Registry.registerModel(178, "assets/custommachines/prefabs/mining-drill-mk2",
-                new[] {mainMat, blackMat});
-
-            ItemProto miner = Registry.registerBuilding(2000, "advancedMiningDrill", "advancedMiningDrillDesc",
-                "assets/custommachines/texture2d/mining-drill-mk2", 2504, model.ID, new[] {18, 19, 11, 12, 1}, 204, 2,
+            ItemProto miner = Registry.registerItem(2000, "advancedMiningDrill", "advancedMiningDrillDesc",
+                "assets/custommachines/texture2d/mining-drill-mk2", 2504);
+            
+            Registry.registerModel(178, miner, "assets/custommachines/prefabs/mining-drill-mk2",
+                new[] {mainMat, blackMat}, new[] {18, 19, 11, 12, 1}, 204, 2,
                 new[] {2301, 0});
 
             Registry.registerRecipe(105, ERecipeType.Assemble, 60, new[] {2301, 1106, 1303, 1206}, new[] {1, 4, 2, 2},
@@ -80,7 +84,6 @@ namespace DSPAdvancedMiner
                     pdesc.beltSpeed = 1;
                 }
             }
-
         }
 
         public static float getMinerRadius(PrefabDesc desc)
@@ -94,6 +97,7 @@ namespace DSPAdvancedMiner
             return radius;
         }
     }
+
 
     [HarmonyPatch(typeof(PlayerAction_Build), "CheckBuildConditions")]
     static class PlayerAction_BuildPatch
@@ -110,7 +114,8 @@ namespace DSPAdvancedMiner
                         i.opcode == OpCodes.Callvirt && ((MethodInfo) i.operand).Name == "GetVeinsInAreaNonAlloc"))
                 .SetInstructionAndAdvance(new CodeInstruction(OpCodes.Ldloc_3))
                 .InsertAndAdvance(
-                    Transpilers.EmitDelegate<Func<BuildPreview, float>>(preview => DSPAdvancedMiner.getMinerRadius(preview.desc) + 4)
+                    Transpilers.EmitDelegate<Func<BuildPreview, float>>(preview =>
+                        DSPAdvancedMiner.getMinerRadius(preview.desc) + 4)
                 ).MatchForward(true,
                     new CodeMatch(OpCodes.Call, AccessTools.Method(typeof(Vector3), nameof(Vector3.Dot))),
                     new CodeMatch(OpCodes.Stloc_S),
@@ -155,7 +160,7 @@ namespace DSPAdvancedMiner
             MinerComponent component = __instance.factorySystem.minerPool[__instance.entityPool[id].minerId];
 
             if (component.type != EMinerType.Vein) return;
-            
+
             PrefabDesc desc = newProto.prefabDesc;
 
             Pose pose;
@@ -167,7 +172,8 @@ namespace DSPAdvancedMiner
             Vector3 rhs = -pose.forward;
             Vector3 up = pose.up;
             int veinsInAreaNonAlloc =
-                __instance.planet.physics.nearColliderLogic.GetVeinsInAreaNonAlloc(vector3, DSPAdvancedMiner.getMinerRadius(desc)+4, tmp_ids);
+                __instance.planet.physics.nearColliderLogic.GetVeinsInAreaNonAlloc(vector3,
+                    DSPAdvancedMiner.getMinerRadius(desc) + 4, tmp_ids);
             int[] refArray = new int[veinsInAreaNonAlloc];
 
             VeinData[] veinPool = __instance.planet.factory.veinPool;
@@ -185,7 +191,7 @@ namespace DSPAdvancedMiner
                         float sqrMagnitude = vector4.sqrMagnitude;
                         float num9 = Vector3.Dot(vector4.normalized, rhs);
                         float radius = DSPAdvancedMiner.getMinerRadius(desc);
-                        if (sqrMagnitude <= radius*radius  && num9 >= 0.73f && Mathf.Abs(num8) <= 2f)
+                        if (sqrMagnitude <= radius * radius && num9 >= 0.73f && Mathf.Abs(num8) <= 2f)
                         {
                             refArray[refCount++] = tmp_ids[j];
                         }

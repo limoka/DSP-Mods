@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -83,7 +84,6 @@ namespace kremnev8
 
             LDBTool.PostAddDataAction += onPostAdd;
             LDBTool.EditDataAction += EditProto;
-            LDBTool.PostAddDataAction += PostTechEdit;
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
         }
@@ -114,10 +114,19 @@ namespace kremnev8
             {
                 kv.Value.Preload(kv.Value.index);
             }
+            
             foreach (var kv in techs)
             {
                 kv.Value.Preload();
                 kv.Value.Preload2();
+            }
+
+            foreach (var kv in techUpdateList)
+            {
+                var OldTech = kv.Key;
+                var NewTech = kv.Value;
+
+                OldTech.postTechArray = OldTech.postTechArray.AddToArray(NewTech);
             }
 
             onLoadingFinished?.Invoke();
@@ -149,24 +158,6 @@ namespace kremnev8
                     }
                 }
             }
-        }
-
-        //Edits existing techs to be linked up to new technologies (PostTechArray)
-        private static void PostTechEdit()
-        {
-
-            TechProto OldTech;
-            TechProto NewTech;
-
-
-            foreach (var kv in techUpdateList)
-            {
-                OldTech = kv.Key;
-                NewTech = kv.Value;
-
-                OldTech.postTechArray = OldTech.postTechArray.AddToArray(NewTech);
-            }
-            LogSource.LogInfo("Post Tech Edits have completed!");
         }
 
         //Finds first available id
@@ -236,24 +227,52 @@ namespace kremnev8
         /// Registers a ModelProto
         /// </summary>
         /// <param name="id">UNIQUE id of your model</param>
+        /// <param name="proto">ItemProto which will be turned into building</param>
         /// <param name="prefabPath">Path to the prefab, starting from asset folder in your unity project</param>
         /// <param name="mats">List of materials to use</param>
-        public static ModelProto registerModel(int id, string prefabPath, Material[] mats)
-        {
-            //int id = findAvailableID(100, LDB.models, models);
+        /// <param name="descFields">int Array of used description fields</param>
+        /// <param name="buildIndex">Index in build Toolbar, FSS, F - first submenu, S - second submenu</param>
+        /// <param name="grade">Grade of the building, used to add upgrading</param>
+        /// <param name="upgradesIDs">List of buildings ids, that are upgradable to this one. You need to include all of them here in order. ID of this building should be zero</param>
 
-            ModelProto proto = new ModelProto
+        public static ModelProto registerModel(int id, ItemProto proto, string prefabPath, Material[] mats,
+            int[] descFields, int buildIndex, int grade = 0, int[] upgradesIDs = null)
+        {
+            ModelProto model = new ModelProto
             {
                 Name = id.ToString(),
                 PrefabPath = prefabPath,
                 ID = id
             };
 
-            LDBTool.PreAddProto(ProtoType.Model, proto);
-            models.Add(proto.ID, proto);
+            proto.Type = EItemType.Production;
+            proto.ModelIndex = id;
+            proto.ModelCount = 1;
+            proto.BuildIndex = buildIndex;
+            proto.BuildMode = 1;
+            proto.IsEntity = true;
+            proto.CanBuild = true;
+            proto.DescFields = descFields;
+            if (grade != 0 && upgradesIDs != null)
+            {
+                proto.Grade = grade;
+                for (int i = 0; i < upgradesIDs.Length; i++)
+                {
+                    int itemID = upgradesIDs[i];
+                    if (itemID == 0) continue;
+
+                    itemUpgradeList.Add(itemID, i + 1);
+                }
+
+                upgradesIDs[grade - 1] = proto.ID;
+                proto.Upgrades = upgradesIDs;
+            }
+
+            LDBTool.PreAddProto(ProtoType.Model, model);
+            models.Add(model.ID, model);
             modelMats.Add(prefabPath, mats);
 
-            return proto;
+            return model;
         }
 
         /// <summary>
@@ -290,51 +309,6 @@ namespace kremnev8
         }
 
         /// <summary>
-        /// Registers a ItemProto for a BUILDING
-        /// </summary>
-        /// <param name="id">UNIQUE id of your building</param>
-        /// <param name="name">LocalizedKey of name of the item</param>
-        /// <param name="description">LocalizedKey of description of the item</param>
-        /// <param name="iconPath">Path to icon, starting from assets folder of your unity project</param>
-        /// <param name="gridIndex">Index in craft menu, format : PYXX, P - page</param>
-        /// <param name="modelIndex">Index of model for this building</param>
-        /// <param name="descFields">int Array of used description fields</param>
-        /// <param name="buildIndex">Index in build Toolbar, FSS, F - first submenu, S - second submenu</param>
-        /// <param name="grade">Grade of the building, used to add upgrading</param>
-        /// <param name="upgradesIDs">List of buildings ids, that are upgradable to this one. You need to include all of them here in order. ID of this building should be zero</param>
-        public static ItemProto registerBuilding(int id, string name, string description, string iconPath,
-            int gridIndex, int modelIndex, int[] descFields, int buildIndex, int grade = 0,
-            int[] upgradesIDs = null)
-        {
-            ItemProto proto = registerItem(id, name, description, iconPath, gridIndex);
-
-            proto.Type = EItemType.Production;
-            proto.ModelIndex = modelIndex;
-            proto.ModelCount = 1;
-            proto.BuildIndex = buildIndex;
-            proto.BuildMode = 1;
-            proto.IsEntity = true;
-            proto.CanBuild = true;
-            proto.DescFields = descFields;
-            if (grade != 0 && upgradesIDs != null)
-            {
-                proto.Grade = grade;
-                for (int i = 0; i < upgradesIDs.Length; i++)
-                {
-                    int itemID = upgradesIDs[i];
-                    if (itemID == 0) continue;
-
-                    itemUpgradeList.Add(itemID, i + 1);
-                }
-
-                upgradesIDs[grade - 1] = proto.ID;
-                proto.Upgrades = upgradesIDs;
-            }
-
-            return proto;
-        }
-
-        /// <summary>
         /// Registers a RecipeProto
         /// </summary>
         /// <param name="id">UNIQUE id of your recipe</param>
@@ -346,14 +320,19 @@ namespace kremnev8
         /// <param name="outCounts">Array of output COUNTS</param>
         /// <param name="description">LocalizedKey of description of this item</param>
         /// <param name="techID">Tech id, which unlock this recipe</param>
-        public static void registerRecipe(int id, ERecipeType type, int time, int[] input, int[] inCounts,
+        public static RecipeProto registerRecipe(int id, ERecipeType type, int time, int[] input, int[] inCounts,
             int[] output,
-            int[] outCounts, string description, int techID = 1)
+            int[] outCounts, string description, int techID = 0)
         {
             if (output.Length > 0)
             {
-                ItemProto first = items[output[0]];
-                TechProto tech = LDB.techs.Select(techID);
+                ItemProto first = items.ContainsKey(output[0]) ? items[output[0]] : LDB.items.Select(output[0]);
+
+                TechProto tech = null;
+                if (techID != 0)
+                {
+                    tech = LDB.techs.Select(techID);
+                }
 
                 RecipeProto proto = new RecipeProto
                 {
@@ -374,29 +353,39 @@ namespace kremnev8
 
                 LDBTool.PreAddProto(ProtoType.Recipe, proto);
                 recipes.Add(id, proto);
+
+                return proto;
             }
+
+            throw new ArgumentException("Output array must not be empty");
         }
 
+        
+        
         /// <summary>
-        /// Registers a TechProto for a technology
+        /// Registers a TechProto for a technology.
+        /// Total amount of each jello is calculated like this: N = H*C/3600, where H - total hash count, C - items per minute of jello.
         /// </summary>
         /// <param name="id"> UNIQUE ID of the technology</param>
         /// <param name="name">LocalizedKey of name of the tech</param>
         /// <param name="description">LocalizedKey of description of the tech</param>
-        /// <param name="conclusion">Localizedkey of conclusion of the tech upon completion</param>
-        /// <param name="iconPath">Path to icon, starting from assets folder of your unity project</param>
-        /// <param name="IsLabTech">If the technology involves matrices or not</param>
+        /// <param name="conclusion">LocalizedKey of conclusion of the tech upon completion</param>
         /// <param name="PreTechs">Techs which lead to this tech</param>
-        /// <param name="Items">Items required to research the tech</param>
-        /// <param name="ItemPoints">Amount of items required to research the tech (unknown so far)</param>
-        /// <param name="HashNeeded">Number of hash needed required to research the tech (unknown so far)</param>
+        /// <param name="Jellos">Items required to research the tech</param>
+        /// <param name="ItemPoints">Amount of items per minute required to research the tech</param>
+        /// <param name="HashNeeded">Number of hashes needed required to research the tech</param>
         /// <param name="UnlockRecipes">Once the technology has completed, what recipes are unlocked</param>
         /// <param name="position">Vector2 position of the technology on the technology screen</param>
 
-        public static void registerTech(int id, String name, String description, String conclusion, String iconPath, bool IsLabTech, int[] PreTechs, int[] Items, int[] ItemPoints, long HashNeeded,
+        public static TechProto registerTech(int id, String name, String description, String conclusion, int[] PreTechs, int[] Jellos, int[] ItemPoints, long HashNeeded,
             int[] UnlockRecipes, Vector2 position)
 
         {
+            RecipeProto first = recipes.ContainsKey(UnlockRecipes[0]) ? recipes[UnlockRecipes[0]] : LDB.recipes.Select(UnlockRecipes[0]);
+
+            bool isLabTech = Jellos.Any(itemId => LabComponent.matrixIds.Contains(itemId));
+            
+            
             TechProto proto = new TechProto
             {
                 ID = id,
@@ -404,31 +393,31 @@ namespace kremnev8
                 Desc = description,
                 Published = true,
                 Conclusion = conclusion,
-                IconPath = iconPath,
-                IsLabTech = IsLabTech,
+                IconPath = first.IconPath,
+                IsLabTech = isLabTech,
                 PreTechs = PreTechs,
-                Items = Items,
+                Items = Jellos,
                 ItemPoints = ItemPoints,
                 HashNeeded = HashNeeded,
                 UnlockRecipes = UnlockRecipes,
-                AddItems = new int[] { },
+                AddItems = new int[] { }, // what items to gift after research is done
                 AddItemCounts = new int[] { },
                 Position = position,
-                PreTechsImplicit = new int[] { },
-                UnlockFunctions = new int[] { },
+                PreTechsImplicit = new int[] { }, //Those funky implicit requirements
+                UnlockFunctions = new int[] { }, //Upgrades.
                 UnlockValues = new double[] { },
             };
 
-            TechProto OldTech;
             for (int i = 0; i < proto.PreTechs.Length; i++)
             {
-                OldTech = LDB.techs.Select(PreTechs[i]);
+                TechProto OldTech = LDB.techs.Select(PreTechs[i]);
                 techUpdateList.Add(OldTech, proto); //OldTech = Tech whose PostTechArray needs editing
             }
 
             LDBTool.PreAddProto(ProtoType.Tech, proto);
             techs.Add(id, proto);
 
+            return proto;
         }
 
         /// <summary>
