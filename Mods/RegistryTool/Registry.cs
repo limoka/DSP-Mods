@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -19,6 +19,9 @@ namespace kremnev8
         public static Dictionary<int, RecipeProto> recipes = new Dictionary<int, RecipeProto>();
         public static Dictionary<int, StringProto> strings = new Dictionary<int, StringProto>();
 
+        public static Dictionary<int, TechProto> techs = new Dictionary<int, TechProto>();
+        public static Dictionary<TechProto, TechProto> techUpdateList = new Dictionary<TechProto, TechProto>();
+
         public static Dictionary<int, ModelProto> models = new Dictionary<int, ModelProto>();
         public static Dictionary<string, Material[]> modelMats = new Dictionary<string, Material[]>();
 
@@ -29,8 +32,8 @@ namespace kremnev8
         public static ManualLogSource LogSource;
 
         public static Action onLoadingFinished;
-        
-        
+
+
         private static int[] textureNames;
 
         /// <summary>
@@ -52,7 +55,7 @@ namespace kremnev8
             int MSTex = Shader.PropertyToID("_MS_Tex");
             int EmissionTex = Shader.PropertyToID("_EmissionTex");
 
-            textureNames = new[] {MainTex, NormalTex, MSTex, EmissionTex};
+            textureNames = new[] { MainTex, NormalTex, MSTex, EmissionTex };
 
 
             FileInfo folder = new FileInfo($"{pluginfolder}/Verta/");
@@ -80,7 +83,8 @@ namespace kremnev8
 
             LDBTool.PostAddDataAction += onPostAdd;
             LDBTool.EditDataAction += EditProto;
-            
+            LDBTool.PostAddDataAction += PostTechEdit;
+
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
         }
 
@@ -97,7 +101,7 @@ namespace kremnev8
                 {
                     pdesc.lodMaterials[0][i] = mats[i];
                 }
-                
+
                 LDB.models.modelArray[kv.Value.ID] = kv.Value;
             }
 
@@ -109,6 +113,11 @@ namespace kremnev8
             foreach (var kv in recipes)
             {
                 kv.Value.Preload(kv.Value.index);
+            }
+            foreach (var kv in techs)
+            {
+                kv.Value.Preload();
+                kv.Value.Preload2();
             }
 
             onLoadingFinished?.Invoke();
@@ -140,6 +149,24 @@ namespace kremnev8
                     }
                 }
             }
+        }
+
+        //Edits existing techs to be linked up to new technologies (PostTechArray)
+        private static void PostTechEdit()
+        {
+
+            TechProto OldTech;
+            TechProto NewTech;
+
+
+            foreach (var kv in techUpdateList)
+            {
+                OldTech = kv.Key;
+                NewTech = kv.Value;
+
+                OldTech.postTechArray = OldTech.postTechArray.AddToArray(NewTech);
+            }
+            LogSource.LogInfo("Post Tech Edits have completed!");
         }
 
         //Finds first available id
@@ -185,13 +212,13 @@ namespace kremnev8
 
             Material mainMat = new Material(Shader.Find(shaderName))
             {
-                shaderKeywords = keywords ?? new[] {"_ENABLE_VFINST"},
-                color = newCol, 
+                shaderKeywords = keywords ?? new[] { "_ENABLE_VFINST" },
+                color = newCol,
                 name = materialName
             };
 
             if (textures == null) return mainMat;
-            
+
             for (int i = 0; i < textures.Length; i++)
             {
                 if (i >= textureNames.Length) continue;
@@ -204,7 +231,7 @@ namespace kremnev8
         }
 
         //All of these register a specified proto in LDBTool
-        
+
         /// <summary>
         /// Registers a ModelProto
         /// </summary>
@@ -252,7 +279,7 @@ namespace kremnev8
                 Name = name,
                 Description = description,
                 GridIndex = gridIndex,
-                DescFields = new[] {1},
+                DescFields = new[] { 1 },
                 ID = id
             };
 
@@ -306,7 +333,7 @@ namespace kremnev8
 
             return proto;
         }
-        
+
         /// <summary>
         /// Registers a RecipeProto
         /// </summary>
@@ -348,6 +375,60 @@ namespace kremnev8
                 LDBTool.PreAddProto(ProtoType.Recipe, proto);
                 recipes.Add(id, proto);
             }
+        }
+
+        /// <summary>
+        /// Registers a TechProto for a technology
+        /// </summary>
+        /// <param name="id"> UNIQUE ID of the technology</param>
+        /// <param name="name">LocalizedKey of name of the tech</param>
+        /// <param name="description">LocalizedKey of description of the tech</param>
+        /// <param name="conclusion">Localizedkey of conclusion of the tech upon completion</param>
+        /// <param name="iconPath">Path to icon, starting from assets folder of your unity project</param>
+        /// <param name="IsLabTech">If the technology involves matrices or not</param>
+        /// <param name="PreTechs">Techs which lead to this tech</param>
+        /// <param name="Items">Items required to research the tech</param>
+        /// <param name="ItemPoints">Amount of items required to research the tech (unknown so far)</param>
+        /// <param name="HashNeeded">Number of hash needed required to research the tech (unknown so far)</param>
+        /// <param name="UnlockRecipes">Once the technology has completed, what recipes are unlocked</param>
+        /// <param name="position">Vector2 position of the technology on the technology screen</param>
+
+        public static void registerTech(int id, String name, String description, String conclusion, String iconPath, bool IsLabTech, int[] PreTechs, int[] Items, int[] ItemPoints, long HashNeeded,
+            int[] UnlockRecipes, Vector2 position)
+
+        {
+            TechProto proto = new TechProto
+            {
+                ID = id,
+                Name = name,
+                Desc = description,
+                Published = true,
+                Conclusion = conclusion,
+                IconPath = iconPath,
+                IsLabTech = IsLabTech,
+                PreTechs = PreTechs,
+                Items = Items,
+                ItemPoints = ItemPoints,
+                HashNeeded = HashNeeded,
+                UnlockRecipes = UnlockRecipes,
+                AddItems = new int[] { },
+                AddItemCounts = new int[] { },
+                Position = position,
+                PreTechsImplicit = new int[] { },
+                UnlockFunctions = new int[] { },
+                UnlockValues = new double[] { },
+            };
+
+            TechProto OldTech;
+            for (int i = 0; i < proto.PreTechs.Length; i++)
+            {
+                OldTech = LDB.techs.Select(PreTechs[i]);
+                techUpdateList.Add(OldTech, proto); //OldTech = Tech whose PostTechArray needs editing
+            }
+
+            LDBTool.PreAddProto(ProtoType.Tech, proto);
+            techs.Add(id, proto);
+
         }
 
         /// <summary>
@@ -394,7 +475,7 @@ namespace kremnev8
         }
     }
 
-    
+
     //LoadStatic
 
     [HarmonyPatch(typeof(StorageComponent), "LoadStatic")]
@@ -416,7 +497,7 @@ namespace kremnev8
         }
     }
 
-    [HarmonyPatch(typeof(Resources), "Load", new Type[] {typeof(string), typeof(Type)})]
+    [HarmonyPatch(typeof(Resources), "Load", new Type[] { typeof(string), typeof(Type) })]
     static class ResourcesPatch
     {
         [HarmonyPrefix]
@@ -431,8 +512,8 @@ namespace kremnev8
                     if (myPrefab != null)
                     {
                         Registry.LogSource.LogDebug("Loading known asset " + path + $" ({(myPrefab != null ? "Success" : "Failure")})");
-                        
-                        MeshRenderer[] renderers = ((GameObject) myPrefab).GetComponentsInChildren<MeshRenderer>();
+
+                        MeshRenderer[] renderers = ((GameObject)myPrefab).GetComponentsInChildren<MeshRenderer>();
                         foreach (MeshRenderer renderer in renderers)
                         {
                             Material[] newMats = new Material[renderer.sharedMaterials.Length];
@@ -453,9 +534,9 @@ namespace kremnev8
                 {
                     UnityEngine.Object mySprite =
                         Registry.bundle.LoadAsset(path + ".png", systemTypeInstance);
-                    
+
                     Registry.LogSource.LogDebug("Loading known asset " + path + $" ({(mySprite != null ? "Success" : "Failure")})");
-                    
+
                     __result = mySprite;
                     return false;
                 }
