@@ -21,7 +21,7 @@ namespace kremnev8
         public static Dictionary<int, StringProto> strings = new Dictionary<int, StringProto>();
 
         public static Dictionary<int, TechProto> techs = new Dictionary<int, TechProto>();
-        public static Dictionary<TechProto, TechProto> techUpdateList = new Dictionary<TechProto, TechProto>();
+        public static Dictionary<int, TechProto> techUpdateList = new Dictionary<int, TechProto>();
 
         public static Dictionary<int, ModelProto> models = new Dictionary<int, ModelProto>();
         public static Dictionary<string, Material[]> modelMats = new Dictionary<string, Material[]>();
@@ -38,7 +38,7 @@ namespace kremnev8
         private static int[] textureNames;
 
         /// <summary>
-        ///     Initialize Registry with needed data
+        /// Initialize Registry with needed data
         /// </summary>
         /// <param name="bundleName">Name of bundle to load</param>
         /// <param name="keyword">UNIQUE keyword of your mod</param>
@@ -56,7 +56,7 @@ namespace kremnev8
             int MSTex = Shader.PropertyToID("_MS_Tex");
             int EmissionTex = Shader.PropertyToID("_EmissionTex");
 
-            textureNames = new[] { MainTex, NormalTex, MSTex, EmissionTex };
+            textureNames = new[] {MainTex, NormalTex, MSTex, EmissionTex};
 
 
             FileInfo folder = new FileInfo($"{pluginfolder}/Verta/");
@@ -97,9 +97,12 @@ namespace kremnev8
                 PrefabDesc pdesc = kv.Value.prefabDesc;
 
                 Material[] mats = pdesc.materials;
-                for (int i = 0; i < pdesc.lodMaterials[0].Length; i++)
+                for (int i = 0; i < pdesc.lodCount; i++)
                 {
-                    pdesc.lodMaterials[0][i] = mats[i];
+                    for (int j = 0; j < pdesc.lodMaterials[i].Length; j++)
+                    {
+                        pdesc.lodMaterials[i][j] = mats[j];
+                    }
                 }
 
                 LDB.models.modelArray[kv.Value.ID] = kv.Value;
@@ -114,7 +117,7 @@ namespace kremnev8
             {
                 kv.Value.Preload(kv.Value.index);
             }
-            
+
             foreach (var kv in techs)
             {
                 kv.Value.Preload();
@@ -123,10 +126,8 @@ namespace kremnev8
 
             foreach (var kv in techUpdateList)
             {
-                var OldTech = kv.Key;
-                var NewTech = kv.Value;
-
-                OldTech.postTechArray = OldTech.postTechArray.AddToArray(NewTech);
+                TechProto OldTech = LDB.techs.Select(kv.Key);
+                OldTech.postTechArray = OldTech.postTechArray.AddToArray(kv.Value);
             }
 
             onLoadingFinished?.Invoke();
@@ -160,7 +161,7 @@ namespace kremnev8
             }
         }
 
-        //Finds first available id
+        //DO NOT use this function, i think it should be removed!
         private static int findAvailableID<T>(int startIndex, ProtoSet<T> set, Dictionary<int, T> list)
             where T : Proto
         {
@@ -194,16 +195,17 @@ namespace kremnev8
         /// </summary>
         /// <param name="shaderName">Name of shader to use</param>
         /// <param name="materialName">Name of finished material, can be anything</param>
-        /// <param name="color">Tint color</param>
+        /// <param name="color">Tint color (In html format, #RRGGBBAA)</param>
         /// <param name="textures">Array of texture names in this order: albedo, normal, metallic, emission</param>
         /// <param name="keywords">Array of keywords to use</param>
-        public static Material CreateMaterial(string shaderName, string materialName, string color, string[] textures = null, string[] keywords = null)
+        public static Material CreateMaterial(string shaderName, string materialName, string color,
+            string[] textures = null, string[] keywords = null)
         {
             ColorUtility.TryParseHtmlString(color, out Color newCol);
 
             Material mainMat = new Material(Shader.Find(shaderName))
             {
-                shaderKeywords = keywords ?? new[] { "_ENABLE_VFINST" },
+                shaderKeywords = keywords ?? new[] {"_ENABLE_VFINST"},
                 color = newCol,
                 name = materialName
             };
@@ -234,7 +236,6 @@ namespace kremnev8
         /// <param name="buildIndex">Index in build Toolbar, FSS, F - first submenu, S - second submenu</param>
         /// <param name="grade">Grade of the building, used to add upgrading</param>
         /// <param name="upgradesIDs">List of buildings ids, that are upgradable to this one. You need to include all of them here in order. ID of this building should be zero</param>
-
         public static ModelProto registerModel(int id, ItemProto proto, string prefabPath, Material[] mats,
             int[] descFields, int buildIndex, int grade = 0, int[] upgradesIDs = null)
         {
@@ -298,7 +299,7 @@ namespace kremnev8
                 Name = name,
                 Description = description,
                 GridIndex = gridIndex,
-                DescFields = new[] { 1 },
+                DescFields = new[] {1},
                 ID = id
             };
 
@@ -329,7 +330,7 @@ namespace kremnev8
                 ItemProto first = items.ContainsKey(output[0]) ? items[output[0]] : LDB.items.Select(output[0]);
 
                 TechProto tech = null;
-                if (techID != 0)
+                if (techID != 0 && LDB.techs.Exist(techID))
                 {
                     tech = LDB.techs.Select(techID);
                 }
@@ -360,32 +361,30 @@ namespace kremnev8
             throw new ArgumentException("Output array must not be empty");
         }
 
-        
-        
+
         /// <summary>
         /// Registers a TechProto for a technology.
         /// Total amount of each jello is calculated like this: N = H*C/3600, where H - total hash count, C - items per minute of jello.
         /// </summary>
-        /// <param name="id"> UNIQUE ID of the technology</param>
+        /// <param name="id"> UNIQUE ID of the technology. Note that if id > 2000 tech will be on upgrades page.</param>
         /// <param name="name">LocalizedKey of name of the tech</param>
         /// <param name="description">LocalizedKey of description of the tech</param>
         /// <param name="conclusion">LocalizedKey of conclusion of the tech upon completion</param>
-        /// <param name="PreTechs">Techs which lead to this tech</param>
-        /// <param name="Jellos">Items required to research the tech</param>
-        /// <param name="ItemPoints">Amount of items per minute required to research the tech</param>
-        /// <param name="HashNeeded">Number of hashes needed required to research the tech</param>
-        /// <param name="UnlockRecipes">Once the technology has completed, what recipes are unlocked</param>
+        /// <param name="iconPath">Path to icon, starting from assets folder of your unity project</param>
+        /// <param name="preTechs">Techs which lead to this tech</param>
+        /// <param name="jellos">Items required to research the tech</param>
+        /// <param name="jelloRate">Amount of items per minute required to research the tech</param>
+        /// <param name="hashNeeded">Number of hashes needed required to research the tech</param>
+        /// <param name="unlockRecipes">Once the technology has completed, what recipes are unlocked</param>
         /// <param name="position">Vector2 position of the technology on the technology screen</param>
-
-        public static TechProto registerTech(int id, String name, String description, String conclusion, int[] PreTechs, int[] Jellos, int[] ItemPoints, long HashNeeded,
-            int[] UnlockRecipes, Vector2 position)
+        public static TechProto registerTech(int id, string name, string description, string conclusion,
+            string iconPath, int[] preTechs, int[] jellos, int[] jelloRate, long hashNeeded,
+            int[] unlockRecipes, Vector2 position)
 
         {
-            RecipeProto first = recipes.ContainsKey(UnlockRecipes[0]) ? recipes[UnlockRecipes[0]] : LDB.recipes.Select(UnlockRecipes[0]);
+            bool isLabTech = jellos.Any(itemId => LabComponent.matrixIds.Contains(itemId));
 
-            bool isLabTech = Jellos.Any(itemId => LabComponent.matrixIds.Contains(itemId));
-            
-            
+
             TechProto proto = new TechProto
             {
                 ID = id,
@@ -393,13 +392,13 @@ namespace kremnev8
                 Desc = description,
                 Published = true,
                 Conclusion = conclusion,
-                IconPath = first.IconPath,
+                IconPath = iconPath,
                 IsLabTech = isLabTech,
-                PreTechs = PreTechs,
-                Items = Jellos,
-                ItemPoints = ItemPoints,
-                HashNeeded = HashNeeded,
-                UnlockRecipes = UnlockRecipes,
+                PreTechs = preTechs,
+                Items = jellos,
+                ItemPoints = jelloRate,
+                HashNeeded = hashNeeded,
+                UnlockRecipes = unlockRecipes,
                 AddItems = new int[] { }, // what items to gift after research is done
                 AddItemCounts = new int[] { },
                 Position = position,
@@ -407,11 +406,11 @@ namespace kremnev8
                 UnlockFunctions = new int[] { }, //Upgrades.
                 UnlockValues = new double[] { },
             };
-
-            for (int i = 0; i < proto.PreTechs.Length; i++)
+            
+            foreach (int tech in preTechs)
             {
-                TechProto OldTech = LDB.techs.Select(PreTechs[i]);
-                techUpdateList.Add(OldTech, proto); //OldTech = Tech whose PostTechArray needs editing
+                //Do not do LDB.techs.Select here, proto could be not added yet.
+                techUpdateList.Add(tech, proto);
             }
 
             LDBTool.PreAddProto(ProtoType.Tech, proto);
@@ -465,12 +464,12 @@ namespace kremnev8
     }
 
 
-    //LoadStatic
-
+    //Fix item stack size not working
     [HarmonyPatch(typeof(StorageComponent), "LoadStatic")]
     static class StorageComponentPatch
     {
         private static bool staticLoad;
+
         [HarmonyPostfix]
         public static void Postfix()
         {
@@ -481,12 +480,14 @@ namespace kremnev8
                     StorageComponent.itemIsFuel[kv.Key] = (kv.Value.HeatValue > 0L);
                     StorageComponent.itemStackCount[kv.Key] = kv.Value.StackSize;
                 }
+
                 staticLoad = true;
             }
         }
     }
 
-    [HarmonyPatch(typeof(Resources), "Load", new Type[] { typeof(string), typeof(Type) })]
+    //Loading custom resources
+    [HarmonyPatch(typeof(Resources), "Load", new Type[] {typeof(string), typeof(Type)})]
     static class ResourcesPatch
     {
         [HarmonyPrefix]
@@ -500,9 +501,10 @@ namespace kremnev8
                     UnityEngine.Object myPrefab = Registry.bundle.LoadAsset(path + ".prefab");
                     if (myPrefab != null)
                     {
-                        Registry.LogSource.LogDebug("Loading known asset " + path + $" ({(myPrefab != null ? "Success" : "Failure")})");
+                        Registry.LogSource.LogDebug("Loading known asset " + path +
+                                                    $" ({(myPrefab != null ? "Success" : "Failure")})");
 
-                        MeshRenderer[] renderers = ((GameObject)myPrefab).GetComponentsInChildren<MeshRenderer>();
+                        MeshRenderer[] renderers = ((GameObject) myPrefab).GetComponentsInChildren<MeshRenderer>();
                         foreach (MeshRenderer renderer in renderers)
                         {
                             Material[] newMats = new Material[renderer.sharedMaterials.Length];
@@ -524,7 +526,8 @@ namespace kremnev8
                     UnityEngine.Object mySprite =
                         Registry.bundle.LoadAsset(path + ".png", systemTypeInstance);
 
-                    Registry.LogSource.LogDebug("Loading known asset " + path + $" ({(mySprite != null ? "Success" : "Failure")})");
+                    Registry.LogSource.LogDebug("Loading known asset " + path +
+                                                $" ({(mySprite != null ? "Success" : "Failure")})");
 
                     __result = mySprite;
                     return false;
