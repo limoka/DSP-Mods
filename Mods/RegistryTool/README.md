@@ -38,11 +38,11 @@ copperWireConc
 //Registers a new item using set parameters and loads it into the game
 ItemProto wire = Registry.registerItem(10001, "copperWireName", "copperWireDesc", "assets/example/copper_wire", 1711);
 //Registers a new recipe using set parameters and loads it into the game
-Registry.registerRecipe(10001, ERecipeType.Assemble, 60, new[] { 1104 }, new[] { 2 }, new[] { wire.ID }, new[] { 1 }, "copperWireDesc"); 
+RecipeProto recipe = Registry.registerRecipe(10001, ERecipeType.Assemble, 60, new[] { 1104 }, new[] { 2 }, new[] { wire.ID }, new[] { 1 }, "copperWireDesc"); 
 
 //Registers a new technology using set parameters and loads it into the game
 TechProto tech = Registry.registerTech(1500, "copperWireName", "copperWireDesc", "copperWireConc", "assets/example/copper_wire", new[] {1},
-                new[] {1202}, new[] {30}, 1200, new int[] {}, new Vector2(9, -3));
+                new[] {1202}, new[] {30}, 1200, new [] {recipe.ID}, new Vector2(9, -3));
 
 ```
 
