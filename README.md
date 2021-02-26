@@ -1,14 +1,23 @@
 # DSP Mods
-Repo with source code for my mods. Also contains a mini guide on custom machine meshes and animations
+Repo with source code for my mods. Also contains a mini guide on custom machine meshes and animations; registering custom items, recipes, etc; adding custom UI.
 
-Check [Registry Tool](https://github.com/kremnev8/DSP-Mods/tree/master/Mods/RegistryTool) out. It is useful to quickly create new items, recipes, techs, etc.
+Check [Tools](https://github.com/kremnev8/DSP-Mods/tree/master/Mods/Tools) out. It is useful to quickly create new items, recipes, techs, etc.
 
-In the [Unity](https://github.com/kremnev8/DSP-Mods/tree/master/Unity/Editor) folder you can find needed scripts to create your own buildings. 
+In the [Unity](https://github.com/kremnev8/DSP-Mods/tree/master/Unity) folder you can find needed scripts and files to create your own buildings, and custom UI. 
+
+Scripts:
 * ExportAssetBundles script is used to force unity to build asset bundles. 
 * BetterMeshDataAsset makes sure that if you open MeshDataAsset in inspector nothing will break(Also is used to bake mesh data from Mesh object). 
 * AnimationBakerWindow is the baker.
 * EditorObjExporter can export unity meshes to obj file(Optional)
 * FixPrefabMeshes can POTENTIALLY(Always have a backup, just in case) fix some prefabs to be useful for baking animations. You will need to have all meshes used in game with their names intact imported in your project. Also you might need to fix prefab a bit after that. Unfortunately, it VERY likely will crash unity, so make sure to save everything before that happens.(Optional)
+* AssetRiddanceHelper script removes and adds textures, font, etc to help share prefabs without sharing ingame assets. Uses AssetMemory class to store its data.
+
+Shaders and materials:
+* text-alpha and widget-alpha shaders. These shaders were reverse engineered from original shaders and are used to make certain text and images glow. They only have only a few parameters: `_Multiplier`(default 5), `_AlphaPower`(default 2.2), `_Sharp`(default 1). I'm not particularly certain what these parameters do.
+
+Prefabs:
+* template prefab contains a bunch of different UI elements that are used frequently in ingame UIs. In order to use it you will need to use asset reasigner(Window->DSP Tools->Reassign assets). Make sure you imported all needed assets in your project. This prefab also uses some custom textures make by me(Find them in unity folder). Note that out of these elements dropdown is not from game, I made it completely from scratch since no machines ingame used a dropdown.
 
 ## Steps on making this all work
 1. Create unity project and either put Assembly-CSharp to reference in scripts or use [ThunderKit](https://github.com/PassivePicasso/ThunderKit) to automate that.
