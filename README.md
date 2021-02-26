@@ -19,7 +19,7 @@ Shaders and materials:
 Prefabs:
 * template prefab contains a bunch of different UI elements that are used frequently in ingame UIs. In order to use it you will need to use asset reasigner(Window->DSP Tools->Reassign assets). Make sure you imported all needed assets in your project. This prefab also uses some custom textures make by me(Find them in unity folder). Note that out of these elements dropdown is not from game, I made it completely from scratch since no machines ingame used a dropdown.
 
-## Steps on making this all work
+## Steps on setting up a devlopment evironment
 1. Create unity project and either put Assembly-CSharp to reference in scripts or use [ThunderKit](https://github.com/PassivePicasso/ThunderKit) to automate that.
 2. Extract or create needed assets(Models, animations, prefabs, etc)
 3. Fix extracted prefab so that there is no missing scripts and all meshes and materials(Although i'm still unable to compile ingame's shaders) are there
@@ -31,7 +31,12 @@ Prefabs:
 9. Write code and import everything in.
 
 Project view:
+
 ![Project view](https://i.imgur.com/RULexSP.png)
+
+UI Template prefab:
+
+![Template](https://i.imgur.com/WqDMmfF.png)
 
 ## Installation of example mod
 1. Download and unpack [BepInEx](https://github.com/BepInEx/BepInEx/releases) into game root directory
