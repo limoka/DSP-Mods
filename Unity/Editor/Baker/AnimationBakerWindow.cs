@@ -22,10 +22,11 @@ namespace UnityEditor
         private int frameCount = 0;
         private bool readyToBake = false;
         private bool lockSelection = false;
+        private bool bakeOnlyMesh = false;
 
         private float frameRate = 30f;
         private int frameStride;
-        
+
         private string meshDataPath = "MeshDatas";
         private string vertaPath = "Verta";
 
@@ -53,7 +54,7 @@ namespace UnityEditor
                 combine[i].transform = filters[i].transform.localToWorldMatrix;
                 combine[i].subMeshIndex = 0;
             }
-            
+
             for (int i = filters.Length; i < filters.Length + renderers.Length; i++)
             {
                 combine[i].mesh = new Mesh();
@@ -92,14 +93,14 @@ namespace UnityEditor
         {
             if (AnimationMode.InAnimationMode())
                 AnimationMode.StopAnimationMode();
-            
+
             // Wait for user to select a GameObject
             if (bakeObject == null)
             {
                 EditorGUILayout.HelpBox("Please select a GameObject", MessageType.Info);
                 return;
             }
-            
+
             if (buffer == null)
             {
                 buffer = new VertaBuffer();
@@ -109,18 +110,29 @@ namespace UnityEditor
             EditorGUILayout.LabelField("Selected object: " + bakeObject.name);
 
             modelName = EditorGUILayout.TextField("Model Name", modelName);
-            
-            animationClip = EditorGUILayout.ObjectField(animationClip, typeof(AnimationClip), false) as AnimationClip;
-            if (animationClip != null)
-            {
-                frameCount = GetFramesCount(animationClip);
-                EditorGUILayout.LabelField("Frames to bake: " + frameCount);
 
-                readyToBake = true;
+            bakeOnlyMesh = EditorGUILayout.Toggle("No animations", bakeOnlyMesh);
+
+
+            if (!bakeOnlyMesh)
+            {
+                animationClip =
+                    EditorGUILayout.ObjectField(animationClip, typeof(AnimationClip), false) as AnimationClip;
+                if (animationClip != null)
+                {
+                    frameCount = GetFramesCount(animationClip);
+                    EditorGUILayout.LabelField("Frames to bake: " + frameCount);
+                }
+            }else
+            {
+                frameCount = 1;
+                animationClip = null;
             }
 
+            readyToBake = (animationClip != null || bakeOnlyMesh) && !EditorApplication.isPlaying &&
+                          !modelName.Equals("");
 
-            if (GUILayout.Button("Bake mesh animations.") && readyToBake && !EditorApplication.isPlaying)
+            if (GUILayout.Button("Bake mesh animations.") && readyToBake)
             {
                 lockSelection = true;
                 BakeMesh();
@@ -135,19 +147,19 @@ namespace UnityEditor
             if (bakeObject == null)
                 return;
 
-            if (animationClip == null)
+            if (animationClip == null && !bakeOnlyMesh)
                 return;
 
             // There is a bug in AnimationMode.SampleAnimationClip which crashes
             // Unity if there is no valid controller attached
             Animator animator = bakeObject.GetComponent<Animator>();
-            if (animator != null && animator.runtimeAnimatorController == null)
+            if (animator != null && animator.runtimeAnimatorController == null && !bakeOnlyMesh)
                 return;
-            
+
             //Collect information about gameObject
             List<MeshFilter> tmpFilters = bakeObject.GetComponentsInChildren<MeshFilter>().ToList();
             List<SkinnedMeshRenderer> tmpMeshRenderers = new List<SkinnedMeshRenderer>();
-                
+
             for (int i = 0; i < tmpFilters.Count; i++)
             {
                 MeshFilter filter = tmpFilters[i];
@@ -159,14 +171,13 @@ namespace UnityEditor
                     tmpMeshRenderers.Add(meshRenderer);
                     i--;
                 }
-
             }
 
             filters = tmpFilters.ToArray();
             renderers = tmpMeshRenderers.ToArray();
 
             Mesh firstFrame = new Mesh();
-            
+
             EditorUtility.DisplayProgressBar("Mesh Animation Baker", "Baking", 0f);
 
             //Now bake
@@ -175,9 +186,11 @@ namespace UnityEditor
 
             for (int frame = 0; frame < frameCount; frame++)
             {
-                EditorUtility.DisplayProgressBar("Mesh Animation Baker", "Baking mesh animations", 1f * frame / frameCount);
+                EditorUtility.DisplayProgressBar("Mesh Animation Baker", "Baking mesh animations",
+                    1f * frame / frameCount);
 
-                AnimationMode.SampleAnimationClip(bakeObject, animationClip, frame / frameRate);
+                if (!bakeOnlyMesh)
+                    AnimationMode.SampleAnimationClip(bakeObject, animationClip, frame / frameRate);
                 Mesh bakedMesh = CombineMeshes(bakeObject);
 
                 if (!bufferReady)
@@ -192,16 +205,16 @@ namespace UnityEditor
                     int vertStart = i * buffer.vertexSize;
                     int globalVertStart = frameStride * frame + vertStart;
                     buffer.data[globalVertStart] = bakedMesh.vertices[i].x;
-                    buffer.data[globalVertStart+1] = bakedMesh.vertices[i].y;
-                    buffer.data[globalVertStart+2] = bakedMesh.vertices[i].z;
-                    
-                    buffer.data[globalVertStart+3] = bakedMesh.normals[i].x;
-                    buffer.data[globalVertStart+4] = bakedMesh.normals[i].y;
-                    buffer.data[globalVertStart+5] = bakedMesh.normals[i].z;
-                    
-                    buffer.data[globalVertStart+6] = bakedMesh.tangents[i].x;
-                    buffer.data[globalVertStart+7] = bakedMesh.tangents[i].y;
-                    buffer.data[globalVertStart+8] = bakedMesh.tangents[i].z;
+                    buffer.data[globalVertStart + 1] = bakedMesh.vertices[i].y;
+                    buffer.data[globalVertStart + 2] = bakedMesh.vertices[i].z;
+
+                    buffer.data[globalVertStart + 3] = bakedMesh.normals[i].x;
+                    buffer.data[globalVertStart + 4] = bakedMesh.normals[i].y;
+                    buffer.data[globalVertStart + 5] = bakedMesh.normals[i].z;
+
+                    buffer.data[globalVertStart + 6] = bakedMesh.tangents[i].x;
+                    buffer.data[globalVertStart + 7] = bakedMesh.tangents[i].y;
+                    buffer.data[globalVertStart + 8] = bakedMesh.tangents[i].z;
                 }
 
                 if (frame == 0)
@@ -209,32 +222,33 @@ namespace UnityEditor
                     firstFrame = bakedMesh;
                 }
             }
-            
+
             string filePath = Path.Combine(Application.dataPath, vertaPath);
 
             FileInfo fileInfo = new FileInfo(filePath);
             if (!Directory.Exists(fileInfo.Directory.FullName))
                 Directory.CreateDirectory(fileInfo.Directory.FullName);
-            
+
             filePath += $"/{modelName}.verta";
-            
-            buffer.SaveToFile(filePath);
-            
+
+            if (!bakeOnlyMesh)
+                buffer.SaveToFile(filePath);
+
             filePath = Path.Combine("Assets", meshDataPath);
 
             fileInfo = new FileInfo(filePath);
             if (!Directory.Exists(fileInfo.Directory.FullName))
                 Directory.CreateDirectory(fileInfo.Directory.FullName);
-            
+
             filePath += $"/{modelName}.asset";
 
             byte[] bytes = MeshDataAssetEditor.saveMeshToMeshAsset(firstFrame);
-            
+
             MeshDataAsset asset = new MeshDataAsset();
             asset.bytes = bytes;
-            
+
             AssetDatabase.CreateAsset(asset, filePath);
-            
+
             EditorUtility.ClearProgressBar();
 
             AnimationMode.EndSampling();

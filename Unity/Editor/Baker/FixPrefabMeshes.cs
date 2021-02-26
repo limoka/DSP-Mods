@@ -6,6 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor
 {
+#if UNITY_EDITOR
     public class FixPrefabMeshes
     {
         [MenuItem("Window/DSP Tools/Fix prefab(Can crash unity!)")]
@@ -113,4 +114,5 @@ namespace UnityEditor
             
         }
     }
+#endif
 }
