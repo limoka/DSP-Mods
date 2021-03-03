@@ -1,7 +1,7 @@
 # DSP Mods
 Repo with source code for my mods. Also contains a mini guide on custom machine meshes and animations; registering custom items, recipes, etc; adding custom UI.
 
-Check [Tools](https://github.com/kremnev8/DSP-Mods/tree/master/Mods/Tools) out. It is useful to quickly create new items, recipes, techs, etc.
+Check [Registry Tool](https://github.com/kremnev8/DSP-Mods/tree/master/Mods/Tools) out. It is useful to quickly create new items, recipes, techs, etc.
 
 In the [Unity](https://github.com/kremnev8/DSP-Mods/tree/master/Unity) folder you can find needed scripts and files to create your own buildings, and custom UI. 
 
