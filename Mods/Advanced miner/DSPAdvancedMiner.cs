@@ -19,7 +19,7 @@ using UnityEngine.UI;
 
 namespace DSPAdvancedMiner
 {
-    [BepInPlugin("org.kremnev8.plugin.dspadvancedminer", "DSP Advanced miner", "0.1.0.4")]
+    [BepInPlugin("org.kremnev8.plugin.dspadvancedminer", "DSP Advanced miner", "0.1.0.5")]
     public class DSPAdvancedMiner : BaseUnityPlugin
     {
         public static ManualLogSource logger;
@@ -64,8 +64,8 @@ namespace DSPAdvancedMiner
                 new[] {2301, 0});
 
             Registry.registerRecipe(105, ERecipeType.Assemble, 60, new[] {2301, 1106, 1303, 1206}, new[] {1, 4, 2, 2},
-                new[] {miner.ID}, new[] {1}, "advancedMiningDrillDesc", 1202);
-
+               new[] {miner.ID}, new[] {1}, "advancedMiningDrillDesc", 1202);
+            
 
             logger.LogInfo("Advanced Miner mod is initialized!");
 
@@ -97,7 +97,6 @@ namespace DSPAdvancedMiner
             return radius;
         }
     }
-
 
     [HarmonyPatch(typeof(PlayerAction_Build), "CheckBuildConditions")]
     static class PlayerAction_BuildPatch
@@ -153,19 +152,19 @@ namespace DSPAdvancedMiner
     static class PlanetFactoryPatch
     {
         [HarmonyPostfix]
-        public static void Postfix(int id, ItemProto newProto, PlanetFactory __instance)
+        public static void Postfix(int entityId, ItemProto newProto, PlanetFactory __instance)
         {
-            if (id == 0 || __instance.entityPool[id].id == 0) return;
-            if (__instance.entityPool[id].minerId <= 0) return;
-            MinerComponent component = __instance.factorySystem.minerPool[__instance.entityPool[id].minerId];
+            if (entityId == 0 || __instance.entityPool[entityId].id == 0) return;
+            if (__instance.entityPool[entityId].minerId <= 0) return;
+            MinerComponent component = __instance.factorySystem.minerPool[__instance.entityPool[entityId].minerId];
 
             if (component.type != EMinerType.Vein) return;
 
             PrefabDesc desc = newProto.prefabDesc;
 
             Pose pose;
-            pose.position = __instance.entityPool[id].pos;
-            pose.rotation = __instance.entityPool[id].rot;
+            pose.position = __instance.entityPool[entityId].pos;
+            pose.rotation = __instance.entityPool[entityId].rot;
 
             int[] tmp_ids = new int[256];
             Vector3 vector3 = pose.position + pose.forward * -1.2f;
@@ -211,7 +210,7 @@ namespace DSPAdvancedMiner
             }
 
             component.ArrageVeinArray();
-            __instance.factorySystem.minerPool[__instance.entityPool[id].minerId] = component;
+            __instance.factorySystem.minerPool[__instance.entityPool[entityId].minerId] = component;
         }
     }
 }
