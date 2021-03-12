@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System;
+using UnityEngine.SceneManagement;
 
 namespace UnityEditor
 {
@@ -28,7 +29,7 @@ namespace UnityEditor
 	public string textureName;
 }
  
-public class EditorObjExporter : ScriptableObject
+public class EditorObjExporter : EditorWindow
 {
 	private static int vertexOffset = 0;
 	private static int normalOffset = 0;
@@ -38,8 +39,37 @@ public class EditorObjExporter : ScriptableObject
 	//User should probably be able to change this. It is currently left as an excercise for
 	//the reader.
 	private static string targetFolder = "Assets/ExportedObj";
+	string fileName;
+
+	public Action onFileNameSelected;
+
+	public EditorObjExporter(string defName)
+	{
+		fileName = defName;
+		minSize = new Vector2(300, 70);
+		maxSize = new Vector2(300, 70);
+		titleContent.text = "Enter file name";
+	}
  
- 
+	void OnGUI()
+	{
+		fileName = EditorGUILayout.TextField("File name", fileName);
+	
+		GUILayout.BeginHorizontal();
+
+		if (GUILayout.Button("Ok"))
+		{
+			onFileNameSelected?.Invoke();
+			Close();
+		}
+
+		if (GUILayout.Button("Cancel"))
+			Close();
+		
+		GUILayout.EndHorizontal();
+	}
+
+
 	private static string MeshToString(MeshFilter mf, Dictionary<string, ObjMaterial> materialList) 
 	{
 		Mesh m = mf.sharedMesh;
@@ -294,18 +324,26 @@ public class EditorObjExporter : ScriptableObject
 			{
 				mf[i] = (MeshFilter)mfList[i];
 			}
+			
+			EditorObjExporter window = new EditorObjExporter(SceneManager.GetActiveScene().name + "_" + exportedObjects);
+
+
+			window.onFileNameSelected += () =>
+			{
+				string filename = window.fileName;
  
-			string filename = EditorSceneManager.GetActiveScene().name + "_" + exportedObjects;
+				int stripIndex = filename.LastIndexOf("/");
  
-			int stripIndex = filename.LastIndexOf("/");
+				if (stripIndex >= 0)
+					filename = filename.Substring(stripIndex + 1).Trim();
  
-			if (stripIndex >= 0)
-				filename = filename.Substring(stripIndex + 1).Trim();
- 
-			MeshesToFile(mf, targetFolder, filename);
+				MeshesToFile(mf, targetFolder, filename);
  
  
-			EditorUtility.DisplayDialog("Objects exported", "Exported " + exportedObjects + " objects to " + filename, "");
+				EditorUtility.DisplayDialog("Objects exported", "Exported " + exportedObjects + " objects to " + filename, "");
+			};
+			
+			window.ShowUtility();
 		}
 		else
 			EditorUtility.DisplayDialog("Objects not exported", "Make sure at least some of your selected objects have mesh filters!", "");

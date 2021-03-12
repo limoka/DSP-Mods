@@ -12,17 +12,23 @@ namespace UnityEditor
     public class AnimationBakerWindow : EditorWindow
     {
         private GameObject bakeObject;
+        
+        
         private MeshFilter[] filters;
+        private MeshRenderer[] basicRenderers;
         private SkinnedMeshRenderer[] renderers;
 
+        private Material[] materials;
+
         private VertaBuffer buffer;
-        private bool bufferReady = false;
+        private bool bufferReady;
 
         private AnimationClip animationClip;
-        private int frameCount = 0;
-        private bool readyToBake = false;
-        private bool lockSelection = false;
-        private bool bakeOnlyMesh = false;
+        private int frameCount;
+        private bool readyToBake;
+        private bool lockSelection;
+        private bool bakeOnlyMesh;
+        private bool debugMeshOutput;
 
         private float frameRate = 30f;
         private int frameStride;
@@ -35,19 +41,22 @@ namespace UnityEditor
         [MenuItem("Window/DSP Tools/Verta Animation Baker", false)]
         public static void DoWindow()
         {
-            var window = GetWindowWithRect<AnimationBakerWindow>(new Rect(0, 0, 300, 100));
+            var window = GetWindowWithRect<AnimationBakerWindow>(new Rect(0, 0, 300, 130));
+            window.SetBakeObject(Selection.activeGameObject);
             window.Show();
         }
 
-        //Combine all meshes together
-        public Mesh CombineMeshes(GameObject gameObject)
+        public AnimationBakerWindow()
         {
-            //Temporarily set position to zero to make matrix math easier
-            Vector3 position = gameObject.transform.position;
-            gameObject.transform.position = Vector3.zero;
+            titleContent.text = "Animation Baker";
+        }
 
+        //Combine all meshes together
+        public Mesh CombineSimpleMeshes(GameObject gameObject)
+        {
             //Get all mesh filters and combine
             CombineInstance[] combine = new CombineInstance[filters.Length + renderers.Length];
+            
             for (int i = 0; i < filters.Length; i++)
             {
                 combine[i].mesh = filters[i].sharedMesh;
@@ -66,8 +75,88 @@ namespace UnityEditor
             Mesh mesh = new Mesh();
             mesh.CombineMeshes(combine, true, true);
 
-            //Return to original position
-            gameObject.transform.position = position;
+            return mesh;
+        }
+        
+        public Mesh CombineMeshes(GameObject gameObject)
+        {
+            //Get all mesh filters and combine
+            //CombineInstance[] combine = new CombineInstance[filters.Length];
+
+            List<CombineInstance> combine = new List<CombineInstance>();
+            List<Mesh> subMeshes = new List<Mesh>();
+            Mesh mesh;
+
+            foreach (Material mat in materials)
+            {
+                for (int i = 0; i < filters.Length; i++)
+                {
+                    int submesh = -1;
+                    for (int j = 0; j < basicRenderers[i].sharedMaterials.Length; j++)
+                    {
+                        if (basicRenderers[i].sharedMaterials[j] != mat) continue;
+                        
+                        submesh = j;
+                        break;
+                    }
+
+                    if (submesh == -1) continue;
+                    
+                    CombineInstance inst = new CombineInstance
+                    {
+                        mesh = filters[i].sharedMesh,
+                        transform = filters[i].transform.localToWorldMatrix,
+                        subMeshIndex = submesh
+                    };
+                    combine.Add(inst);
+                }
+                
+                foreach (SkinnedMeshRenderer renderer in renderers)
+                {
+                    int submesh = -1;
+                    for (int j = 0; j < renderer.sharedMaterials.Length; j++)
+                    {
+                        if (renderer.sharedMaterials[j] != mat) continue;
+                        
+                        submesh = j;
+                        break;
+                    }
+
+                    if (submesh == -1) continue;
+
+                    Mesh bakedMesh = new Mesh();
+                    renderer.BakeMesh(bakedMesh);
+                    
+                    CombineInstance inst = new CombineInstance
+                    {
+                        mesh = bakedMesh,
+                        transform = renderer.transform.localToWorldMatrix,
+                        subMeshIndex = submesh
+                    };
+                    combine.Add(inst);
+                }
+                
+                mesh = new Mesh();
+                mesh.CombineMeshes(combine.ToArray(), true, true);
+                subMeshes.Add(mesh);
+                combine.Clear();
+            }
+
+            if (subMeshes.Count == 1)
+                return subMeshes[0];
+
+            foreach (Mesh submesh in subMeshes)
+            {
+                CombineInstance inst = new CombineInstance
+                {
+                    mesh = submesh
+                };
+                combine.Add(inst);
+
+            }
+
+            mesh = new Mesh();
+            mesh.CombineMeshes(combine.ToArray(), false, false);
 
             return mesh;
         }
@@ -83,9 +172,26 @@ namespace UnityEditor
         {
             if (!lockSelection)
             {
-                bakeObject = Selection.activeGameObject;
-                Repaint();
+                SetBakeObject(Selection.activeGameObject);
             }
+        }
+
+        public void SetBakeObject(GameObject newTarget)
+        {
+            if (modelName.Equals("") || bakeObject != null && modelName.Equals(bakeObject.name))
+            {
+                modelName = newTarget.name;
+            }
+
+            Animation animation = newTarget.GetComponent<Animation>();
+            if (animation != null && animation.clip != null)
+            {
+                animationClip = animation.clip;
+            }
+            
+
+            bakeObject = newTarget;
+            Repaint();
         }
 
         // Main editor window
@@ -112,6 +218,8 @@ namespace UnityEditor
             modelName = EditorGUILayout.TextField("Model Name", modelName);
 
             bakeOnlyMesh = EditorGUILayout.Toggle("No animations", bakeOnlyMesh);
+            
+            debugMeshOutput = EditorGUILayout.Toggle("Output debug mesh", debugMeshOutput);
 
 
             if (!bakeOnlyMesh)
@@ -126,7 +234,6 @@ namespace UnityEditor
             }else
             {
                 frameCount = 1;
-                animationClip = null;
             }
 
             readyToBake = (animationClip != null || bakeOnlyMesh) && !EditorApplication.isPlaying &&
@@ -174,7 +281,25 @@ namespace UnityEditor
             }
 
             filters = tmpFilters.ToArray();
+            basicRenderers = filters.Select(filter => filter.GetComponent<MeshRenderer>()).ToArray();
+            List<Material> _materials = new List<Material>();
+            foreach (MeshRenderer renderer in basicRenderers)
+            {
+                foreach (Material mat in renderer.sharedMaterials)
+                {
+                    if (!_materials.Contains(mat))
+                    {
+                        _materials.Add(mat);
+                    }
+                }
+            }
+
+            materials = _materials.ToArray();
             renderers = tmpMeshRenderers.ToArray();
+            
+            //Temporarily set position to zero to make matrix math easier
+            Vector3 position = bakeObject.transform.position;
+            bakeObject.transform.position = Vector3.zero;
 
             Mesh firstFrame = new Mesh();
 
@@ -222,6 +347,9 @@ namespace UnityEditor
                     firstFrame = bakedMesh;
                 }
             }
+            
+            //Return to original position
+            bakeObject.transform.position = position;
 
             string filePath = Path.Combine(Application.dataPath, vertaPath);
 
@@ -240,14 +368,16 @@ namespace UnityEditor
             if (!Directory.Exists(fileInfo.Directory.FullName))
                 Directory.CreateDirectory(fileInfo.Directory.FullName);
 
-            filePath += $"/{modelName}.asset";
+            if (debugMeshOutput)
+                AssetDatabase.CreateAsset(firstFrame, filePath + $"/{modelName}-mesh.asset");
 
             byte[] bytes = MeshDataAssetEditor.saveMeshToMeshAsset(firstFrame);
 
             MeshDataAsset asset = new MeshDataAsset();
             asset.bytes = bytes;
+            asset.materials = materials.ToArray();
 
-            AssetDatabase.CreateAsset(asset, filePath);
+            AssetDatabase.CreateAsset(asset, filePath + $"/{modelName}.asset");
 
             EditorUtility.ClearProgressBar();
 
