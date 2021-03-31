@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define USELDBTOOL
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,11 +9,9 @@ using BepInEx.Logging;
 using HarmonyLib;
 using UnityEngine;
 using Logger = BepInEx.Logging.Logger;
-
-//#define USELDBTOOL
-
 #if USELDBTOOL
 using xiaoye97;
+
 #endif
 
 namespace kremnev8
@@ -90,8 +90,11 @@ namespace kremnev8
             LDBTool.PostAddDataAction += onPostAdd;
             LDBTool.EditDataAction += EditProto;
 #endif
-
-            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), keyword);
+            
+            Harmony.CreateAndPatchAll(typeof(UIBuildMenuPatch), keyword);
+            Harmony.CreateAndPatchAll(typeof(StorageComponentPatch), keyword);
+            Harmony.CreateAndPatchAll(typeof(ResourcesPatch), keyword);
+            Harmony.CreateAndPatchAll(typeof(VertaBufferPatch), keyword);
         }
 
         //Post register fixups
@@ -102,7 +105,11 @@ namespace kremnev8
                 kv.Value.Preload();
                 PrefabDesc pdesc = kv.Value.prefabDesc;
 
-                Material[] mats = pdesc.materials;
+                if (!modelMats.ContainsKey(kv.Value.PrefabPath)) continue;
+
+                Material[] mats = modelMats[kv.Value.PrefabPath];
+
+                //Material[] mats = pdesc.materials;
                 for (int i = 0; i < pdesc.lodCount; i++)
                 {
                     for (int j = 0; j < pdesc.lodMaterials[i].Length; j++)
@@ -110,7 +117,6 @@ namespace kremnev8
                         pdesc.lodMaterials[i][j] = mats[j];
                     }
                 }
-
                 LDB.models.modelArray[kv.Value.ID] = kv.Value;
             }
 
@@ -204,8 +210,9 @@ namespace kremnev8
         /// <param name="color">Tint color (In html format, #RRGGBBAA)</param>
         /// <param name="textures">Array of texture names in this order: albedo, normal, metallic, emission</param>
         /// <param name="keywords">Array of keywords to use</param>
+        /// <param name="textureIDs">Array of texture property ids (Use Shader.PropertyToID)</param>
         public static Material CreateMaterial(string shaderName, string materialName, string color,
-            string[] textures = null, string[] keywords = null)
+            string[] textures = null, string[] keywords = null, int[] textureIDs = null)
         {
             ColorUtility.TryParseHtmlString(color, out Color newCol);
 
@@ -217,13 +224,14 @@ namespace kremnev8
             };
 
             if (textures == null) return mainMat;
+            int[] texIds = textureIDs ?? textureNames;
 
             for (int i = 0; i < textures.Length; i++)
             {
-                if (i >= textureNames.Length) continue;
+                if (i >= texIds.Length) continue;
 
                 Texture2D texture = Resources.Load<Texture2D>(textures[i]);
-                mainMat.SetTexture(textureNames[i], texture);
+                mainMat.SetTexture(texIds[i], texture);
             }
 
             return mainMat;
@@ -235,15 +243,9 @@ namespace kremnev8
         /// Registers a ModelProto
         /// </summary>
         /// <param name="id">UNIQUE id of your model</param>
-        /// <param name="proto">ItemProto which will be turned into building</param>
         /// <param name="prefabPath">Path to the prefab, starting from asset folder in your unity project</param>
         /// <param name="mats">List of materials to use</param>
-        /// <param name="descFields">int Array of used description fields</param>
-        /// <param name="buildIndex">Index in build Toolbar, FSS, F - first submenu, S - second submenu</param>
-        /// <param name="grade">Grade of the building, used to add upgrading</param>
-        /// <param name="upgradesIDs">List of buildings ids, that are upgradable to this one. You need to include all of them here in order. ID of this building should be zero</param>
-        public static ModelProto registerModel(int id, ItemProto proto, string prefabPath, Material[] mats,
-            int[] descFields, int buildIndex, int grade = 0, int[] upgradesIDs = null)
+        public static ModelProto registerModel(int id, string prefabPath, Material[] mats = null)
         {
             ModelProto model = new ModelProto
             {
@@ -252,17 +254,38 @@ namespace kremnev8
                 ID = id
             };
 
-            proto.Type = EItemType.Production;
-            proto.ModelIndex = id;
-            proto.ModelCount = 1;
-            proto.BuildIndex = buildIndex;
-            proto.BuildMode = 1;
-            proto.IsEntity = true;
-            proto.CanBuild = true;
-            proto.DescFields = descFields;
+            LDBTool.PreAddProto(ProtoType.Model, model);
+            models.Add(model.ID, model);
+            
+            if (mats != null)
+                modelMats.Add(prefabPath, mats);
+
+            return model;
+        }
+
+        /// <summary>
+        /// Link ModelProto to an ItemProto
+        /// </summary>
+        /// <param name="model">ModelProto which will contain building model</param>
+        /// <param name="item">ItemProto which will be turned into building</param>
+        /// <param name="descFields">int Array of used description fields</param>
+        /// <param name="buildIndex">Index in build Toolbar, FSS, F - first submenu, S - second submenu</param>
+        /// <param name="grade">Grade of the building, used to add upgrading</param>
+        /// <param name="upgradesIDs">List of buildings ids, that are upgradable to this one. You need to include all of them here in order. ID of this building should be zero</param>
+
+        public static void AddModelToItemProto(ModelProto model, ItemProto item, int[] descFields, int buildIndex, int grade = 0, int[] upgradesIDs = null)
+        {
+            item.Type = EItemType.Production;
+            item.ModelIndex = model.ID;
+            item.ModelCount = 1;
+            item.BuildIndex = buildIndex;
+            item.BuildMode = 1;
+            item.IsEntity = true;
+            item.CanBuild = true;
+            item.DescFields = descFields;
             if (grade != 0 && upgradesIDs != null)
             {
-                proto.Grade = grade;
+                item.Grade = grade;
                 for (int i = 0; i < upgradesIDs.Length; i++)
                 {
                     int itemID = upgradesIDs[i];
@@ -271,15 +294,9 @@ namespace kremnev8
                     itemUpgradeList.Add(itemID, i + 1);
                 }
 
-                upgradesIDs[grade - 1] = proto.ID;
-                proto.Upgrades = upgradesIDs;
+                upgradesIDs[grade - 1] = item.ID;
+                item.Upgrades = upgradesIDs;
             }
-
-            LDBTool.PreAddProto(ProtoType.Model, model);
-            models.Add(model.ID, model);
-            modelMats.Add(prefabPath, mats);
-
-            return model;
         }
 
         /// <summary>
@@ -412,7 +429,7 @@ namespace kremnev8
                 UnlockFunctions = new int[] { }, //Upgrades.
                 UnlockValues = new double[] { },
             };
-            
+
             foreach (int tech in preTechs)
             {
                 //Do not do LDB.techs.Select here, proto could be not added yet.
@@ -432,7 +449,7 @@ namespace kremnev8
         /// <param name="enTrans">English translation for this key</param>
         public static void registerString(string key, string enTrans)
         {
-            int id = findAvailableID(100, LDB.strings, strings);
+            int id = findAvailableID(8000, LDB.strings, strings);
 
             StringProto proto = new StringProto
             {
@@ -504,8 +521,14 @@ namespace kremnev8
             {
                 if (Registry.bundle.Contains(path + ".prefab") && systemTypeInstance == typeof(GameObject))
                 {
-                    Material[] mats = Registry.modelMats[path];
                     UnityEngine.Object myPrefab = Registry.bundle.LoadAsset(path + ".prefab");
+                    if (!Registry.modelMats.ContainsKey(path))
+                    {
+                        __result = myPrefab;
+                        return false;
+                    }
+
+                    Material[] mats = Registry.modelMats[path];
                     if (myPrefab != null)
                     {
                         Registry.LogSource.LogDebug("Loading known asset " + path +
