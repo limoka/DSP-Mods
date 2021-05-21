@@ -24,7 +24,7 @@ Prefabs:
 ## How to start creating and importing custom assets into DSP
 This guide assumes you know BepInEx and have a working project for it. If you don't first do [this](https://bepinex.github.io/bepinex_docs/master/articles/dev_guide/plugin_tutorial/index.html#sidetoggle).
 1. Create unity project and import Assembly-CSharp into your project to be able to reference DSP code in scripts. You can also try [ThunderKit](https://github.com/PassivePicasso/ThunderKit) to automate some steps. Please note that using ThunderKit is not mandatory
-3. Open Assembly-CSharp in inspector and make sure that is does NOT use auto reference 
+3. Open Assembly-CSharp in inspector and make sure that it does NOT use auto reference 
 4. Extract or create needed assets(Models, animations, prefabs, etc)
 5. Fix extracted prefab so that there is no missing scripts and all meshes and materials(Although i'm still unable to compile ingame's shaders) are there
 6. If you intent to use prefab ingame you also need to properly setup all needed description scripts(Like BuildConditionConfig, SlotConfig, etc). Game uses these scripts to figure out what is what and where. If you are unsure how to set them up, try using [RuntimeUnityEditor](https://github.com/ManlyMarco/RuntimeUnityEditor) and [LDBTool](https://dsp.thunderstore.io/package/xiaoye97/LDBTool/)'s utility to explore Proto definitions.
