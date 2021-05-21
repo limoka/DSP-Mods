@@ -32,7 +32,8 @@ This guide assumes you know BepInEx and have a working project for it. If you do
 8. Open baker (Window->DSP Tools->Verta Animation Baker) and select prefabs root, enter name and hit bake. You will get MeshDataAsset and .verta file. Both are needed to make this work
 9. Make sure you correctly define names and references to two created files in LODModelDesc script
 10. Create new Aseet Bundle and add all needed assets to it(You cannot add .verta file, becuse it won't let you). Then build Asset Bundle (Window->DSP Tools->Build AssetBundle)
-11. Write code and import everything in. You can see examples of how to do that in this repo
+11. If you need to reference your code in unity and not using ThunderKit to compile plugin DLL, you can import your compiled DLL as you did with Assembly-CSharp.
+12. Write code and import everything in. You can see examples of how to do that in this repo
 
 Project view:
 
