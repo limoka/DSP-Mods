@@ -21,17 +21,18 @@ Shaders and materials:
 Prefabs:
 * template prefab contains a bunch of different UI elements that are used frequently in ingame UIs. In order to use it you will need to use asset reasigner(Window->DSP Tools->Reassign assets). Make sure you imported all needed assets in your project. This prefab also uses some custom textures make by me(Find them in unity folder). Note that out of these elements dropdown is not from game, I made it completely from scratch since no machines ingame used a dropdown.
 
-## Steps on setting up a development environment FOR creation of custom assets
+## How to start creating and importing custom assets into DSP
 This guide assumes you know BepInEx and have a working project for it. If you don't first do [this](https://bepinex.github.io/bepinex_docs/master/articles/dev_guide/plugin_tutorial/index.html#sidetoggle).
-1. Create unity project and either put Assembly-CSharp to reference in scripts or use [ThunderKit](https://github.com/PassivePicasso/ThunderKit) to automate that.
-2. Extract or create needed assets(Models, animations, prefabs, etc)
-3. Fix extracted prefab so that there is no missing scripts and all meshes and materials(Although i'm still unable to compile ingame's shaders) are there
-4. If you intent to use prefab ingame you also need to properly setup all needed description scripts(Like BuildConditionConfig, SlotConfig, etc). Game uses these scripts to figure out what is what and where. If you are unsure how to set them up, try using [RuntimeUnityEditor](https://github.com/ManlyMarco/RuntimeUnityEditor) and [LDBTool](https://dsp.thunderstore.io/package/xiaoye97/LDBTool/)'s utility to explore Proto definitions.
-5. Make sure that animation clip works, by dragging fixed prefab into preview window(It should animate it)
-6. Open baker (Window->DSP Tools->Verta Animation Baker) and select prefabs root, enter name and hit bake. You will get MeshDataAsset and .verta file. Both are needed to make this work
-7. Make sure you correctly define names and references to two created files in LODModelDesc script
-8. Create new Aseet Bundle and add all needed assets to it(You cannot add .verta file, becuse it won't let you). Then build Asset Bundle (Window->DSP Tools->Build AssetBundle)
-9. Write code and import everything in.
+1. Create unity project and import Assembly-CSharp into your project to be able to reference DSP code in scripts. You can also try [ThunderKit](https://github.com/PassivePicasso/ThunderKit) to automate some steps. Please note that using ThunderKit is not mandatory
+3. Open Assembly-CSharp in inspector and make sure that is does NOT use auto reference 
+4. Extract or create needed assets(Models, animations, prefabs, etc)
+5. Fix extracted prefab so that there is no missing scripts and all meshes and materials(Although i'm still unable to compile ingame's shaders) are there
+6. If you intent to use prefab ingame you also need to properly setup all needed description scripts(Like BuildConditionConfig, SlotConfig, etc). Game uses these scripts to figure out what is what and where. If you are unsure how to set them up, try using [RuntimeUnityEditor](https://github.com/ManlyMarco/RuntimeUnityEditor) and [LDBTool](https://dsp.thunderstore.io/package/xiaoye97/LDBTool/)'s utility to explore Proto definitions.
+7. Make sure that animation clip works, by dragging fixed prefab into preview window(It should animate it)
+8. Open baker (Window->DSP Tools->Verta Animation Baker) and select prefabs root, enter name and hit bake. You will get MeshDataAsset and .verta file. Both are needed to make this work
+9. Make sure you correctly define names and references to two created files in LODModelDesc script
+10. Create new Aseet Bundle and add all needed assets to it(You cannot add .verta file, becuse it won't let you). Then build Asset Bundle (Window->DSP Tools->Build AssetBundle)
+11. Write code and import everything in. You can see examples of how to do that in this repo
 
 Project view:
 
