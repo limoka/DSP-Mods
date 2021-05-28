@@ -12,11 +12,13 @@ using UnityEngine;
 using kremnev8;
 
 [module: UnverifiableCode]
+#pragma warning disable 618
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
+#pragma warning restore 618
 
 namespace GroundSubstation
 {
-    [BepInPlugin("org.kremnev8.plugin.groundsubstation", "Ground Substation", "1.0.3")]
+    [BepInPlugin("org.kremnev8.plugin.groundsubstation", "Ground Substation", "1.0.4")]
     public class GroundSubstation : BaseUnityPlugin
     {
         public enum ModeType
@@ -103,7 +105,7 @@ namespace GroundSubstation
                         break;
                 }
                 Harmony.CreateAndPatchAll(typeof(VFPreloadPatch), "groundsubstation");
-                Harmony.CreateAndPatchAll(typeof(PlayerAction_BuildPatch), "groundsubstation");
+                Harmony.CreateAndPatchAll(typeof(BuildTool_ClickPatch), "groundsubstation");
                 
             }
             else if (mode.Value == ModeType.ADVANCED)
@@ -112,7 +114,7 @@ namespace GroundSubstation
                 Registry.registerModel(firstSubstationId, "Entities/Prefabs/orbital-substation", new[] {mainMat, effectMat});
                 Registry.registerModel(firstSubstationId + 1, "assets/custommachines/prefabs/ground-substation", new[] {mainMat, effectMat});
                 Registry.registerModel(firstSubstationId + 2, "assets/custommachines/prefabs/orbital-substation", new[] {mainMat, effectMat});
-                Harmony.CreateAndPatchAll(typeof(PlayerAction_BuildPatch), "groundsubstation");
+                Harmony.CreateAndPatchAll(typeof(BuildTool_ClickPatch), "groundsubstation");
                 
                 Harmony.CreateAndPatchAll(typeof(GameDataPatch), "groundsubstation");
                 Harmony.CreateAndPatchAll(typeof(EntityDataPatch), "groundsubstation");
@@ -337,25 +339,25 @@ namespace GroundSubstation
     }
 
     [HarmonyPatch]
-    static class PlayerAction_BuildPatch
+    static class BuildTool_ClickPatch
     {
-        [HarmonyPatch(typeof(PlayerAction_Build), "CheckBuildConditions")]
+        [HarmonyPatch(typeof(BuildTool_Click), "CheckBuildConditions")]
         [HarmonyTranspiler]
         static IEnumerable<CodeInstruction> CheckConditions(IEnumerable<CodeInstruction> instructions)
         {
             CodeMatcher matcher = new CodeMatcher(instructions)
                 .MatchForward(false,
-                    new CodeMatch(OpCodes.Ldloc_3),
+                    new CodeMatch(OpCodes.Ldloc_S),
                     new CodeMatch(i =>
                         i.opcode == OpCodes.Ldfld && ((FieldInfo) i.operand).Name == "desc"),
                     new CodeMatch(i =>
                         i.opcode == OpCodes.Ldfld && ((FieldInfo) i.operand).Name == "hasBuildCollider"),
                     new CodeMatch(OpCodes.Brfalse),
-                    new CodeMatch(OpCodes.Ldloc_3)
+                    new CodeMatch(OpCodes.Ldloc_S)
                 ).Advance(1)
                 .SetAndAdvance(OpCodes.Ldarg_0, null)
                 .SetInstructionAndAdvance(
-                    Transpilers.EmitDelegate<Func<BuildPreview, PlayerAction_Build, bool>>(
+                    Transpilers.EmitDelegate<Func<BuildPreview, BuildTool_Click, bool>>(
                         (preview, _this) =>
                         {
                             if (preview.item.ID == 2212)

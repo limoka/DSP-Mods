@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -15,11 +16,13 @@ using UnityEngine.UI;
 
 
 [module: UnverifiableCode]
+#pragma warning disable 618
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
+#pragma warning restore 618
 
 namespace DSPAdvancedMiner
 {
-    [BepInPlugin("org.kremnev8.plugin.dspadvancedminer", "DSP Advanced miner", "0.1.0.5")]
+    [BepInPlugin("org.kremnev8.plugin.dspadvancedminer", "DSP Advanced miner", "0.1.0.6")]
     public class DSPAdvancedMiner : BaseUnityPlugin
     {
         public static ManualLogSource logger;
@@ -59,8 +62,10 @@ namespace DSPAdvancedMiner
             ItemProto miner = Registry.registerItem(2000, "advancedMiningDrill", "advancedMiningDrillDesc",
                 "assets/custommachines/texture2d/mining-drill-mk2", 2504);
             
-            Registry.registerModel(178, miner, "assets/custommachines/prefabs/mining-drill-mk2",
-                new[] {mainMat, blackMat}, new[] {18, 19, 11, 12, 1}, 204, 2,
+            ModelProto model = Registry.registerModel(178, "assets/custommachines/prefabs/mining-drill-mk2",
+                new[] {mainMat, blackMat});
+            
+            Registry.AddModelToItemProto(model, miner, new[] {18, 19, 11, 12, 1}, 204, 2,
                 new[] {2301, 0});
 
             Registry.registerRecipe(105, ERecipeType.Assemble, 60, new[] {2301, 1106, 1303, 1206}, new[] {1, 4, 2, 2},
@@ -98,29 +103,151 @@ namespace DSPAdvancedMiner
         }
     }
 
-    [HarmonyPatch(typeof(PlayerAction_Build), "CheckBuildConditions")]
-    static class PlayerAction_BuildPatch
+    //GetVeinsInAreaNonAlloc
+
+/*
+ * RaycastHit raycastHit;
+					if (Physics.Raycast(this.mainCamera.ScreenPointToRay(Input.mousePosition), out raycastHit, 800f, 8720, QueryTriggerInteraction.Collide))
+					{
+ */
+
+   /* [HarmonyPatch(typeof(PlayerController), "UpdateCommandState")]
+    static class PlayerControllerPatch
+    {
+        public static bool objectAdded = false;
+        public static Text textObj;
+        [HarmonyPostfix]
+        public static void Postfix(PlayerController __instance)
+        {
+            if (Physics.Raycast(__instance.mainCamera.ScreenPointToRay(Input.mousePosition), out RaycastHit raycastHit,
+                800f, 8720, QueryTriggerInteraction.Collide))
+            {
+                if (!objectAdded)
+                {
+                    GameObject obj = GameObject.Find("In Game");
+                    if (obj != null)
+                    {
+                        var nobj = new GameObject("Special text");
+                        nobj.transform.parent = obj.transform;
+                        nobj.AddComponent<RectTransform>();
+                        Text txt = nobj.AddComponent<Text>();
+                        textObj = txt;
+                        objectAdded = true;
+                    }
+                }
+
+                int hash = PlanetPhysics.HashPhysBlock(raycastHit.point);
+                textObj.text = $"Pos hash: {hash}";
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(NearColliderLogic), "GetVeinsInAreaNonAlloc")]
+    static class NearColliderLogicPatch
+    {
+        [HarmonyPrefix]
+        public static bool Prefix(NearColliderLogic __instance, Vector3 center, float areaRadius, int[] veinIds,ref int __result)
+        {
+            if (veinIds == null)
+            {
+                __result = 0;
+                return false;
+            }
+            int num = 0;
+            Array.Clear(veinIds, 0, veinIds.Length);
+            Vector3 up = center.normalized;
+            Vector3 right = Vector3.Cross(up, Vector3.up).normalized;
+            Vector3 forward;
+            if (right.sqrMagnitude < 0.25f)
+            {
+                right = Vector3.right;
+                forward = Vector3.forward;
+            }
+            else
+            {
+                forward = Vector3.Cross(right, up).normalized;
+            }
+
+            float dist = areaRadius + 3f;
+            right *= dist;
+            forward *= dist;
+            
+            __instance.activeColHashCount = 0;
+            __instance.MarkActivePos(center);
+            __instance.MarkActivePos(center + right);
+            __instance.MarkActivePos(center - right);
+            __instance.MarkActivePos(center + forward);
+            __instance.MarkActivePos(center - forward);
+            __instance.MarkActivePos(center + right + forward);
+            __instance.MarkActivePos(center - right + forward);
+            __instance.MarkActivePos(center + right - forward);
+            __instance.MarkActivePos(center - right - forward);
+
+            if (__instance.activeColHashCount > 0)
+            {
+                for (int i = 0; i < __instance.activeColHashCount; i++)
+                {
+                    int num2 = __instance.activeColHashes[i];
+                    ColliderData[] colliderPool = __instance.colChunks[num2].colliderPool;
+                    for (int j = 1; j < __instance.colChunks[num2].cursor; j++)
+                    {
+                        if (colliderPool[j].idType != 0)
+                        {
+                            if (colliderPool[j].usage != EColliderUsage.Build)
+                            {
+                                if (colliderPool[j].objType == EObjectType.Vein)
+                                {
+                                    if ((colliderPool[j].pos - center).sqrMagnitude <= areaRadius * areaRadius + colliderPool[j].ext.sqrMagnitude)
+                                    {
+                                        bool flag = false;
+                                        for (int k = 0; k < num; k++)
+                                        {
+                                            if (veinIds[k] == colliderPool[j].objId)
+                                            {
+                                                flag = true;
+                                                break;
+                                            }
+                                        }
+                                        if (!flag)
+                                        {
+                                            veinIds[num++] = colliderPool[j].objId;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            __result = num;
+            return false;
+        }
+    }*/
+
+    [HarmonyPatch(typeof(BuildTool_Click), "CheckBuildConditions")]
+    static class BuildTool_ClickPatch
     {
         [HarmonyTranspiler]
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
         {
             CodeMatcher matcher = new CodeMatcher(instructions)
                 .MatchForward(false,
+                    new CodeMatch(OpCodes.Ldloc_S),
                     new CodeMatch(OpCodes.Ldc_R4),
-                    new CodeMatch(OpCodes.Ldarg_0),
-                    new CodeMatch(OpCodes.Ldfld),
+                    new CodeMatch(OpCodes.Ldsfld),
                     new CodeMatch(i =>
                         i.opcode == OpCodes.Callvirt && ((MethodInfo) i.operand).Name == "GetVeinsInAreaNonAlloc"))
-                .SetInstructionAndAdvance(new CodeInstruction(OpCodes.Ldloc_3))
+                .Advance(1)
+                .SetInstructionAndAdvance(new CodeInstruction(OpCodes.Ldloc, 6))
                 .InsertAndAdvance(
                     Transpilers.EmitDelegate<Func<BuildPreview, float>>(preview =>
                         DSPAdvancedMiner.getMinerRadius(preview.desc) + 4)
                 ).MatchForward(true,
                     new CodeMatch(OpCodes.Call, AccessTools.Method(typeof(Vector3), nameof(Vector3.Dot))),
                     new CodeMatch(OpCodes.Stloc_S),
-                    new CodeMatch(OpCodes.Ldloc_S),
                     new CodeMatch(OpCodes.Ldc_R4))
-                .SetInstructionAndAdvance(new CodeInstruction(OpCodes.Ldloc_3))
+                .SetInstructionAndAdvance(new CodeInstruction(OpCodes.Ldloc, 6))
                 .InsertAndAdvance(
                     Transpilers.EmitDelegate<Func<BuildPreview, float>>(preview =>
                     {
@@ -161,55 +288,57 @@ namespace DSPAdvancedMiner
             if (component.type != EMinerType.Vein) return;
 
             PrefabDesc desc = newProto.prefabDesc;
-
+            float radius = DSPAdvancedMiner.getMinerRadius(desc);
+            radius *= radius;
+            
             Pose pose;
             pose.position = __instance.entityPool[entityId].pos;
             pose.rotation = __instance.entityPool[entityId].rot;
 
             int[] tmp_ids = new int[256];
-            Vector3 vector3 = pose.position + pose.forward * -1.2f;
+            Vector3 vector2 = pose.position + pose.forward * -1.2f;
             Vector3 rhs = -pose.forward;
-            Vector3 up = pose.up;
-            int veinsInAreaNonAlloc =
-                __instance.planet.physics.nearColliderLogic.GetVeinsInAreaNonAlloc(vector3,
-                    DSPAdvancedMiner.getMinerRadius(desc) + 4, tmp_ids);
-            int[] refArray = new int[veinsInAreaNonAlloc];
-
+            Vector3 vector3 = pose.up;
+            int veinsInAreaNonAlloc = __instance.planet.physics.nearColliderLogic.GetVeinsInAreaNonAlloc(vector2, DSPAdvancedMiner.getMinerRadius(desc) + 4, tmp_ids);
+            PrebuildData prebuildData = default(PrebuildData);
+            prebuildData.InitParametersArray(veinsInAreaNonAlloc);
             VeinData[] veinPool = __instance.planet.factory.veinPool;
-            int refCount = 0;
+            int paramCount = 0;
             for (int j = 0; j < veinsInAreaNonAlloc; j++)
             {
                 if (tmp_ids[j] != 0 && veinPool[tmp_ids[j]].id == tmp_ids[j])
                 {
                     if (veinPool[tmp_ids[j]].type != EVeinType.Oil)
                     {
-                        Vector3 pos = veinPool[tmp_ids[j]].pos;
-                        Vector3 vector4 = pos - vector3;
-                        float num8 = Vector3.Dot(up, vector4);
-                        vector4 -= up * num8;
+                        Vector3 vector4 = veinPool[tmp_ids[j]].pos - vector2;
+                        float num2 = Vector3.Dot(vector3, vector4);
+                        vector4 -= vector3 * num2;
                         float sqrMagnitude = vector4.sqrMagnitude;
-                        float num9 = Vector3.Dot(vector4.normalized, rhs);
-                        float radius = DSPAdvancedMiner.getMinerRadius(desc);
-                        if (sqrMagnitude <= radius * radius && num9 >= 0.73f && Mathf.Abs(num8) <= 2f)
+                        float num3 = Vector3.Dot(vector4.normalized, rhs);
+                        if (sqrMagnitude <= radius && num3 >= 0.73f && Mathf.Abs(num2) <= 2f)
                         {
-                            refArray[refCount++] = tmp_ids[j];
+                            prebuildData.parameters[paramCount++] = tmp_ids[j];
                         }
                     }
                 }
+                else
+                {
+                    Assert.CannotBeReached();
+                }
             }
-
-            component.InitVeinArray(refCount);
-            if (refCount > 0)
+            
+            component.InitVeinArray(paramCount);
+            if (paramCount > 0)
             {
-                Array.Copy(refArray, component.veins, refCount);
+                Array.Copy(prebuildData.parameters, component.veins, paramCount);
             }
-
+            
             for (int i = 0; i < component.veinCount; i++)
             {
                 __instance.RefreshVeinMiningDisplay(component.veins[i], component.entityId, 0);
             }
-
-            component.ArrageVeinArray();
+            
+            component.ArrangeVeinArray();
             __instance.factorySystem.minerPool[__instance.entityPool[entityId].minerId] = component;
         }
     }
