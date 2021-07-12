@@ -5,9 +5,9 @@
 `As v2 is using its own Items now --> IF YOU WANT TO KEEP YOUR SAVE, PLEASE DELETE OLD GigaStations first with the OLD VERSION (1.0.x) ENABLED BEFORE YOU MOVE TO v2! ALSO VANILLA ONES WITH MORE THAN 5 ITEMSLOTS OCCUPIED`
 
 # Giga-Stations
-![GigaStationsV2](https://cdn.discordapp.com/attachments/800964046383349791/812636367561424926/GigaStations.png)
-![GigaStationsV2](https://raw.githubusercontent.com/WaGi-Coding/gifs/main/recipes.png)
-![GigaStationsV2](https://raw.githubusercontent.com/WaGi-Coding/gifs/main/GS.gif)
+![GigaStations](https://raw.githubusercontent.com/kremnev8/DSP-Mods/master/Mods/GigaStations/GigaStations.png)
+![GigaStations](https://raw.githubusercontent.com/WaGi-Coding/gifs/main/recipes.png)
+![GigaStations](https://raw.githubusercontent.com/WaGi-Coding/gifs/main/GS.gif)
 
 ## Read me!
 This is a updated version of the mod. If you have not loaded your save without this mod, your save should be intact. Mod originally made by [Taki7o7](https://dsp.thunderstore.io/package/Taki7o7/)
@@ -71,12 +71,13 @@ Then just click **Start modded**, and the game will run with the mod installed.
 
 ### Manually
 Install BepInEx from [here](https://dsp.thunderstore.io/package/xiaoye97/BepInEx/)
+Install LDBTool from [here](https://dsp.thunderstore.io/package/xiaoye97/LDBTool/)
 
 Then unzip all files into `Dyson Sphere Program/BepInEx/plugins/GigaStationsUpdated/`. (Create folder named `GigaStationsUpdated`)
 
 ## Feedback and Bug Report
 Feel free to contact me via Discord (Kremnev8#3756) for any feedback, bug-reports or suggestions.
-Origial author no longer has time to support this mod, so don't message him if this breakes.
+Original author no longer has time to support this mod, so don't message him if this breaks.
 
 ## Changelog
 ### v2.1.0
