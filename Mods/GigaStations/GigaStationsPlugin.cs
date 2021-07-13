@@ -15,7 +15,8 @@ using xiaoye97;
 #pragma warning restore 618
 namespace GigaStations
 {
-    [BepInDependency("me.xiaoye97.plugin.Dyson.LDBTool")]
+    [BepInDependency(LDB_TOOL_GUID)]
+    [BepInDependency(WARPERS_MOD_GUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(MOD_GUID, MOD_NAME, MOD_VER)]
     [BepInProcess("DSPGAME.exe")]
     public class GigaStationsPlugin : BaseUnityPlugin
@@ -23,12 +24,19 @@ namespace GigaStations
 
         public const string MOD_GUID = "org.kremnev8.plugin.GigaStationsUpdated";
         public const string MOD_NAME = "GigaStations";
-        public const string MOD_VER = "2.1.0";
+        public const string MOD_VER = "2.1.1";
+        
+        public const string LDB_TOOL_GUID = "me.xiaoye97.plugin.Dyson.LDBTool";
+        public const string WARPERS_MOD_GUID = "ShadowAngel.DSP.DistributeSpaceWarper";
 
 
 
         public static ManualLogSource logger;
-
+        public static int gridXCount { get; set; } = 1;
+        public static int gridYCount { get; set; } = 5;
+        
+        public static Color stationColor { get; set; } = new Color(0.3726f, 0.8f, 1f, 1f);
+        
         //ILS
         public static int ilsMaxStorage { get; set; } = 30000; //Vanilla 10000
         public static int ilsMaxWarps { get; set; } = 150; //Vanilla 50
@@ -69,6 +77,11 @@ namespace GigaStations
             Registry.Init("gigastations", "gigastations", true, false);
 
 
+            //General
+            gridXCount = Config.Bind("-|0|- General", "-| 1 Grid X Max. Count", 1, new ConfigDescription("Amount of slots visible horizontally.\nIf this value is bigger than 1, layout will form a grid", new AcceptableValueRange<int>(1, 3))).Value;
+            gridYCount = Config.Bind("-|0|- General", "-| 2 Grid Y Max. Count", 5, new ConfigDescription("Amount of slots visible vertically", new AcceptableValueRange<int>(3, 12))).Value;
+            stationColor = Config.Bind("-|0|- General", "-| 3 Station Color", new Color(0.3726f, 0.8f, 1f, 1f), "Color tint of giga stations").Value;
+            
             //ILS
             ilsMaxSlots = Config.Bind("-|1|- ILS", "-| 1 Max. Item Slots", 12, new ConfigDescription("The maximum Item Slots the Station can have.\nVanilla: 5", new AcceptableValueRange<int>(5, 12))).Value;
             ilsMaxStorage = Config.Bind("-|1|- ILS", "-| 2 Max. Storage", 30000, "The maximum Storage capacity per Item-Slot.\nVanilla: 10000").Value;
@@ -101,6 +114,10 @@ namespace GigaStations
             Registry.RegisterString("Collector_Name" , "Orbital Giga Collector");
             Registry.RegisterString("Collector_Desc" , $"Has more Capacity and collects {colSpeedMultiplier}x faster than a usual Collector.");
             
+            Registry.RegisterString("ModificationWarn" , "  - [GigaStationsUpdated] Replaced {0} buildings");
+            
+            Registry.RegisterString("CantDowngradeWarn" , "Downgrading logistic station is not possible!");
+            
             
             pls = Registry.RegisterItem(2110, "PLS_Name", "PLS_Desc", "assets/gigastations/texture2d/icon_pls", 2701);
             ils = Registry.RegisterItem(2111, "ILS_Name", "ILS_Desc", "assets/gigastations/texture2d/icon_ils", 2702);
@@ -115,12 +132,10 @@ namespace GigaStations
                 new[] {1}, "Collector_Desc", 1606);
 
 
-            plsModel = Registry.RegisterModel(250, pls, "Entities/Prefabs/logistic-station", null, new[] {24, 38, 12, 10, 1}, 604);
-            ilsModel = Registry.RegisterModel(251, ils, "Entities/Prefabs/interstellar-logistic-station", null, new[] {24, 38, 12, 10, 1}, 605);
-            collectorModel = Registry.RegisterModel(252, collector, "Entities/Prefabs/orbital-collector", null, new[] {18, 11, 32, 1}, 606);
-            
-            logger.LogInfo("GigaStations is initialized!");
-            
+            plsModel = Registry.RegisterModel(250, pls, "Entities/Prefabs/logistic-station", null, new[] {24, 38, 12, 10, 1}, 605, 2, new []{2103, 0});
+            ilsModel = Registry.RegisterModel(251, ils, "Entities/Prefabs/interstellar-logistic-station", null, new[] {24, 38, 12, 10, 1}, 606, 2, new []{2104, 0});
+            collectorModel = Registry.RegisterModel(252, collector, "Entities/Prefabs/orbital-collector", null, new[] {18, 11, 32, 1}, 607, 2, new []{2105, 0});
+
             Registry.onLoadingFinished += AddGigaPLS;
             Registry.onLoadingFinished += AddGigaILS;
             Registry.onLoadingFinished += AddGigaCollector;
@@ -129,6 +144,22 @@ namespace GigaStations
 
             harmony.PatchAll(typeof(StationEditPatch));
             harmony.PatchAll(typeof(GameHistoryPatch));
+            harmony.PatchAll(typeof(SaveFixPatch));
+            harmony.PatchAll(typeof(MessagePatch));
+            harmony.PatchAll(typeof(StationUpgradePatch));
+            harmony.PatchAll(typeof(UIStationWindowPatch));
+            
+            foreach (var pluginInfo in BepInEx.Bootstrap.Chainloader.PluginInfos)
+            {
+                if (pluginInfo.Value.Metadata.GUID != WARPERS_MOD_GUID) continue;
+
+                ((ConfigEntry<bool>) pluginInfo.Value.Instance.Config["General", "ShowWarperSlot"]).Value = true;
+                logger.LogInfo("Overriding Distribute Space Warpers config: ShowWarperSlot = true");
+                break;
+            }
+            
+            logger.LogInfo("GigaStations is initialized!");
+            
         }
         
         void AddGigaPLS()
@@ -142,7 +173,7 @@ namespace GigaStations
 
             //Make Giga stations blue
             Material newMat = Instantiate(plsModel.prefabDesc.lodMaterials[0][0]);
-            newMat.color = new Color(0.3726f, 0.8f, 1f, 1f);
+            newMat.color = stationColor;
             plsModel.prefabDesc.lodMaterials[0][0] = newMat;
             // Set MaxWarpers in station init!!!!!
 
@@ -161,7 +192,7 @@ namespace GigaStations
             
             //Make Giga stations blue
             Material newMat = Instantiate(ilsModel.prefabDesc.lodMaterials[0][0]);
-            newMat.color = new Color(0.3726f, 0.8f, 1f, 1f);
+            newMat.color = stationColor;
             ilsModel.prefabDesc.lodMaterials[0][0] = newMat;
             // Set MaxWarpers in station init!!!!!
 
@@ -178,7 +209,7 @@ namespace GigaStations
             
             //Make Giga stations blue
             Material newMat = Instantiate(collectorModel.prefabDesc.lodMaterials[0][0]);
-            newMat.color = new Color(0.3726f, 0.8f, 1f, 1f);
+            newMat.color = stationColor;
             collectorModel.prefabDesc.lodMaterials[0][0] = newMat;
             
             // Set MaxWarpers in station init!!!!!

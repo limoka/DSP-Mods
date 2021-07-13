@@ -10,9 +10,11 @@
 ![GigaStations](https://raw.githubusercontent.com/WaGi-Coding/gifs/main/GS.gif)
 
 ## Read me!
-This is a updated version of the mod. If you have not loaded your save without this mod, your save should be intact. Mod originally made by [Taki7o7](https://dsp.thunderstore.io/package/Taki7o7/)
+This is a updated version of the mod. If you have not loaded your save without this mod, your save can be safely loaded. Mod originally made by [Taki7o7](https://dsp.thunderstore.io/package/Taki7o7/)
 
 Up to 12 Item Slots per Station.
+You can change station UI layout. You can change how many slots are visible vertically and horizontally. Grid mode is also available.
+
 For Stations you can set the Slotcount, max Slot-Storage, max Warp-Cells, max Vessels & Drones, max Accu capacity.
 
 For the Orbital Collector you can set the max Storage & the Collect-Speed-Multiplier.
@@ -26,6 +28,13 @@ You can configure this mod to your likings. However, i highly recommend to backu
 Checkout the config of this mod! (You need to start the Game once with the mod in order to generate the config. Also, always restart the Game when you made changes to the config)
 
 ## Settings
+### General
+Setting						|Possible Values			|Default    |Description
+-							|-							|-          |-			
+`Grid X Max. Count`			|Number (Int32)	 1 to 3 	|1			|Amount of slots visible horizontally		
+`Grid Y Max. Count`			|Number (Int32)	 3 to 12	|5  		|Amount of slots visible vertically
+`Station Color`				|Color	 					|5FCCFFFF  	|Color tint of giga stations
+
 ### ILS
 Setting						|Possible Values			|Default    |Description													|Vanilla-Value
 -							|-							|-          |-																|-
@@ -80,6 +89,14 @@ Feel free to contact me via Discord (Kremnev8#3756) for any feedback, bug-report
 Original author no longer has time to support this mod, so don't message him if this breaks.
 
 ## Changelog
+### v2.1.1
+- Added grid layout option, that can be enabled in config
+- Added color change option in config
+- Now you can set preffered amount of slots on screen in config
+- All stations are now upgradable from their vanilla variants 
+- Fixed possible conflict with `Distribute Space Warper` mod
+- Fixed that `Planetary Giga Station` removed `Energy Exchanger` from toolbar
+- Fixed minor save migration bug (Old saves are now certainly safe to load)
 ### v2.1.0
 - Updated to work with version `0.7.18.7275` of the game and up
 - Added a scroll bar if amount of slots is higher than 5
@@ -112,6 +129,6 @@ If coming from Version 1.X.X please read [THIS](#important)
 - Added own Item Icons
 - Added own Item Recipes
 - Added 1% step for min Carrier Capacity Sliders, so you can also set them precise for Vanilla Stations when you have huge Carrier Capacities
- 
- ### Older versions and full changelog
- Check out original page [here](https://dsp.thunderstore.io/package/Taki7o7/GigaStations_v2/#giga-stations-v2)
+
+### Older versions and full changelog
+Check out original page [here](https://dsp.thunderstore.io/package/Taki7o7/GigaStations_v2/#giga-stations-v2)

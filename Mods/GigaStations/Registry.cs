@@ -610,6 +610,14 @@ namespace kremnev8
                 
             }
 
+            if (path.Equals("DefaultLine3D"))
+            {
+                UnityEngine.Object material =
+                    Registry.bundle.LoadAsset( "Assets/CustomMachines/CustomMaterials/DefaultLine3D.mat", typeof(Material));
+                __result = material;
+                return false;
+            }
+
             return true;
         }
     }
