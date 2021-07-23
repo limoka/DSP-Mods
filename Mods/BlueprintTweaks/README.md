@@ -6,7 +6,7 @@ Current list of features:
 - Allow using 3rd person view in Blueprint mode.
 - Allow toggling between 3d person and planet view when in Blueprint mode using key (Rebindable,  default `J`)
 
-More fearures might come in the future. If you have any feature you would like to see added, [message](Feedback-and-Bug-Report) me on Discord
+More features might come in the future. If you have any feature you would like to see added, [message](Feedback-and-Bug-Report) me on Discord
 
 ## Installation
 ### With Mod Manager
