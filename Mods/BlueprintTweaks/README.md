@@ -1,5 +1,5 @@
 # Blueprint Tweaks
-![BlueprintTweaks](https://raw.githubusercontent.com/kremnev8/DSP-Mods/master/Mods/BlueprintTweaks/preview.mp4)
+![BlueprintTweaks](https://raw.githubusercontent.com/kremnev8/DSP-Mods/master/Mods/BlueprintTweaks/preview.gif)
 
 This mod adds some minor tweaks to new Blueprint system. 
 Current list of features:
