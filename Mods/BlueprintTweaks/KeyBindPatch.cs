@@ -45,16 +45,5 @@ namespace BlueprintTweaks
             UpdateArray(ref DSPGame.key.builtinKeys, index + 1);
              DSPGame.key.builtinKeys[index] = key;
         }
-        
-        [HarmonyPatch(typeof(UIKeyEntry), "SetEntry")]
-        [HarmonyPatch(typeof(UIKeyEntry), "RefreshTranslate")]
-        [HarmonyPostfix]
-        public static void FixTranslation(UIKeyEntry __instance)
-        {   
-            if (__instance.builtinKey.id == 100)
-            {
-                __instance.functionText.text = "Toggle Blueprint God Mode";
-            }
-        }
     }
 }
