@@ -16,13 +16,16 @@ using HarmonyLib;
 namespace BlueprintTweaks
 {
     [BepInPlugin(MAINGUID, MAINNAME, VERSION)]
+    [BepInDependency(NEBULA_MODID, BepInDependency.DependencyFlags.SoftDependency)]
     public class BlueprintTweaksPlugin : BaseUnityPlugin
     {
         public const string MODID = "BlueprintTweaks";
         public const string MAINGUID = "org.kremnev8.plugin." + MODID;
         public const string MAINNAME = "Blueprint Tweaks";
         
-        public const string VERSION = "1.0.3";
+        public const string VERSION = "1.0.5";
+
+        public const string NEBULA_MODID = "dsp.nebula-multiplayer";
 
         public static ManualLogSource logger;
         public static ResourceData resource;
@@ -30,6 +33,12 @@ namespace BlueprintTweaks
         public static bool cameraToggleEnabled;
         public static bool recipeChangeEnabled;
         public static bool forcePasteEnabled;
+        public static bool axisLockEnabled;
+        public static bool changeTierEnabled;
+        public static bool canBlueprintOnGasGiants;
+        public static bool gridControlFeature;
+
+        public static bool nebulaInstalled;
 
         private void Awake()
         {
@@ -38,7 +47,11 @@ namespace BlueprintTweaks
             cameraToggleEnabled = Config.Bind("General", "cameraToggle", true, "Allow toggling camera between 3rd person and god view\nAll values are applied on restart").Value;
             recipeChangeEnabled = Config.Bind("General", "recipeChange", true, "Add recipe change panel to blueprint inspectors\nAll values are applied on restart").Value;
             forcePasteEnabled = Config.Bind("General", "forcePaste", true, "Allow using key to force blueprint placement\nAll values are applied on restart").Value;
-            
+            axisLockEnabled = Config.Bind("General", "axisLock", true, "Allow using Latitude/Longtitude axis locks\nAll values are applied on restart").Value;
+            changeTierEnabled = Config.Bind("General", "changeTier", true, "Allow using change tier functionality\nAll values are applied on restart").Value;
+            canBlueprintOnGasGiants = Config.Bind("General", "bpOnGasGiants", true, "Allow using Blueprints on Gas Giants\nAll values are applied on restart").Value;
+            gridControlFeature = Config.Bind("General", "gridControl", true, "Allow changing grid size and its offset\nAll values are applied on restart").Value;
+
             
             string pluginfolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
@@ -54,15 +67,40 @@ namespace BlueprintTweaks
             ProtoRegistry.RegisterString("ChangeTipDesc", "Left-click to change recipe. When you click, picker menu will open, where a new recipe can be selected. All machines that used the old recipe will now use the new recipe. This change will take effect after saving.");
             ProtoRegistry.RegisterString("KEYForceBPPlace", "Force Blueprint placement");
             
+            ProtoRegistry.RegisterString("KEYLockLongAxis", "Lock Longtitude axis");
+            ProtoRegistry.RegisterString("KEYLockLatAxis", "Lock Latitude axis");
+            ProtoRegistry.RegisterString("KEYSetLocalOffset", "Set grid snapping offset");
+            
+            ProtoRegistry.RegisterString("GridSizeLabel", "Blueprint Size");
+            ProtoRegistry.RegisterString("GridLongSize", "Width");
+            ProtoRegistry.RegisterString("GridLatSize", "Height");
+            
+            ProtoRegistry.RegisterString("CantPasteThisInGasGiantWarn", "This Blueprint can't be pasted on a Gas Giant.");
+            
             KeyBindPatch.Init();
+
+            foreach (var pluginInfo in BepInEx.Bootstrap.Chainloader.PluginInfos)
+            {
+                if (pluginInfo.Value.Metadata.GUID != NEBULA_MODID) continue;
+
+                nebulaInstalled = true;
+                break;
+            }
             
             Harmony harmony = new Harmony(MAINGUID);
             
             harmony.PatchAll(typeof(KeyBindPatch));
+            harmony.PatchAll(typeof(UIItemPickerPatch));
             
+            if (changeTierEnabled)
+                harmony.PatchAll(typeof(UIBlueprintComponentItemPatch));
+            if (canBlueprintOnGasGiants)
+                harmony.PatchAll(typeof(PlayerControllerPatch));
+            if (axisLockEnabled || gridControlFeature)
+                harmony.PatchAll(typeof(BlueprintPastePatch2));
             if (cameraToggleEnabled)
                 harmony.PatchAll(typeof(CameraFixPatch));
-            if (recipeChangeEnabled)
+            if (recipeChangeEnabled || gridControlFeature)
                 harmony.PatchAll(typeof(UIBlueprintInspectorPatch));
             if (forcePasteEnabled)
                 harmony.PatchAll(typeof(BlueprintPastePatch));
@@ -72,12 +110,30 @@ namespace BlueprintTweaks
 
         private void Update()
         {
-            if (KeyBindPatch.GetKeyBind("ToggleBPGodModeDesc").keyValue)
+            if (cameraToggleEnabled && KeyBindPatch.GetKeyBind("ToggleBPGodModeDesc").keyValue)
             {
                 CameraFixPatch.mode = !CameraFixPatch.mode;
             }
 
-            BlueprintPastePatch.isEnabled = KeyBindPatch.GetKeyBind("ForceBPPlace").keyValue;
+            if (axisLockEnabled && KeyBindPatch.GetKeyBind("LockLongAxis").keyValue)
+            {
+                BlueprintPastePatch2.LockLongtitude();
+            }
+            
+            if (axisLockEnabled &&  KeyBindPatch.GetKeyBind("LockLatAxis").keyValue)
+            {
+                BlueprintPastePatch2.LockLatitude();
+            }
+            
+            if (gridControlFeature && KeyBindPatch.GetKeyBind("SetLocalOffset").keyValue)
+            {
+                BlueprintPastePatch2.SetOffset();
+            }
+
+            if (forcePasteEnabled)
+            {
+                BlueprintPastePatch.isEnabled = KeyBindPatch.GetKeyBind("ForceBPPlace").keyValue;
+            }
         }
     }
 }

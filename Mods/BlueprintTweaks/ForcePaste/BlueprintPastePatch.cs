@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using HarmonyLib;
+using UnityEngine;
 
 // ReSharper disable InconsistentNaming
 
@@ -17,14 +18,30 @@ namespace BlueprintTweaks
             return preview.condition == EBuildCondition.Ok || preview.condition == EBuildCondition.NotEnoughItem;
         }
 
+        public static bool IsCollide(this BuildPreview preview)
+        {
+            if (preview == null) return false;
+            return preview.condition == EBuildCondition.Collide;
+        }
+
         [HarmonyPatch(typeof(BuildTool_BlueprintPaste), "CheckBuildConditions")]
         [HarmonyPostfix]
         public static void DontStopOnFail(BuildTool_BlueprintPaste __instance, ref bool __result)
         {
             if (__result || !isEnabled) return;
-            
+
             __result = true;
             __instance.actionBuild.model.cursorState = 0;
+        }
+
+        [HarmonyPatch(typeof(BuildTool_BlueprintPaste), "Operating")]
+        [HarmonyPostfix]
+        public static void AllowToTryAgain(BuildTool_BlueprintPaste __instance)
+        {
+            if (!__instance.buildCondition && VFInput.blueprintPasteOperate0.onDown)
+            {
+                __instance.OperatingPrestage();
+            }
         }
 
         [HarmonyPatch(typeof(BuildTool_BlueprintPaste), "CreatePrebuilds")]
@@ -41,8 +58,8 @@ namespace BlueprintTweaks
             matcher.Advance(-2)
                 .InsertAndAdvance(Transpilers.EmitDelegate<Func<BuildPreview, bool>>(bp =>
                 {
-                    if (!isEnabled) return true;
-                    
+                    if (!isEnabled && !BlueprintTweaksPlugin.nebulaInstalled) return true;
+
                     if (bp.desc.multiLevel)
                     {
                         BuildPreview current = bp;
@@ -58,13 +75,11 @@ namespace BlueprintTweaks
                     {
                         if (bp.input != null && !bp.input.IsGood())
                         {
-                            BlueprintTweaksPlugin.logger.LogInfo($"Input : {bp.input.condition}");
                             return false;
                         }
 
                         if (bp.output != null && !bp.output.IsGood())
                         {
-                            BlueprintTweaksPlugin.logger.LogInfo($"Output : {bp.output.condition}");
                             return false;
                         }
                     }
