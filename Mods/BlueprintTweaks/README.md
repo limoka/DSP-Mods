@@ -9,7 +9,7 @@ Current list of features:
 - Selectively change recipes on machines during any moment using a new panel in blueprint inspector
 - Allow changing building tiers. Left-click on a building in component panel to use.
 - Allow forcing Blueprint paste even if some buildings collide or can't be built. Use `Shift` key to use this feature.
-- Allow using La`T`itude/Lon`G`titude axis lock. Use `Ctrl + T/G` to toggle
+- Allow using La**T**itude/Lon**G**titude axis lock. Use `Ctrl + T/G` to toggle
 - Allow changing grid shapping. Set blueprint grid size in its settings, then press `Ctrl + B` in desired initial position.
 - Allow blueprinting on Gas Giants.
 
