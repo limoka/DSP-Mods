@@ -9,7 +9,7 @@ Current list of features:
 - Selectively change recipes on machines during any moment using a new panel in blueprint inspector
 - Allow changing building tiers. Left-click on a building in component panel to use.
 - Allow forcing Blueprint paste even if some buildings collide or can't be built. Use `Shift` key to use this feature.
-- Allow using La`T`itude/Lon`G`titude axis lock. Use `Ctrl + T/G` to toggle
+- Allow using La**T**itude/Lon**G**titude axis lock. Use `Ctrl + T/G` to toggle
 - Allow changing grid shapping. Set blueprint grid size in its settings, then press `Ctrl + B` in desired initial position.
 - Allow blueprinting on Gas Giants.
 
@@ -37,6 +37,8 @@ Then unzip all files into `Dyson Sphere Program/BepInEx/plugins/BlueprintTweaks/
 Feel free to contact me via Discord (Kremnev8#3756) for any feedback, bug-reports or suggestions.
 
 ## Changelog
+### v1.0.6
+- Updated to work with game version 0.8.19.7757 or higher
 ### v1.0.5
 - Added Scroll bar to Blueprint inspector
 - Added Axis lock feature

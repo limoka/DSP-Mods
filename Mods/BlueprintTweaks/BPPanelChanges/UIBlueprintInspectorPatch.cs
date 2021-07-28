@@ -36,7 +36,7 @@ namespace BlueprintTweaks
             if (panels != null && !panels.ContainsKey(__instance))
             {
                 GameObject scrollPrefab = BlueprintTweaksPlugin.resource.bundle.LoadAsset<GameObject>("assets/blueprinttweaks/ui/bp-panel-scroll.prefab");
-                GameObject scroll = Object.Instantiate(scrollPrefab, __instance.transform, false);
+                GameObject scroll = Object.Instantiate(scrollPrefab, __instance.rectTrans, false);
                 GameObject contentPane = scroll.transform.Find("Viewport/pane").gameObject;
 
                 __instance.group1.SetParent(contentPane.transform, false);

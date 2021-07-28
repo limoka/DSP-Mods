@@ -23,7 +23,7 @@ namespace BlueprintTweaks
         public const string MAINGUID = "org.kremnev8.plugin." + MODID;
         public const string MAINNAME = "Blueprint Tweaks";
         
-        public const string VERSION = "1.0.5";
+        public const string VERSION = "1.0.6";
 
         public const string NEBULA_MODID = "dsp.nebula-multiplayer";
 

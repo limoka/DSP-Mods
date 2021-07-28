@@ -66,6 +66,7 @@ namespace BlueprintTweaks
             }
             else
             {
+                if (tool.actionBuild.planetAux == null) return;
                 currentGridData.shouldShap = true;
                 tool.actionBuild.planetAux.CalculateOffset(tool.castGroundPos, currentGridData);
             }
