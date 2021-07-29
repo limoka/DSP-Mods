@@ -15,15 +15,17 @@ using HarmonyLib;
 
 namespace BlueprintTweaks
 {
-    [BepInPlugin(MAINGUID, MAINNAME, VERSION)]
+    [BepInPlugin(MODGUID, MOD_DISP_NAME, VERSION)]
     [BepInDependency(NEBULA_MODID, BepInDependency.DependencyFlags.SoftDependency)]
     public class BlueprintTweaksPlugin : BaseUnityPlugin
     {
-        public const string MODID = "BlueprintTweaks";
-        public const string MAINGUID = "org.kremnev8.plugin." + MODID;
-        public const string MAINNAME = "Blueprint Tweaks";
+        public const string MODNAME = "BlueprintTweaks";
         
-        public const string VERSION = "1.0.6";
+        public const string MODGUID = "org.kremnev8.plugin.BlueprintTweaks";
+        
+        public const string MOD_DISP_NAME = "Blueprint Tweaks";
+        
+        public const string VERSION = "1.0.7";
 
         public const string NEBULA_MODID = "dsp.nebula-multiplayer";
 
@@ -55,7 +57,7 @@ namespace BlueprintTweaks
             
             string pluginfolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
-            resource = new ResourceData(MODID, "blueprinttweaks", pluginfolder);
+            resource = new ResourceData(MODNAME, "blueprinttweaks", pluginfolder);
             resource.LoadAssetBundle("blueprinttweaks");
             ProtoRegistry.AddResource(resource);
             
@@ -87,7 +89,7 @@ namespace BlueprintTweaks
                 break;
             }
             
-            Harmony harmony = new Harmony(MAINGUID);
+            Harmony harmony = new Harmony(MODGUID);
             
             harmony.PatchAll(typeof(KeyBindPatch));
             harmony.PatchAll(typeof(UIItemPickerPatch));
@@ -97,7 +99,7 @@ namespace BlueprintTweaks
             if (canBlueprintOnGasGiants)
                 harmony.PatchAll(typeof(PlayerControllerPatch));
             if (axisLockEnabled || gridControlFeature)
-                harmony.PatchAll(typeof(BlueprintPastePatch2));
+                harmony.PatchAll(typeof(GridSnappingPatches));
             if (cameraToggleEnabled)
                 harmony.PatchAll(typeof(CameraFixPatch));
             if (recipeChangeEnabled || gridControlFeature)
@@ -117,17 +119,17 @@ namespace BlueprintTweaks
 
             if (axisLockEnabled && KeyBindPatch.GetKeyBind("LockLongAxis").keyValue)
             {
-                BlueprintPastePatch2.LockLongtitude();
+                GridSnappingPatches.LockLongtitude();
             }
             
             if (axisLockEnabled &&  KeyBindPatch.GetKeyBind("LockLatAxis").keyValue)
             {
-                BlueprintPastePatch2.LockLatitude();
+                GridSnappingPatches.LockLatitude();
             }
             
             if (gridControlFeature && KeyBindPatch.GetKeyBind("SetLocalOffset").keyValue)
             {
-                BlueprintPastePatch2.SetOffset();
+                GridSnappingPatches.SetOffset();
             }
 
             if (forcePasteEnabled)

@@ -20,15 +20,113 @@ namespace BlueprintTweaks
 
         public static bool IsCollide(this BuildPreview preview)
         {
-            if (preview == null) return false;
-            return preview.condition == EBuildCondition.Collide;
+            return preview.condition == EBuildCondition.Collide || preview.condition == EBuildCondition.PowerTooClose;
         }
+
+        public static Dictionary<long, int> tmpPosBpidx = new Dictionary<long, int>();
 
         [HarmonyPatch(typeof(BuildTool_BlueprintPaste), "CheckBuildConditions")]
         [HarmonyPostfix]
         public static void DontStopOnFail(BuildTool_BlueprintPaste __instance, ref bool __result)
         {
+            tmpPosBpidx.Clear();
+            for (int i = 0; i < __instance.bpCursor; i++)
+            {
+                BuildPreview preview = __instance.bpPool[i];
+                if (!preview.desc.isPowerNode) continue;
+                if (preview.condition != EBuildCondition.PowerTooClose) continue;
+
+                Vector3 pos = (preview.lpos + preview.lpos2) * 0.5f;
+                long key = ((long) Mathf.FloorToInt(pos.x * 100f) << 42) + ((long) Mathf.FloorToInt(pos.y * 100f) << 21) + Mathf.FloorToInt(pos.z * 100f);
+                if (tmpPosBpidx.ContainsKey(key))
+                {
+                    BuildPreview preview2 = __instance.bpPool[tmpPosBpidx[key]];
+                    if (!preview2.desc.isPowerNode) continue;
+                    if (preview2.condition != EBuildCondition.PowerTooClose) continue;
+
+                    float num = Quaternion.Angle(preview.lrot, preview2.lrot);
+                    float num2 = Quaternion.Angle(preview.lrot2, preview2.lrot2);
+
+                    if (preview.desc == preview2.desc && num < 0.5f && num2 < 0.5f)
+                    {
+                        preview.coverbp = preview2;
+                        preview.condition = EBuildCondition.Ok;
+                        preview2.bpgpuiModelId = -1;
+                        preview2.condition = EBuildCondition.BlueprintBPOverlap;
+                        tmpPosBpidx[key] = i;
+                    }
+                }
+                else
+                {
+                    tmpPosBpidx.Add(key, i);
+                }
+            }
+            
             if (__result || !isEnabled) return;
+
+            for (int i = 0; i < __instance.bpCursor; i++)
+            {
+                BuildPreview preview = __instance.bpPool[i];
+
+                if (!preview.IsCollide() || !preview.desc.isBelt) continue;
+                
+                if (preview.output == null) continue;
+
+                BlueprintTweaksPlugin.logger.LogInfo($"Belt Collide, output collide: {preview.output.IsCollide()}");
+                if (!preview.output.IsCollide()) continue;
+                
+                BlueprintTweaksPlugin.logger.LogInfo("Start checks");
+                
+
+                int overlapCount = Physics.OverlapSphereNonAlloc(preview.lpos, 0.28f, BuildTool._tmp_cols, 425984, QueryTriggerInteraction.Collide);
+
+                PlanetPhysics physics = __instance.player.planetData.physics;
+
+                for (int m = 0; m < overlapCount; m++)
+                {
+                    bool found = physics.GetColliderData(BuildTool._tmp_cols[m], out ColliderData collider);
+                    int objectId = 0;
+                    if (found && collider.isForBuild)
+                    {
+                        if (collider.objType == EObjectType.Entity)
+                        {
+                            objectId = collider.objId;
+                        }
+                    }
+
+                    if (objectId == 0) continue;
+                    ItemProto itemProto = __instance.GetItemProto(objectId);
+                    if (!itemProto.prefabDesc.isBelt) continue;
+
+                    BlueprintTweaksPlugin.logger.LogInfo($"Checking {objectId}");
+
+                    __instance.factory.ReadObjectConn(objectId, 0, out bool _, out int otherObjId, out int _);
+                    BlueprintTweaksPlugin.logger.LogInfo($"Conn 0 {otherObjId}");
+
+                    //0 next
+                    //1 prev
+
+                    __instance.factory.ReadObjectConn(objectId, 1, out bool _, out otherObjId, out int _);
+                    BlueprintTweaksPlugin.logger.LogInfo($"Conn 1 {otherObjId}");
+                    
+                    if (preview.output.IsCollide())
+                    {
+                        if (otherObjId == 0)
+                        {
+                            BlueprintTweaksPlugin.logger.LogInfo($"Create Connection {objectId}");
+                            preview.coverObjId = objectId;
+                            preview.willRemoveCover = false;
+                            preview.condition = EBuildCondition.Ok;
+                            break;
+                        }
+                    }
+                    
+                    __instance.factory.ReadObjectConn(objectId, 2, out bool _, out otherObjId, out int _);
+                    BlueprintTweaksPlugin.logger.LogInfo($"Conn 2 {otherObjId}");
+                    __instance.factory.ReadObjectConn(objectId, 3, out bool _, out otherObjId, out int _);
+                    BlueprintTweaksPlugin.logger.LogInfo($"Conn 3 {otherObjId}");
+                }
+            }
 
             __result = true;
             __instance.actionBuild.model.cursorState = 0;

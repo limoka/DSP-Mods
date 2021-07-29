@@ -13,6 +13,9 @@ Current list of features:
 - Allow changing grid shapping. Set blueprint grid size in its settings, then press `Ctrl + B` in desired initial position.
 - Allow blueprinting on Gas Giants.
 
+Axis lock supports: Blueprint, Construction and Reform modes
+Grid snapping supports: Blueprint and Construction modes
+
 All Keybinds are rebindable
 All features can be disabled in config file located at `Dyson Sphere Program/BepInEx/config/`. By default everything is enabled.
 
@@ -37,12 +40,18 @@ Then unzip all files into `Dyson Sphere Program/BepInEx/plugins/BlueprintTweaks/
 Feel free to contact me via Discord (Kremnev8#3756) for any feedback, bug-reports or suggestions.
 
 ## Changelog
+### v1.0.7
+- Fixed Blueprint inspector UI size
+- Fixed `Icon select` dropdown being overlaped by size and recipe panels
+- Fixed `belt` connection issues when using force paste
+- Fixed unability to force build overlapping `Power poles`
+- Added `Axis lock` and `Grid snapping` features to normal building and reform modes.
 ### v1.0.6
 - Updated to work with game version 0.8.19.7757 or higher
 ### v1.0.5
 - Added Scroll bar to Blueprint inspector
-- Added Axis lock feature
-- Added Grid snapping feature
+- Added `Axis lock` feature
+- Added `Grid snapping` feature
 - Added building tier change feature
 - Added ability to Blueprint on Gas Giants
 - Added ability to try again after Blueprint placement failed

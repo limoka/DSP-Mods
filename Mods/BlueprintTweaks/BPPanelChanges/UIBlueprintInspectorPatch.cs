@@ -43,7 +43,7 @@ namespace BlueprintTweaks
                 __instance.group2.SetParent(contentPane.transform, false);
                 __instance.group3.SetParent(contentPane.transform, false);
 
-                RectTransform mainTrs = (RectTransform) __instance.transform;
+                RectTransform mainTrs = __instance.rectTrans;
                 mainTrs.sizeDelta = new Vector2(mainTrs.sizeDelta.x + 16, mainTrs.sizeDelta.y);
 
                 GameObject recipePanelPrefab = BlueprintTweaksPlugin.resource.bundle.LoadAsset<GameObject>("assets/blueprinttweaks/ui/recipe-panel.prefab");
@@ -57,6 +57,8 @@ namespace BlueprintTweaks
                 UIBlueprintSizePanel sizePanel = sizePanelGO.GetComponent<UIBlueprintSizePanel>();
                 sizePanel.Create(__instance);
                 sizePanelGO.SetActive(BlueprintTweaksPlugin.gridControlFeature);
+                
+                __instance.group1.transform.SetAsLastSibling();
                 
                 CustomWindowData data = new CustomWindowData
                 {
