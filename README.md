@@ -1,5 +1,5 @@
 # DSP Mods
-Repo with source code for my mods. Also contains a mini guide on custom machine meshes and animations; registering custom items, recipes, etc; adding custom UI.
+Repo with source code for my mods. Also you can find detailed explanation about custom assets for DSP [here](https://github.com/kremnev8/DSP-Mods/wiki)
 
 If you want to support my work you can [donate](https://paypal.me/kremnev8).
 
