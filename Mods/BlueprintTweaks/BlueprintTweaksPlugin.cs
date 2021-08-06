@@ -119,7 +119,7 @@ namespace BlueprintTweaks
 
             if (axisLockEnabled && KeyBindPatch.GetKeyBind("LockLongAxis").keyValue)
             {
-                GridSnappingPatches.LockLongtitude();
+                GridSnappingPatches.LockLongitude();
             }
             
             if (axisLockEnabled &&  KeyBindPatch.GetKeyBind("LockLatAxis").keyValue)
