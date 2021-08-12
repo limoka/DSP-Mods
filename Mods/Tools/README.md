@@ -6,7 +6,7 @@ Registry is a library created to be used with [BepInEx](https://github.com/BepIn
 
 1. Download and install [BepInEx](https://github.com/BepInEx/BepInEx)
 2. Download and install [LDBTool](https://dsp.thunderstore.io/package/xiaoye97/LDBTool/)
-3. Create development environment. You can find how to do that [here](https://bepinex.github.io/bepinex_docs/master/articles/dev_guide/plugin_tutorial/index.html#sidetoggle)
+3. Create development environment. You can find how to do that [here](https://docs.bepinex.dev/master/articles/dev_guide/plugin_tutorial/index.html#sidetoggle)
 4. Make sure to add LDBTool dll as dependency
 5. Download the source code ["RegistryTool.cs"](https://github.com/kremnev8/DSP-Mods/blob/master/Mods/RegistryTool/Registry.cs) and include it apart of your project.
 
