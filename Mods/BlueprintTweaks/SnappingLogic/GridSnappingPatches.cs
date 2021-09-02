@@ -18,7 +18,7 @@ namespace BlueprintTweaks
         public static float lockLongitude;
         public static float lockLatitude;
 
-        public static bool isLockedLongtitude;
+        public static bool isLockedLongitude;
         public static bool isLockedLatitude;
 
         public static GridData currentGridData = new GridData();
@@ -26,33 +26,31 @@ namespace BlueprintTweaks
 
         public static Vector3 GetGroundCastPos()
         {
+            if (GameMain.mainPlayer == null) return Vector3.zero;
+
             BuildTool currentTool = GameMain.mainPlayer.controller.actionBuild.activeTool;
-            if (!VFInput.onGUI && VFInput.inScreen)
-            {
-                int layerMask = 8720;
-                bool castGround = Physics.Raycast(currentTool.mouseRay, out RaycastHit raycastHit, 800f, layerMask, QueryTriggerInteraction.Collide);
-                if (castGround)
-                {
-                    return raycastHit.point;
-                }
-            }
-            return Vector3.zero;
+            if (currentTool == null || VFInput.onGUI || !VFInput.inScreen) return Vector3.zero;
+
+            int layerMask = 8720;
+            bool castGround = Physics.Raycast(currentTool.mouseRay, out RaycastHit raycastHit, 800f, layerMask, QueryTriggerInteraction.Collide);
+            
+            return castGround ? raycastHit.point : Vector3.zero;
         }
 
-        public static void LockLongtitude()
+        public static void LockLongitude()
         {
-            if (!isLockedLongtitude)
+            if (!isLockedLongitude)
             {
                 Vector3 pos = GetGroundCastPos();
                 if (pos.Equals(Vector3.zero)) return;
                 
                 BlueprintUtils.GetLongitudeLatitudeRad(pos.normalized, ref lockLongitude, ref lockLatitude);
-                isLockedLongtitude = true;
+                isLockedLongitude = true;
                 isLockedLatitude = false;
             }
             else
             {
-                isLockedLongtitude = false;
+                isLockedLongitude = false;
             }
         }
         
@@ -65,7 +63,7 @@ namespace BlueprintTweaks
                 
                 BlueprintUtils.GetLongitudeLatitudeRad(pos.normalized, ref lockLongitude, ref lockLatitude);
                 isLockedLatitude = true;
-                isLockedLongtitude = false;
+                isLockedLongitude = false;
             }
             else
             {
@@ -108,18 +106,18 @@ namespace BlueprintTweaks
         {
             pos.Normalize();
             float latitude = BlueprintUtils.GetLatitudeRad(pos);
-            float longtitude = BlueprintUtils.GetLongitudeRad(pos);
+            float longitude = BlueprintUtils.GetLongitudeRad(pos);
             
             float latitudeCount = latitude / 6.28318548202515f * grid.segment;
             float longitudeSegmentCount = PlanetGrid.DetermineLongitudeSegmentCount(Mathf.FloorToInt(Mathf.Max(0.0f, Mathf.Abs(latitudeCount) - 0.1f)), grid.segment);
             
-            float longtitudeCount = longtitude / 6.283185f * longitudeSegmentCount;
+            float longitudeCount = longitude / 6.283185f * longitudeSegmentCount;
             
             float snappedLatitude = SnapWithOffset(latitudeCount, gridData, 1);
-            float snappedLongtitude = SnapWithOffset(longtitudeCount, gridData, 0);
+            float snappedLongitude = SnapWithOffset(longitudeCount, gridData, 0);
             
             float latRad = snappedLatitude / grid.segment * 6.28318548202515f;
-            float longRad = snappedLongtitude /  longitudeSegmentCount * 6.28318548202515f;
+            float longRad = snappedLongitude /  longitudeSegmentCount * 6.28318548202515f;
             return BlueprintUtils.GetDir(longRad, latRad);
         }
 
@@ -131,13 +129,13 @@ namespace BlueprintTweaks
 
             pos.Normalize();
             float latitude = BlueprintUtils.GetLatitudeRad(pos);
-            float longtitude = BlueprintUtils.GetLongitudeRad(pos);
-
+            float longitude = BlueprintUtils.GetLongitudeRad(pos);
+            
             float latitudeCount = latitude / 6.28318548202515f * grid.segment;
             float longitudeSegmentCount =
                 PlanetGrid.DetermineLongitudeSegmentCount(Mathf.FloorToInt(Mathf.Max(0.0f, Mathf.Abs(latitudeCount) - 0.1f)), grid.segment);
 
-            float longtitudeCount = longtitude / 6.283185f * longitudeSegmentCount;
+            float longtitudeCount = longitude / 6.283185f * longitudeSegmentCount;
 
             float offsetLat = Snap(latitudeCount) * 5f;
             float offsetLong = Snap(longtitudeCount) * 5f;
@@ -176,7 +174,7 @@ namespace BlueprintTweaks
                 float longitude = 0;
                 float latitude = 0;
                 BlueprintUtils.GetLongitudeLatitudeRad(__instance.castGroundPos.normalized, ref longitude, ref latitude);
-                if (isLockedLongtitude)
+                if (isLockedLongitude)
                     longitude = lockLongitude;
                 
                 if (isLockedLatitude)
@@ -212,7 +210,7 @@ namespace BlueprintTweaks
                 float longitude = 0;
                 float latitude = 0;
                 BlueprintUtils.GetLongitudeLatitudeRad(__instance.castGroundPos.normalized, ref longitude, ref latitude);
-                if (isLockedLongtitude)
+                if (isLockedLongitude)
                     longitude = lockLongitude;
                 
                 if (isLockedLatitude)
@@ -255,7 +253,7 @@ namespace BlueprintTweaks
                 float longitude = 0;
                 float latitude = 0;
                 BlueprintUtils.GetLongitudeLatitudeRad(__instance.castGroundPos.normalized, ref longitude, ref latitude);
-                if (isLockedLongtitude)
+                if (isLockedLongitude)
                     longitude = lockLongitude;
                 
                 if (isLockedLatitude)

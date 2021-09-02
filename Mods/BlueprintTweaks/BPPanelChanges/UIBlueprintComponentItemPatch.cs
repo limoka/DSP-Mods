@@ -41,7 +41,6 @@ namespace BlueprintTweaks
 
         public static void SetBuildings(UIBlueprintInspector inspector, int oldItemId, ItemProto newItem)
         {
-            BlueprintTweaksPlugin.logger.LogInfo($"Changing Building itemId to {newItem.ID}");
 
             foreach (BlueprintBuilding building in inspector.blueprint.buildings)
             {

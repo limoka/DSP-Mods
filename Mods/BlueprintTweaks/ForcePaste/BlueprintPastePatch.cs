@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using HarmonyLib;
+using NebulaAPI;
 using UnityEngine;
 
 // ReSharper disable InconsistentNaming
@@ -27,6 +28,7 @@ namespace BlueprintTweaks
 
         [HarmonyPatch(typeof(BuildTool_BlueprintPaste), "CheckBuildConditions")]
         [HarmonyPostfix]
+        [HarmonyPriority(Priority.Normal)]
         public static void DontStopOnFail(BuildTool_BlueprintPaste __instance, ref bool __result)
         {
             tmpPosBpidx.Clear();
@@ -34,7 +36,7 @@ namespace BlueprintTweaks
             {
                 BuildPreview preview = __instance.bpPool[i];
                 if (!preview.desc.isPowerNode) continue;
-                if (preview.condition != EBuildCondition.PowerTooClose) continue;
+                if (preview.condition != EBuildCondition.PowerTooClose && preview.condition != EBuildCondition.BlueprintBPOverlap) continue;
 
                 Vector3 pos = (preview.lpos + preview.lpos2) * 0.5f;
                 long key = ((long) Mathf.FloorToInt(pos.x * 100f) << 42) + ((long) Mathf.FloorToInt(pos.y * 100f) << 21) + Mathf.FloorToInt(pos.z * 100f);
@@ -42,7 +44,7 @@ namespace BlueprintTweaks
                 {
                     BuildPreview preview2 = __instance.bpPool[tmpPosBpidx[key]];
                     if (!preview2.desc.isPowerNode) continue;
-                    if (preview2.condition != EBuildCondition.PowerTooClose) continue;
+                    if (preview2.condition != EBuildCondition.PowerTooClose && preview2.condition != EBuildCondition.BlueprintBPOverlap) continue;
 
                     float num = Quaternion.Angle(preview.lrot, preview2.lrot);
                     float num2 = Quaternion.Angle(preview.lrot2, preview2.lrot2);
@@ -61,7 +63,7 @@ namespace BlueprintTweaks
                     tmpPosBpidx.Add(key, i);
                 }
             }
-            
+
             if (__result || !isEnabled) return;
 
             for (int i = 0; i < __instance.bpCursor; i++)
@@ -72,11 +74,8 @@ namespace BlueprintTweaks
                 
                 if (preview.output == null) continue;
 
-                BlueprintTweaksPlugin.logger.LogInfo($"Belt Collide, output collide: {preview.output.IsCollide()}");
                 if (!preview.output.IsCollide()) continue;
-                
-                BlueprintTweaksPlugin.logger.LogInfo("Start checks");
-                
+
 
                 int overlapCount = Physics.OverlapSphereNonAlloc(preview.lpos, 0.28f, BuildTool._tmp_cols, 425984, QueryTriggerInteraction.Collide);
 
@@ -98,33 +97,26 @@ namespace BlueprintTweaks
                     ItemProto itemProto = __instance.GetItemProto(objectId);
                     if (!itemProto.prefabDesc.isBelt) continue;
 
-                    BlueprintTweaksPlugin.logger.LogInfo($"Checking {objectId}");
 
                     __instance.factory.ReadObjectConn(objectId, 0, out bool _, out int otherObjId, out int _);
-                    BlueprintTweaksPlugin.logger.LogInfo($"Conn 0 {otherObjId}");
 
                     //0 next
                     //1 prev
 
                     __instance.factory.ReadObjectConn(objectId, 1, out bool _, out otherObjId, out int _);
-                    BlueprintTweaksPlugin.logger.LogInfo($"Conn 1 {otherObjId}");
                     
                     if (preview.output.IsCollide())
                     {
                         if (otherObjId == 0)
                         {
-                            BlueprintTweaksPlugin.logger.LogInfo($"Create Connection {objectId}");
                             preview.coverObjId = objectId;
                             preview.willRemoveCover = false;
+                            preview.output.bpgpuiModelId = 0;
+                            preview.output = null;
                             preview.condition = EBuildCondition.Ok;
                             break;
                         }
                     }
-                    
-                    __instance.factory.ReadObjectConn(objectId, 2, out bool _, out otherObjId, out int _);
-                    BlueprintTweaksPlugin.logger.LogInfo($"Conn 2 {otherObjId}");
-                    __instance.factory.ReadObjectConn(objectId, 3, out bool _, out otherObjId, out int _);
-                    BlueprintTweaksPlugin.logger.LogInfo($"Conn 3 {otherObjId}");
                 }
             }
 
@@ -156,7 +148,7 @@ namespace BlueprintTweaks
             matcher.Advance(-2)
                 .InsertAndAdvance(Transpilers.EmitDelegate<Func<BuildPreview, bool>>(bp =>
                 {
-                    if (!isEnabled && !BlueprintTweaksPlugin.nebulaInstalled) return true;
+                    if (!isEnabled && !NebulaModAPI.NebulaIsInstalled) return true;
 
                     if (bp.desc.multiLevel)
                     {

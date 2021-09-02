@@ -7,8 +7,8 @@ namespace BlueprintTweaks
     {
         public int position
         {
-            get => Mathf.RoundToInt((rectTrans.anchoredPosition.x - 0f) / 46f) + Mathf.RoundToInt((-rectTrans.anchoredPosition.y - 0f) / 46f) * 8;
-            set => rectTrans.anchoredPosition = new Vector2(value % 8 * 46, -(float) (value / 8 * 46));
+            get => Mathf.RoundToInt(rectTrans.anchoredPosition.x / 46f) + Mathf.RoundToInt(-rectTrans.anchoredPosition.y / 46f) * 8;
+            set => rectTrans.anchoredPosition = new Vector2(value % 8 * 46, -(value / 8 * 46));
         }
         
         [HideInInspector]
@@ -101,7 +101,6 @@ namespace BlueprintTweaks
             UIRecipePicker.Close();
             UIRecipePicker.Popup(pos, proto =>
             {
-                BlueprintTweaksPlugin.logger.LogInfo(proto == null);
                 if (proto != null)
                     panel.ChangeRecipe(recipeId, proto);
             }, recipeFilter);
