@@ -119,12 +119,17 @@ namespace BlueprintTweaks
             __state = false;
             if (!BlueprintCopyExtension.isEnabled) return;
             if (NebulaModAPI.IsMultiplayerActive && NebulaModAPI.MultiplayerSession.Factories.IsIncomingRequest.Value) return;
+
+            Color[] colors = null;
             
-            __state = CalculatePositions(__instance, reformPreviews);
+            if (BlueprintCopyExtension.copyColors && __instance.blueprint.customColors != null && __instance.blueprint.customColors.Length > 0)
+            {
+                colors = __instance.blueprint.customColors;
+            }
+            
+            __state = CalculatePositions(__instance, reformPreviews, colors);
         }
-        
-        public static Dictionary<long, int> tmpPosBpidx = new Dictionary<long, int>();
-        
+
         [HarmonyPatch(typeof(BuildTool_BlueprintPaste), "CheckBuildConditions")]
         [HarmonyPostfix]
         [HarmonyPriority(Priority.First)]
@@ -135,9 +140,7 @@ namespace BlueprintTweaks
             if (!__instance.cannotBuild || reformPreviews.Count <= 0) return;
             
             if (NebulaModAPI.IsMultiplayerActive && NebulaModAPI.MultiplayerSession.Factories.IsIncomingRequest.Value) return;
-            
-            tmpPosBpidx.Clear();
-            
+
             BPGratBox box = ReformBPUtils.GetBoundingRange(__instance.planet, __instance.actionBuild.planetAux, new int[0], 0, reformPreviews, reformPreviews[0].longitude);
 
             bool allOk = true; 
@@ -145,19 +148,16 @@ namespace BlueprintTweaks
             for (int i = 0; i < __instance.bpCursor; i++)
             {
                 BuildPreview preview = __instance.bpPool[i];
-                if (preview.condition != EBuildCondition.NeedGround)
+                if (preview.condition == EBuildCondition.NeedGround)
                 {
-                    if (preview.condition != EBuildCondition.Ok && preview.condition != EBuildCondition.NotEnoughItem) allOk = false;
-                    continue;
+                    Vector3 pos = (preview.lpos + preview.lpos2) * 0.5f;
+
+                    if (box.InGratBox(pos))
+                    {
+                        preview.condition = EBuildCondition.Ok;
+                    }
                 }
-
-                Vector3 pos = (preview.lpos + preview.lpos2) * 0.5f;
-
-                if (box.InGratBox(pos))
-                {
-                    preview.condition = EBuildCondition.Ok;
-                }
-
+                
                 if (preview.condition != EBuildCondition.Ok && preview.condition != EBuildCondition.NotEnoughItem) allOk = false;
             }
 
@@ -167,7 +167,15 @@ namespace BlueprintTweaks
             }
         }
 
-        public static bool CalculatePositions(BuildTool_BlueprintPaste tool, List<ReformData> reforms)
+        public static void ApplyColors(BuildTool_BlueprintPaste tool, Color[] colors)
+        {
+            PlatformSystem system = tool.factory.platformSystem;
+            Array.Copy(colors, system.reformCustomColors, 16);
+            system.RefreshColorsTexture();
+        }
+        
+
+        public static bool CalculatePositions(BuildTool_BlueprintPaste tool, List<ReformData> reforms, Color[] colors)
         {
             ReformBPUtils.currentGrid = tool.factory.planet.aux.mainGrid;
             
@@ -192,13 +200,13 @@ namespace BlueprintTweaks
                 if (session.LocalPlayer.IsHost)
                 {
                     int planetId = session.Factories.EventFactory?.planetId ?? GameMain.localPlanet?.id ?? -1;
-                    session.Network.SendPacketToStar(new ReformPasteEventPacket(planetId, reforms, session.Factories.PacketAuthor == NebulaModAPI.AUTHOR_NONE ? session.LocalPlayer.Id : session.Factories.PacketAuthor), GameMain.galaxy.PlanetById(planetId).star.id);
+                    session.Network.SendPacketToStar(new ReformPasteEventPacket(planetId, reforms, colors, session.Factories.PacketAuthor == NebulaModAPI.AUTHOR_NONE ? session.LocalPlayer.Id : session.Factories.PacketAuthor), GameMain.galaxy.PlanetById(planetId).star.id);
                 }
 
                 //If client builds, he need to first send request to the host and wait for reply
                 if (!session.LocalPlayer.IsHost && !session.Factories.IsIncomingRequest.Value)
                 {
-                    session.Network.SendPacket(new ReformPasteEventPacket(GameMain.localPlanet?.id ?? -1, reforms, session.Factories.PacketAuthor == NebulaModAPI.AUTHOR_NONE ? session.LocalPlayer.Id : session.Factories.PacketAuthor));
+                    session.Network.SendPacket(new ReformPasteEventPacket(GameMain.localPlanet?.id ?? -1, reforms, colors, session.Factories.PacketAuthor == NebulaModAPI.AUTHOR_NONE ? session.LocalPlayer.Id : session.Factories.PacketAuthor));
                     return true;
                 }
             }
@@ -206,9 +214,12 @@ namespace BlueprintTweaks
             {
                 if (!CheckItems(tool, cost, tmpPoints.Count)) return false;
             }
-            
-            BlueprintTweaksPlugin.logger.LogInfo($"Applying reform");
-            
+
+            if (colors != null && colors.Length > 0)
+            {
+                ApplyColors(tool, colors);
+            }
+
             ReformBPUtils.FlattenTerrainReform(tool.factory, tmpPoints, center);
             VFAudio.Create("reform-terrain", null, center, true, 4);
             PlatformSystem platformSystem = tool.factory.platformSystem;
@@ -233,6 +244,8 @@ namespace BlueprintTweaks
 
         public static bool CheckItems(BuildTool_BlueprintPaste tool, int cost, int reformCount)
         {
+            if (BlueprintTweaksPlugin.freeFoundationsIsInstalled) return true;
+            
             if (tool.player.package.GetItemCount(PlatformSystem.REFORM_ID) < reformCount) return false;
 
             int result = tool.player.sandCount - cost;

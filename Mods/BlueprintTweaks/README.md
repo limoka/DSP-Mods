@@ -13,7 +13,7 @@ Current list of features:
 - Allow using La**T**itude/Lon**G**titude axis lock. Use `Ctrl + T/G` to toggle
 - Allow changing grid snapping. Set blueprint grid size in its settings, then press `Ctrl + B` in desired initial position.
 - Allow blueprinting on Gas Giants.
-- Allow blueprinting Foundations. If you blueprint buildings with foundations under them, you can place blueprint where foundations are needed. Blueprint strings with this feature are `compatible` with vanilla strings.
+- Allow blueprinting Foundations. Also allows copying Custom foundations color palettes. If you blueprint buildings with foundations under them, you can place blueprint where foundations are needed. Blueprint strings with this feature are `compatible` with vanilla strings.
 
 Axis lock supports: Blueprint, Construction and Reform modes<br/>
 Grid snapping supports: Blueprint and Construction modes<br/>
@@ -21,7 +21,8 @@ Grid snapping supports: Blueprint and Construction modes<br/>
 All Keybinds are rebindable<br/>
 All features can be disabled in config file located at `Dyson Sphere Program/BepInEx/config/`. By default everything is enabled.
 
-This mod is fully compatible with [Nebula Multiplayer Mod](https://dsp.thunderstore.io/package/nebula/NebulaMultiplayerMod/)
+This mod is fully compatible with [Nebula Multiplayer Mod](https://dsp.thunderstore.io/package/nebula/NebulaMultiplayerMod/)<br/>
+**Important Note: Nebula Multiplayer mod itself is `NOT` required. I only need its API plugin, which is separate.**
 
 More features might come in the future. If you have any feature you would like to see added, [message](#feedback-and-bug-report) me on Discord
 
@@ -46,6 +47,14 @@ Unzip folder `plugins` into `Dyson Sphere Program/BepInEx/plugins/BlueprintTweak
 Feel free to contact me via Discord (Kremnev8#3756) for any feedback, bug-reports or suggestions.
 
 ## Changelog
+### v1.1.2
+- Allow copying Custom foundation colors with blueprints
+- Fix issues when opening Blueprint windows on new planets
+- Minor improvements to UI look
+### v1.1.1
+**Important Note: Nebula Multiplayer mod itself is `NOT` required. I only need its API plugin, which is separate.**
+- Fixed issues blueprinting on Gas Giants
+- Fixed compatibility with Free Foundations mod.
 ### v1.1.0
 **Important Note: Installation HAS changed. If you are installing manually, make sure to read installation instructions again!**
 - Added foundation blueprints feature

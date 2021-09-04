@@ -53,6 +53,9 @@ namespace BlueprintTweaks
 
             int maxLen = __instance.reformCursorMap.Length;
             PlatformSystem system = planetFactory.platformSystem;
+            
+            if (system == null) return;
+            system.EnsureReformData();
 
             float realRadius = GameMain.localPlanet.realRadius;
             __instance.displayScale = (realRadius + 0.2f) * 2f;
@@ -150,7 +153,8 @@ namespace BlueprintTweaks
 
             if (actionBuild.blueprintMode == EBlueprintMode.Paste)
             {
-
+                ReformBPUtils.currentGrid = GameMain.localPlanet.aux.mainGrid;
+                
                 __instance.material.SetColor(cursorColor, displayColor);
                 __instance.gridRnd.enabled = true;
                 PlatformSystem platformSystem = __instance.reformMapPlanet.factory.platformSystem;

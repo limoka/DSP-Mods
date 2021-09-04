@@ -16,7 +16,8 @@ namespace BlueprintTweaks
         public static List<ReformData> tmpReformList = new List<ReformData>();
 
         public static bool isEnabled = true;
-
+        public static bool copyColors = true;
+        
         [HarmonyPatch(typeof(BuildTool_BlueprintCopy), "ClearPreSelection")]
         [HarmonyPostfix]
         public static void ClearPre(BuildTool_BlueprintCopy __instance)
@@ -140,7 +141,7 @@ namespace BlueprintTweaks
         public static void SelectionAdd(BuildTool_BlueprintCopy __instance)
         {
             if (GameMain.localPlanet == null || GameMain.localPlanet.type == EPlanetType.Gas) return;
-            
+
             reformPreSelection.Clear();
             if (Mathf.Abs(__instance.preSelectArcBox.x - __instance.preSelectArcBox.z) < 0.01f &&
                 Mathf.Abs(__instance.preSelectArcBox.y - __instance.preSelectArcBox.w) < 0.01f &&
@@ -187,6 +188,20 @@ namespace BlueprintTweaks
                     }
                 });
             }
+        }
+        
+        
+        [HarmonyPatch(typeof(BuildTool_BlueprintCopy), "GenerateBlueprintData")]
+        [HarmonyPostfix]
+        public static void AddColorData(BuildTool_BlueprintCopy __instance)
+        {
+            if (GameMain.localPlanet == null || GameMain.localPlanet.type == EPlanetType.Gas) return;
+
+            PlatformSystem system = GameMain.localPlanet.factory.platformSystem;
+            
+            __instance.blueprint.customColors = new Color[16];
+            
+            Array.Copy(system.reformCustomColors, __instance.blueprint.customColors, 16);
         }
     }
 }

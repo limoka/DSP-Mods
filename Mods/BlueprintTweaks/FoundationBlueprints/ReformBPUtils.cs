@@ -186,6 +186,9 @@ namespace BlueprintTweaks
             if (Mathf.Abs(box.y - box.w) < 0.005f) return;
             
             PlatformSystem platform = __instance.factory.platformSystem;
+            
+            if (platform == null) return;
+            platform.EnsureReformData();
 
             GetSegmentCount(box.startLatitudeRad, box.startLongitudeRad, out float startLatCount, out float startLongCount, out int startCount);
             GetSegmentCount(box.endLatitudeRad, box.endLongitudeRad, out float endLatCount, out float endLongCount, out int endCount);

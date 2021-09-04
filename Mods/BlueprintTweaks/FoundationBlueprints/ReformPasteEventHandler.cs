@@ -14,7 +14,7 @@ namespace BlueprintTweaks
 
         public ReformPasteEventPacket() { }
 
-        public ReformPasteEventPacket(int planetId, List<ReformData> reformPreviews, int playerId)
+        public ReformPasteEventPacket(int planetId, List<ReformData> reformPreviews, Color[] colors, int playerId)
         {
             AuthorId = playerId;
             PlanetId = planetId;
@@ -29,14 +29,27 @@ namespace BlueprintTweaks
                     writer.BinaryWriter.Write(data.type);
                     writer.BinaryWriter.Write(data.color);
                 }
+                
+                writer.BinaryWriter.Write(colors != null);
+                if (colors != null)
+                {
+                    for (int i = 0; i < 16; i++)
+                    {
+                        writer.BinaryWriter.Write(colors[i].r);
+                        writer.BinaryWriter.Write(colors[i].g);
+                        writer.BinaryWriter.Write(colors[i].b);
+                        writer.BinaryWriter.Write(colors[i].a);
+                    }
+                }
 
                 ReformData = writer.CloseAndGetBytes();
             }
         }
 
-        public List<ReformData> GetReforms()
+        public void GetData(out List<ReformData> reforms, out Color[] colors)
         {
-            List<ReformData> result = new List<ReformData>();
+            reforms = new List<ReformData>();
+            colors = null;
 
             using (IReaderProvider reader = NebulaModAPI.GetBinaryReader(ReformData))
             {
@@ -50,11 +63,24 @@ namespace BlueprintTweaks
                         type = reader.BinaryReader.ReadInt32(),
                         color = reader.BinaryReader.ReadInt32()
                     };
-                    result.Add(data);
+                    reforms.Add(data);
+                }
+
+                if (reader.BinaryReader.ReadBoolean())
+                {
+                    colors = new Color[16];
+                    for (int i = 0; i < 16; i++)
+                    {
+                        colors[i] = new Color(
+                            reader.BinaryReader.ReadSingle(),
+                            reader.BinaryReader.ReadSingle(),
+                            reader.BinaryReader.ReadSingle(),
+                            reader.BinaryReader.ReadSingle());
+                    }
                 }
             }
 
-            return result;
+            
         }
     }
 
@@ -95,7 +121,8 @@ namespace BlueprintTweaks
 
                 using (factoryManager.IsIncomingRequest.On())
                 {
-                    BlueprintPasteExtension.CalculatePositions(buildTool, packet.GetReforms());
+                    packet.GetData(out List<ReformData> reforms, out Color[] colors);
+                    BlueprintPasteExtension.CalculatePositions(buildTool, reforms, colors);
                 }
 
                 if (loadExternalPlanetData)

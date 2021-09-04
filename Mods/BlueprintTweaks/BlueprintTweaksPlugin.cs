@@ -25,10 +25,14 @@ namespace BlueprintTweaks
         
         public const string MOD_DISP_NAME = "Blueprint Tweaks";
         
-        public const string VERSION = "1.1.0";
+        public const string VERSION = "1.1.2";
+
+        public const string FREE_FOUNDATIONS_GUID = "de.Hotte.DSP.FreeFoundations";
         
         public static ManualLogSource logger;
         public static ResourceData resource;
+
+        public static bool freeFoundationsIsInstalled;
 
         public static bool cameraToggleEnabled;
         public static bool recipeChangeEnabled;
@@ -57,6 +61,10 @@ namespace BlueprintTweaks
             gridControlFeature = Config.Bind("General", "gridControl", true, "Allow changing grid size and its offset\nAll values are applied on restart").Value;
             blueprintFoundations = Config.Bind("General", "blueprintFoundations", true, "Allow blueprinting foundations along with buildings.").Value;
 
+            if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(FREE_FOUNDATIONS_GUID))
+            {
+                freeFoundationsIsInstalled = true;
+            }
             
             string pluginfolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
@@ -82,7 +90,7 @@ namespace BlueprintTweaks
             
             ProtoRegistry.RegisterString("CantPasteThisInGasGiantWarn", "This Blueprint can't be pasted on a Gas Giant.");
             
-            ProtoRegistry.RegisterString("FoundationsLabel", "Foundations:");
+            ProtoRegistry.RegisterString("FoundationsLabel", "Foundations");
             ProtoRegistry.RegisterString("foundationsBPCountLabel", "recorded");
             ProtoRegistry.RegisterString("foundationBPEnabledLabel", "Blueprint foundations");
             
@@ -90,6 +98,16 @@ namespace BlueprintTweaks
             ProtoRegistry.RegisterString("ChangeTipText2", "Left-click to change requested item");
             ProtoRegistry.RegisterString("ChangeTip2Title", "Change requested items");
             ProtoRegistry.RegisterString("ChangeTip2Desc", "Left-click to change requested item. When you click, picker menu will open, where a new item can be selected. Logistic station that used the old item will now use selected item. This change will take effect after saving.");
+            
+            ProtoRegistry.RegisterString("copyColorsLabel", "Copy Custom foundation colors");
+            ProtoRegistry.RegisterString("copyColorsTip", "Copy Custom foundation colors");
+            ProtoRegistry.RegisterString("copyColorsTipDesc", "When enabled, Custom foundation colors will be saved with Blueprint Data. When such Blueprint will be pasted, current planet's Custom colors will be replaced with colors stored in the Blueprint");
+            
+            ProtoRegistry.RegisterString("hasColorsLabel", "Contains Color data");
+            
+            ProtoRegistry.RegisterString("foundationsBlueprintTip", "Blueprint Foundations");
+            ProtoRegistry.RegisterString("foundationsBlueprintTipDesc", "When enabled, all Foundations (Including their colors and types) in your selection will be saved to the Blueprint. If there are buildings that lack support, but blueprint has foundations under them they will successfully be pasted");
+
             
             KeyBindPatch.Init();
             UIBlueprintInspectorPatch.Init();
