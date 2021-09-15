@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace BlueprintTweaks
 {
-    [HarmonyPatch]
+    [RegisterPatch(BlueprintTweaksPlugin.BLUEPRINT_FOUNDATIONS)]
     public static class BlueprintPasteExtension
     {
         public static List<ReformData> reformPreviews = new List<ReformData>();
@@ -226,7 +226,9 @@ namespace BlueprintTweaks
 
             foreach (ReformData preview in reforms)
             {
-                ReformBPUtils.GetSegmentCount(preview.latitude, preview.longitude, out float latCount, out float longCount);
+                ReformBPUtils.GetSegmentCount(preview.latitude, preview.longitude, out float latCount, out float longCount, out int segmentCount);
+                longCount = Mathf.Repeat(longCount, segmentCount);
+                
                 int reformIndex = platformSystem.GetReformIndexForSegment(latCount, longCount);
 
                 if (reformIndex < 0) continue;

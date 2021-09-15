@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace BlueprintTweaks
 {
-    [HarmonyPatch]
+    [RegisterPatch(BlueprintTweaksPlugin.BLUEPRINT_FOUNDATIONS)]
     public static class BlueprintDataPatch
     {
         [HarmonyPatch(typeof(BlueprintData), "IsNullOrEmpty")]

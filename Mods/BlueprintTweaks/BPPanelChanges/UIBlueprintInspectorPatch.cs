@@ -22,18 +22,18 @@ namespace BlueprintTweaks
 
         public static void Init()
         {
-            if (BlueprintTweaksPlugin.gridControlFeature) 
+            if (BlueprintTweaksPlugin.gridControlFeature.Value) 
                 panelPrefabs.Add("assets/blueprinttweaks/ui/grid-size-panel.prefab");
             
-            if (BlueprintTweaksPlugin.blueprintFoundations)
+            if (BlueprintTweaksPlugin.blueprintFoundations.Value)
                 panelPrefabs.Add("assets/blueprinttweaks/ui/bp-foundations-panel.prefab");
             
             panelPrefabs.Add("assets/blueprinttweaks/ui/component-panel.prefab");
             
-            if (BlueprintTweaksPlugin.recipeChangeEnabled) 
+            if (BlueprintTweaksPlugin.recipeChangeEnabled.Value) 
                 panelPrefabs.Add("assets/blueprinttweaks/ui/recipe-panel.prefab");
             
-            if (BlueprintTweaksPlugin.logisticCargoChangeEnabled)
+            if (BlueprintTweaksPlugin.logisticCargoChangeEnabled.Value)
                 panelPrefabs.Add("Assets/BlueprintTweaks/UI/transport-panel.prefab");
             
             panelPrefabs.Add("assets/blueprinttweaks/ui/string-copy-panel.prefab");

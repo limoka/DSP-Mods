@@ -2,18 +2,23 @@
 ![BlueprintTweaks](https://raw.githubusercontent.com/kremnev8/DSP-Mods/master/Mods/BlueprintTweaks/recipe-preview.gif)
 ![BlueprintTweaks](https://raw.githubusercontent.com/kremnev8/DSP-Mods/master/Mods/BlueprintTweaks/force-preview.gif)
 
-This mod adds some minor tweaks to new Blueprint system. <br/>
-Current list of features:
+This mod improves Blueprint system with QoL changes, new features like force pasting, foundation blueprints and more.<br/>
+List of features:<br/>
+Interface changes:
 - Allow using 3rd person view in Blueprint mode.
 - Allow toggling between 3d person and planet view when in Blueprint mode using `J` key
 - Selectively change recipes on machines during any moment using a new panel in blueprint inspector
 - Selectively change cargo requested/provided by logistic stations in a new panel in blueprint inspector
-- Allow changing building tiers. Left-click on a building in component panel to use.
+- Allow changing building tiers. Left-click on a building in component panel to use.<br/>
+
+Big features:
 - Allow forcing Blueprint paste even if some buildings collide or can't be built. Use `Shift` key to use this feature.
-- Allow using La**T**itude/Lon**G**titude axis lock. Use `Ctrl + T/G` to toggle
+- Allow using La**T**itude/Lon**G**itude axis lock. Use `Ctrl + T/G` to toggle
 - Allow changing grid snapping. Set blueprint grid size in its settings, then press `Ctrl + B` in desired initial position.
 - Allow blueprinting on Gas Giants.
 - Allow blueprinting Foundations. Also allows copying Custom foundations color palettes. If you blueprint buildings with foundations under them, you can place blueprint where foundations are needed. Blueprint strings with this feature are `compatible` with vanilla strings.
+- Allow to use blueprint like selection to Dismantle buildings. You can find its button in dismantle panel.
+- Allow mirroring blueprints. Use `Shift + T/G` to toggle mirror in La**T**itude/Lon**G**itude axis.
 
 Axis lock supports: Blueprint, Construction and Reform modes<br/>
 Grid snapping supports: Blueprint and Construction modes<br/>
@@ -21,10 +26,18 @@ Grid snapping supports: Blueprint and Construction modes<br/>
 All Keybinds are rebindable<br/>
 All features can be disabled in config file located at `Dyson Sphere Program/BepInEx/config/`. By default everything is enabled.
 
+This mod is fully compatible with [Galactic Scale 2](https://dsp.thunderstore.io/package/Galactic_Scale/GalacticScale/)<br/>
 This mod is fully compatible with [Nebula Multiplayer Mod](https://dsp.thunderstore.io/package/nebula/NebulaMultiplayerMod/)<br/>
 **Important Note: Nebula Multiplayer mod itself is `NOT` required. I only need its API plugin, which is separate.**
 
 More features might come in the future. If you have any feature you would like to see added, [message](#feedback-and-bug-report) me on Discord
+
+## Support me
+If you want to support my work you can [donate](https://paypal.me/kremnev8).<br/>
+If you want other means to support me, you can [message](#feedback-and-bug-report) me on discord about it.
+
+## Feedback and Bug Report
+Feel free to contact me via Discord (Kremnev8#3756) for any feedback, bug-reports or suggestions.
 
 ## Installation
 ### With Mod Manager
@@ -43,10 +56,16 @@ Install NebulaMultiplayerModApi from [here](https://dsp.thunderstore.io/package/
 Unzip folder `patchers` into `Dyson Sphere Program/BepInEx/patchers/BlueprintTweaks/` (Create folder named `BlueprintTweaks`)<br/>
 Unzip folder `plugins` into `Dyson Sphere Program/BepInEx/plugins/BlueprintTweaks/`. (Create folder named `BlueprintTweaks`)<br/>
 
-## Feedback and Bug Report
-Feel free to contact me via Discord (Kremnev8#3756) for any feedback, bug-reports or suggestions.
-
 ## Changelog
+### v1.2.0
+- Added Blueprint mirroring
+- Added drag remove Dismantle tool
+- Changes behavior of Axis/Grid lock and Mirror tools so that when player exits build mode, tools state resets
+- Added installation checker. If your installation is incorrect, an ingame message will pop-up explaining what could have gone wrong
+- Changed config file sections. (Old settings will auto-migrate)
+- Fixed numerous issues with foundation blueprints selection (Especially on poles)
+- Fixed issues that some foundations that are in the blueprint did not paste. **Note that blueprints created before this version might still have these issues**
+- Fixed compatability issues with `Galactic Scale 2` when using foundation blueprints
 ### v1.1.2
 - Allow copying Custom foundation colors with blueprints
 - Fix issues when opening Blueprint windows on new planets
@@ -54,12 +73,12 @@ Feel free to contact me via Discord (Kremnev8#3756) for any feedback, bug-report
 ### v1.1.1
 **Important Note: Nebula Multiplayer mod itself is `NOT` required. I only need its API plugin, which is separate.**
 - Fixed issues blueprinting on Gas Giants
-- Fixed compatibility with Free Foundations mod.
+- Fixed compatibility with `Free Foundations mod`.
 ### v1.1.0
 **Important Note: Installation HAS changed. If you are installing manually, make sure to read installation instructions again!**
 - Added foundation blueprints feature
 - Added logistic cargo change feature
-- Improved compatibility with Nebula Multiplayer mod
+- Improved compatibility with `Nebula Multiplayer mod`
 ### v1.0.8
 - Fixed errors if axis lock or grid lock buttons were pressed outside blueprint mode.
 - Fixed again inability to force build overlapping `Power poles`.

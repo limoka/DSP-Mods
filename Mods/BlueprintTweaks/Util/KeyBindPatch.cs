@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using UnityEngine;
+
 // ReSharper disable InconsistentNaming
 
 namespace BlueprintTweaks
@@ -10,13 +11,14 @@ namespace BlueprintTweaks
     public class PressKeyBind
     {
         public bool keyValue
-        { 
+        {
             get
             {
                 if (!VFInput.override_keys[defaultBind.id].IsNull())
                 {
                     return ReadKey(VFInput.override_keys[defaultBind.id]);
                 }
+
                 return ReadDefaultKey();
             }
         }
@@ -46,7 +48,7 @@ namespace BlueprintTweaks
             return key.GetKey();
         }
     }
-    
+
     public class ReleaseKeyBind : PressKeyBind
     {
         protected override bool ReadKey(CombineKey key)
@@ -54,12 +56,12 @@ namespace BlueprintTweaks
             return key.GetKeyUp();
         }
     }
-    
+
     [HarmonyPatch]
     public static class KeyBindPatch
     {
         public static Dictionary<string, PressKeyBind> customKeys = new Dictionary<string, PressKeyBind>();
-        
+
         public static void UpdateArray<T>(ref T[] array, int newSize)
         {
             T[] oldArray = array;
@@ -67,13 +69,13 @@ namespace BlueprintTweaks
             Array.Copy(oldArray, array, oldArray.Length);
         }
 
-        public static void RegisterKeyBind<T>(BuiltinKey key)  where T : PressKeyBind, new()
+        public static void RegisterKeyBind<T>(BuiltinKey key) where T : PressKeyBind, new()
         {
             T keyBind = new T();
             keyBind.Init(key);
             customKeys.Add("KEY" + key.name, keyBind);
         }
-        
+
         public static bool HasKeyBind(string id)
         {
             string key = "KEY" + id;
@@ -93,7 +95,7 @@ namespace BlueprintTweaks
 
         public static void Init()
         {
-            if (BlueprintTweaksPlugin.cameraToggleEnabled)
+            if (BlueprintTweaksPlugin.cameraToggleEnabled.Value)
             {
                 RegisterKeyBind<PressKeyBind>(new BuiltinKey
                 {
@@ -105,7 +107,7 @@ namespace BlueprintTweaks
                 });
             }
 
-            if (BlueprintTweaksPlugin.forcePasteEnabled)
+            if (BlueprintTweaksPlugin.forcePasteEnabled.Value)
             {
                 RegisterKeyBind<HoldKeyBind>(new BuiltinKey
                 {
@@ -117,7 +119,7 @@ namespace BlueprintTweaks
                 });
             }
 
-            if (BlueprintTweaksPlugin.axisLockEnabled)
+            if (BlueprintTweaksPlugin.axisLockEnabled.Value)
             {
                 RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
                 {
@@ -138,7 +140,7 @@ namespace BlueprintTweaks
                 });
             }
 
-            if (BlueprintTweaksPlugin.gridControlFeature)
+            if (BlueprintTweaksPlugin.gridControlFeature.Value)
             {
                 RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
                 {
@@ -149,15 +151,36 @@ namespace BlueprintTweaks
                     canOverride = true
                 });
             }
+
+            if (BlueprintTweaksPlugin.blueprintMirroring.Value)
+            {
+                RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
+                {
+                    id = 105,
+                    key = new CombineKey((int) KeyCode.G, CombineKey.SHIFT_COMB, ECombineKeyAction.OnceClick, false),
+                    conflictGroup = 2052,
+                    name = "MirrorLongAxis",
+                    canOverride = true
+                });
+
+                RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
+                {
+                    id = 106,
+                    key = new CombineKey((int) KeyCode.T, CombineKey.SHIFT_COMB, ECombineKeyAction.OnceClick, false),
+                    conflictGroup = 2052,
+                    name = "MirrorLatAxis",
+                    canOverride = true
+                });
+            }
         }
-        
+
         [HarmonyPatch(typeof(UIOptionWindow), "_OnCreate")]
         [HarmonyPrefix]
         public static void AddKeyBind(UIOptionWindow __instance)
         {
             PressKeyBind[] newKeys = customKeys.Values.ToArray();
             if (newKeys.Length == 0) return;
-            
+
             int index = DSPGame.key.builtinKeys.Length;
             UpdateArray(ref DSPGame.key.builtinKeys, index + customKeys.Count);
 

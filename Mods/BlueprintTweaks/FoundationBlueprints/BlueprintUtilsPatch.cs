@@ -6,13 +6,14 @@ using UnityEngine;
 
 namespace BlueprintTweaks
 {
-    [HarmonyPatch]
+    [RegisterPatch(BlueprintTweaksPlugin.BLUEPRINT_FOUNDATIONS)]
     public static class BlueprintUtilsPatch
     {
         public delegate void AddAction(BlueprintData bluprint, BPGratBox box, int i, BPGratBox[] array, float a, float b, int c);
 
         public delegate void RefreshAction(BlueprintData _blueprintData, PlanetData _planet, int _dotsCursor, IntVector4[] _tropicGratBoxConditionInfo,
             float _yaw, int _segmentCnt, Vector4[] array);
+        
 
 
         [HarmonyPatch(typeof(BlueprintUtils), "GenerateBlueprintData")]
@@ -111,15 +112,10 @@ namespace BlueprintTweaks
                             blueprint.reforms[j].areaIndex = i;
                             blueprint.reforms[j].localLongitude = (data.longitude - array[i].x) / longitudeRadPerGrid;
                             blueprint.reforms[j].localLatitude = (data.latitude - array[i].y) / latitudeRadPerGrid;
-                            
+
                             if (blueprint.reforms[j].localLongitude < -0.5001f)
                             {
                                 blueprint.reforms[j].localLongitude += longitudeSegmentCount * 5;
-                            }
-
-                            if (data.longitude == 0)
-                            {
-                                blueprint.reforms[j].localLongitude = 0f;
                             }
                         }
                     }));
@@ -186,8 +182,8 @@ namespace BlueprintTweaks
                     ReformData reformPreview = reforms[reformsLength * j + i];
                     Vector4 areaData = array[j + reformData.areaIndex];
 
-                    areaData.x = yawX < 0f ? areaData.z : areaData.x;
-                    areaData.y = yawY < 0f ? areaData.w : areaData.y;
+                    BlueprintUtilsPatch2.MirrorArea(ref areaData, yawX, yawY);
+
                     float radPerGrid = BlueprintUtils.GetLongitudeRadPerGrid(areaData.y, _segmentCnt);
                     Vector2 vector4 = BlueprintUtils.TransitionWidthAndHeight(_yaw, reformData.localLongitude - 0.5f, reformData.localLatitude - 0.5f);
                     float longitudeRad = areaData.x + vector4.x * radPerGrid * yawX;

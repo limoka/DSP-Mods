@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Security;
 using System.Security.Permissions;
 using BepInEx;
+using BepInEx.Configuration;
 using BepInEx.Logging;
 using CommonAPI;
 using HarmonyLib;
@@ -25,42 +26,66 @@ namespace BlueprintTweaks
         
         public const string MOD_DISP_NAME = "Blueprint Tweaks";
         
-        public const string VERSION = "1.1.2";
+        public const string VERSION = "1.2.0";
 
         public const string FREE_FOUNDATIONS_GUID = "de.Hotte.DSP.FreeFoundations";
         
+        
+        // Features keys
+
+        public const string DRAG_REMOVE = "DragRemove";
+        public const string BLUEPRINT_FOUNDATIONS = "BlueprintFoundations";
+
         public static ManualLogSource logger;
         public static ResourceData resource;
 
+        public static DragRemoveBuildTool tool;
+
         public static bool freeFoundationsIsInstalled;
 
-        public static bool cameraToggleEnabled;
-        public static bool recipeChangeEnabled;
-        public static bool logisticCargoChangeEnabled;
+        public static ConfigEntry<bool> cameraToggleEnabled { get; set; }
+        public static ConfigEntry<bool> recipeChangeEnabled;
+        public static ConfigEntry<bool> changeTierEnabled;
+        public static ConfigEntry<bool> logisticCargoChangeEnabled;
+
+        public static ConfigEntry<bool> forcePasteEnabled;
+        public static ConfigEntry<bool> axisLockEnabled;
+        public static ConfigEntry<bool> gridControlFeature;
+        public static ConfigEntry<bool> blueprintMirroring;
+        public static ConfigEntry<bool> dragRemove;
         
-        public static bool forcePasteEnabled;
-        public static bool axisLockEnabled;
-        public static bool changeTierEnabled;
-        public static bool canBlueprintOnGasGiants;
-        public static bool gridControlFeature;
-        public static bool blueprintFoundations;
+        public static ConfigEntry<bool> blueprintFoundations;
+        
+        public static ConfigEntry<bool> resetFunctionsOnMenuExit;
+        public static ConfigEntry<bool> canBlueprintOnGasGiants;
 
         private void Awake()
         {
             logger = Logger;
 
-            cameraToggleEnabled = Config.Bind("General", "cameraToggle", true, "Allow toggling camera between 3rd person and god view\nAll values are applied on restart").Value;
+            cameraToggleEnabled = Config.Bind("Interface", "cameraToggle", true, "Allows toggling camera between 3rd person and god view\nAll values are applied on restart");
             
-            recipeChangeEnabled = Config.Bind("General", "recipeChange", true, "Add recipe change panel to blueprint inspectors\nAll values are applied on restart").Value;
-            logisticCargoChangeEnabled = Config.Bind("General", "changeLogisticCargo", true, "Allow changing cargo requested/provided by logistic stations").Value;
+            recipeChangeEnabled = Config.Bind("Interface", "recipeChange", true, "Add recipe change panel to blueprint inspectors\nAll values are applied on restart");
+            logisticCargoChangeEnabled = Config.Bind("Interface", "changeLogisticCargo", true, "Allows changing cargo requested/provided by logistic stations");
+            changeTierEnabled = Config.Bind("Interface", "changeTier", true, "Allows using change tier functionality\nAll values are applied on restart");
             
-            forcePasteEnabled = Config.Bind("General", "forcePaste", true, "Allow using key to force blueprint placement\nAll values are applied on restart").Value;
-            axisLockEnabled = Config.Bind("General", "axisLock", true, "Allow using Latitude/Longtitude axis locks\nAll values are applied on restart").Value;
-            changeTierEnabled = Config.Bind("General", "changeTier", true, "Allow using change tier functionality\nAll values are applied on restart").Value;
-            canBlueprintOnGasGiants = Config.Bind("General", "bpOnGasGiants", true, "Allow using Blueprints on Gas Giants\nAll values are applied on restart").Value;
-            gridControlFeature = Config.Bind("General", "gridControl", true, "Allow changing grid size and its offset\nAll values are applied on restart").Value;
-            blueprintFoundations = Config.Bind("General", "blueprintFoundations", true, "Allow blueprinting foundations along with buildings.").Value;
+            forcePasteEnabled = Config.Bind("Features", "forcePaste", true, "Allows using key to force blueprint placement\nAll values are applied on restart");
+            axisLockEnabled = Config.Bind("Features", "axisLock", true, "Allows using Latitude/Longtitude axis locks\nAll values are applied on restart");
+            gridControlFeature = Config.Bind("Features", "gridControl", true, "Allows changing grid size and its offset\nAll values are applied on restart");
+            blueprintMirroring = Config.Bind("Features", "blueprintMirroring", true, "Allows mirroring Blueprints\nAll values are applied on restart");
+            dragRemove = Config.Bind("Features", "dragRemove", true, "Allows using drag remove function\nAll values are applied on restart");
+            
+            blueprintFoundations = Config.Bind("Features", "blueprintFoundations", true, "Allow blueprinting foundations along with buildings.\nAll values are applied on restart");
+            
+            resetFunctionsOnMenuExit = Config.Bind("Misc", "resetOnExit", true, "If enabled when you exit build mode, some functions (Axis/Grid lock, Mirror) will reset their state");
+            canBlueprintOnGasGiants = Config.Bind("Misc", "bpOnGasGiants", true, "Allow using Blueprints on Gas Giants\nAll values are applied on restart");
 
+            Config.MigrateConfig<bool>("General", "Interface", new []{"cameraToggle", "recipeChange", "changeLogisticCargo", "changeTier"});
+            Config.MigrateConfig<bool>("General", "Features", new []{"forcePaste", "axisLock", "gridControl", "gridControl", "blueprintFoundations"});
+            Config.MigrateConfig<bool>("General", "Misc", new []{"bpOnGasGiants"});
+            
+            Config.Save();
+            
             if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(FREE_FOUNDATIONS_GUID))
             {
                 freeFoundationsIsInstalled = true;
@@ -80,7 +105,7 @@ namespace BlueprintTweaks
             ProtoRegistry.RegisterString("ChangeTipDesc", "Left-click to change recipe. When you click, picker menu will open, where a new recipe can be selected. All machines that used the old recipe will now use selected recipe. This change will take effect after saving.");
             ProtoRegistry.RegisterString("KEYForceBPPlace", "Force Blueprint placement");
             
-            ProtoRegistry.RegisterString("KEYLockLongAxis", "Lock Longtitude axis");
+            ProtoRegistry.RegisterString("KEYLockLongAxis", "Lock Longitude axis");
             ProtoRegistry.RegisterString("KEYLockLatAxis", "Lock Latitude axis");
             ProtoRegistry.RegisterString("KEYSetLocalOffset", "Set grid snapping offset");
             
@@ -108,9 +133,13 @@ namespace BlueprintTweaks
             ProtoRegistry.RegisterString("foundationsBlueprintTip", "Blueprint Foundations");
             ProtoRegistry.RegisterString("foundationsBlueprintTipDesc", "When enabled, all Foundations (Including their colors and types) in your selection will be saved to the Blueprint. If there are buildings that lack support, but blueprint has foundations under them they will successfully be pasted");
 
+            ProtoRegistry.RegisterString("KEYMirrorLongAxis", "Mirror Blueprint in Longitude axis");
+            ProtoRegistry.RegisterString("KEYMirrorLatAxis", "Mirror Blueprint in Latitude axis");
+            
             
             KeyBindPatch.Init();
             UIBlueprintInspectorPatch.Init();
+            BlueprintUtilsPatch2.Init();
 
             NebulaModAPI.RegisterPackets(Assembly.GetExecutingAssembly());
             
@@ -119,31 +148,37 @@ namespace BlueprintTweaks
             harmony.PatchAll(typeof(KeyBindPatch));
             harmony.PatchAll(typeof(UIItemPickerPatch));
 
-            if (blueprintFoundations)
+            if (blueprintMirroring.Value)
             {
-                harmony.PatchAll(typeof(BlueprintCopyExtension));
-                harmony.PatchAll(typeof(BlueprintPasteExtension));
-                harmony.PatchAll(typeof(BlueprintDataPatch));
-                harmony.PatchAll(typeof(BlueprintUtilsPatch));
-                harmony.PatchAll(typeof(UIBuildingGridPatch));
+                harmony.PatchAll(typeof(BlueprintUtilsPatch2));
             }
 
-            if (changeTierEnabled)
+            if (dragRemove.Value)
+            {
+                harmony.PatchAll(DRAG_REMOVE);
+            }
+
+            if (blueprintFoundations.Value)
+            {
+                harmony.PatchAll(BLUEPRINT_FOUNDATIONS);
+            }
+
+            if (changeTierEnabled.Value)
                 harmony.PatchAll(typeof(UIBlueprintComponentItemPatch));
             
-            if (canBlueprintOnGasGiants)
+            if (canBlueprintOnGasGiants.Value)
             {
                 harmony.PatchAll(typeof(PlayerControllerPatch));
                 harmony.PatchAll(typeof(BuildTool_BlueprintPastePatch));
             }
 
-            if (axisLockEnabled || gridControlFeature)
+            if (axisLockEnabled.Value || gridControlFeature.Value)
                 harmony.PatchAll(typeof(GridSnappingPatches));
-            if (cameraToggleEnabled)
+            if (cameraToggleEnabled.Value)
                 harmony.PatchAll(typeof(CameraFixPatch));
-            if (recipeChangeEnabled || gridControlFeature)
+            if (recipeChangeEnabled.Value || gridControlFeature.Value)
                 harmony.PatchAll(typeof(UIBlueprintInspectorPatch));
-            if (forcePasteEnabled)
+            if (forcePasteEnabled.Value)
                 harmony.PatchAll(typeof(BlueprintPastePatch));
 
             logger.LogInfo("Blueprint tweaks mod is initialized!");
@@ -151,30 +186,43 @@ namespace BlueprintTweaks
 
         private void Update()
         {
-            if (cameraToggleEnabled && KeyBindPatch.GetKeyBind("ToggleBPGodModeDesc").keyValue)
+            if (cameraToggleEnabled.Value && KeyBindPatch.GetKeyBind("ToggleBPGodModeDesc").keyValue)
             {
                 CameraFixPatch.mode = !CameraFixPatch.mode;
             }
 
-            if (axisLockEnabled && KeyBindPatch.GetKeyBind("LockLongAxis").keyValue)
+            if (axisLockEnabled.Value && KeyBindPatch.GetKeyBind("LockLongAxis").keyValue)
             {
                 GridSnappingPatches.LockLongitude();
             }
             
-            if (axisLockEnabled &&  KeyBindPatch.GetKeyBind("LockLatAxis").keyValue)
+            if (axisLockEnabled.Value &&  KeyBindPatch.GetKeyBind("LockLatAxis").keyValue)
             {
                 GridSnappingPatches.LockLatitude();
             }
             
-            if (gridControlFeature && KeyBindPatch.GetKeyBind("SetLocalOffset").keyValue)
+            if (gridControlFeature.Value && KeyBindPatch.GetKeyBind("SetLocalOffset").keyValue)
             {
                 GridSnappingPatches.SetOffset();
             }
 
-            if (forcePasteEnabled)
+            if (forcePasteEnabled.Value)
             {
                 BlueprintPastePatch.isEnabled = KeyBindPatch.GetKeyBind("ForceBPPlace").keyValue;
             }
+            
+            if (blueprintMirroring.Value && KeyBindPatch.GetKeyBind("MirrorLongAxis").keyValue)
+            {
+                BlueprintUtilsPatch2.mirrorLong = !BlueprintUtilsPatch2.mirrorLong;
+                BlueprintUtilsPatch2.UpdateBlueprintDisplay();
+            }
+            
+            if (blueprintMirroring.Value && KeyBindPatch.GetKeyBind("MirrorLatAxis").keyValue)
+            {
+                BlueprintUtilsPatch2.mirrorLat = !BlueprintUtilsPatch2.mirrorLat;
+                BlueprintUtilsPatch2.UpdateBlueprintDisplay();
+            }
+            
         }
 
         public bool CheckVersion(string hostVersion, string clientVersion)

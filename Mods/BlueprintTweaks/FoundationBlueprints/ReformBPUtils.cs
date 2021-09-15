@@ -181,7 +181,7 @@ namespace BlueprintTweaks
             return areas;
         }
 
-        public static void ItterateOnReform(BuildTool_BlueprintCopy __instance, BPGratBox box, Action<int, ReformData> action)
+        public static void ItterateOnReform(BuildTool_BlueprintCopy __instance, BPGratBox box, Action<int, ReformData> action, bool fullCircle = false)
         {
             if (Mathf.Abs(box.y - box.w) < 0.005f) return;
             
@@ -233,6 +233,11 @@ namespace BlueprintTweaks
                 segmentCount = startCount;
                 longDelta = endLongCount - startLongCount;
             }
+            
+            if (fullCircle)
+            {
+                longDelta = segmentCount * 10;
+            }
 
             if (longDelta < 0)
             {
@@ -241,6 +246,7 @@ namespace BlueprintTweaks
 
             int latSize = Mathf.RoundToInt(latDelta) / 2;
             int longSize = Mathf.RoundToInt(longDelta) / 2;
+
             if (latSize == 0)
                 latSize = 1;
             if (longSize == 0)
@@ -261,9 +267,10 @@ namespace BlueprintTweaks
                 float currentLat = (startLatCount + latOffset) / 10f;
                 float currentLong = (startLongCount + longOffset) / 10f;
 
+                currentLong = Mathf.Repeat(currentLong, segmentCount);
+
                 float latRad = (currentLat + 0.1f) / currentGrid.segment * 6.2831855f;
                 float longRad = (currentLong + 0.1f) / segmentCount * 6.2831855f;
-
 
                 longOffset += 2;
                 if (longCounter % longSize == 0)
@@ -273,7 +280,7 @@ namespace BlueprintTweaks
                 }
 
                 if (currentLat >= latCount || currentLat <= -latCount) continue;
-
+                
                 int reformIndex = platform.GetReformIndexForSegment(currentLat, currentLong);
 
                 int reformType = platform.GetReformType(reformIndex);
@@ -288,7 +295,7 @@ namespace BlueprintTweaks
                     type = reformType,
                     color = reformColor
                 };
-
+                
                 action(reformIndex, reform);
             }
         }

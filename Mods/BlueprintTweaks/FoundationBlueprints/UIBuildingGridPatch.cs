@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace BlueprintTweaks
 {
-    [HarmonyPatch]
+    [RegisterPatch(BlueprintTweaksPlugin.BLUEPRINT_FOUNDATIONS)]
     public static class UIBuildingGridPatch
     {
         public static Color selectColor = Color.magenta;
@@ -57,14 +57,14 @@ namespace BlueprintTweaks
             if (system == null) return;
             system.EnsureReformData();
 
-            float realRadius = GameMain.localPlanet.realRadius;
-            __instance.displayScale = (realRadius + 0.2f) * 2f;
-
             if (actionBuild.blueprintMode == EBlueprintMode.None)
             {
                 __instance.material.SetColor(cursorColor, Color.white);
                 return;
             }
+            
+            float realRadius = GameMain.localPlanet.realRadius;
+            __instance.displayScale = (realRadius + 0.2f) * 2f;
 
             if (currentFactory == null || currentFactory.index != planetFactory.index)
             {
@@ -76,6 +76,7 @@ namespace BlueprintTweaks
 
             if (actionBuild.blueprintMode == EBlueprintMode.Copy)
             {
+
                 bool any = false;
                 if (BlueprintCopyExtension.reformSelection.Count > 0)
                 {
@@ -162,7 +163,8 @@ namespace BlueprintTweaks
                 {
                     foreach (ReformData reformPreview in BlueprintPasteExtension.reformPreviews)
                     {
-                        ReformBPUtils.GetSegmentCount(reformPreview.latitude, reformPreview.longitude, out float latCount, out float longCount);
+                        ReformBPUtils.GetSegmentCount(reformPreview.latitude, reformPreview.longitude, out float latCount, out float longCount, out int segmentCount);
+                        longCount = Mathf.Repeat(longCount, segmentCount);
 
                         int index = platformSystem.GetReformIndexForSegment(latCount, longCount);
                         if (index >= 0 && index < maxLen)
@@ -179,7 +181,9 @@ namespace BlueprintTweaks
 
                     foreach (ReformData reformPreview in BlueprintPasteExtension.reformPreviews)
                     {
-                        ReformBPUtils.GetSegmentCount(reformPreview.latitude, reformPreview.longitude, out float latCount, out float longCount);
+                        ReformBPUtils.GetSegmentCount(reformPreview.latitude, reformPreview.longitude, out float latCount, out float longCount, out int segmentCount);
+                        longCount = Mathf.Repeat(longCount, segmentCount);
+                        
                         int index = platformSystem.GetReformIndexForSegment(latCount, longCount);
                         if (index >= 0 && index < maxLen)
                         {

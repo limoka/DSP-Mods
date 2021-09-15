@@ -7,7 +7,7 @@ using Object = UnityEngine.Object;
 
 namespace BlueprintTweaks
 {
-    [HarmonyPatch]
+    [RegisterPatch(BlueprintTweaksPlugin.BLUEPRINT_FOUNDATIONS)]
     public static class BlueprintCopyExtension
     {
         public static Dictionary<int, ReformData> reformPreSelection = new Dictionary<int, ReformData>();
@@ -67,15 +67,17 @@ namespace BlueprintTweaks
             CopyToTempArray(__instance);
             CopyReforms();
 
-            BPGratBox box = ReformBPUtils.GetBoundingRange(__instance.planet, __instance.actionBuild.planetAux, __instance._tmp_selected_ids, __instance.selectedObjIds.Count, tmpReformList, __instance.divideLineRad);
+            BPGratBox gratbox = ReformBPUtils.GetBoundingRange(__instance.planet, __instance.actionBuild.planetAux, __instance._tmp_selected_ids, __instance._tmp_selected_cnt, tmpReformList, __instance.divideLineRad);
 
             if (__instance.selectedObjIds.Count > 0 || reformSelection.Count > 0)
             {
-                float extend_lng_grid = Math.Max(3f - box.width, 1f);
-                float extend_lat_grid = Math.Max(3f - box.height, 1f);
-                box = BlueprintUtils.GetExtendedGratBox(box, extend_lng_grid, extend_lat_grid);
-                __instance.curActiveAreaGratBoxCursor =
-                    BlueprintUtils.SplitGratBoxInTropicAreas(box, __instance.tropicGratBoxRadRangeArr, __instance.displayGratBoxArr, __instance.segment);
+                float longitudeRadPerGrid = BlueprintUtils.GetLongitudeRadPerGrid(gratbox.startLatitudeRad, __instance.segment);
+                float latitudeRadPerGrid = BlueprintUtils.GetLatitudeRadPerGrid(__instance.segment);
+                float extend_lng_grid = Math.Max(3f - Mathf.RoundToInt(gratbox.width / longitudeRadPerGrid) / 2, 1f);
+                float extend_lat_grid = Math.Max(3f - Mathf.RoundToInt(gratbox.height / latitudeRadPerGrid) / 2, 1f);
+                gratbox = BlueprintUtils.GetExtendedGratBox(gratbox, extend_lng_grid, extend_lat_grid);
+                __instance.curActiveAreaGratBoxCursor = BlueprintUtils.SplitGratBoxInTropicAreas(gratbox, __instance.tropicGratBoxRadRangeArr, __instance.displayGratBoxArr, __instance.segment);
+
 
                 Array.Clear(__instance._tmp_selected_ids, 0, __instance._tmp_selected_ids.Length);
             }
@@ -148,6 +150,13 @@ namespace BlueprintTweaks
                 __instance.castObjectId != 0) return;
 
             ReformBPUtils.currentGrid = GameMain.localPlanet.aux.mainGrid;
+            
+            ReformBPUtils.ClearDisplay();
+            
+            ReformBPUtils.DisplayPos(__instance.preSelectGratBox.startLatitudeRad, __instance.preSelectGratBox.startLongitudeRad, Color.green);
+            ReformBPUtils.DisplayPos(__instance.preSelectGratBox.endLatitudeRad, __instance.preSelectGratBox.endLongitudeRad, Color.yellow);
+
+            bool full = Mathf.Abs(__instance.preSelectArcBox.startLongitudeRad - __instance.preSelectArcBox.endLongitudeRad) > 2 * Mathf.PI - 0.04f;
 
             BPGratBox[] areas = ReformBPUtils.SplitGratBox(__instance.preSelectGratBox);
 
@@ -159,7 +168,7 @@ namespace BlueprintTweaks
                     {
                         reformPreSelection.Add(index, data);
                     }
-                });
+                },full);
             }
         }
 
@@ -175,6 +184,13 @@ namespace BlueprintTweaks
                 __instance.castObjectId != 0) return;
 
             ReformBPUtils.currentGrid = GameMain.localPlanet.aux.mainGrid;
+            
+            ReformBPUtils.ClearDisplay();
+            
+            ReformBPUtils.DisplayPos(__instance.preSelectGratBox.startLatitudeRad, __instance.preSelectGratBox.startLongitudeRad, Color.green);
+            ReformBPUtils.DisplayPos(__instance.preSelectGratBox.endLatitudeRad, __instance.preSelectGratBox.endLongitudeRad, Color.yellow);
+
+            bool full = Mathf.Abs(__instance.preSelectArcBox.startLongitudeRad - __instance.preSelectArcBox.endLongitudeRad) > 2*Mathf.PI - 0.04f;
 
             BPGratBox[] areas = ReformBPUtils.SplitGratBox(__instance.preSelectGratBox);
 
@@ -186,7 +202,7 @@ namespace BlueprintTweaks
                     {
                         reformSelection.Remove(index);
                     }
-                });
+                }, full);
             }
         }
         

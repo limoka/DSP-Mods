@@ -156,6 +156,18 @@ namespace BlueprintTweaks
             float snapped = Mathf.Round((value * 5f - offset) / gridData.snapGrid[index]);
             return snapped / 5f * gridData.snapGrid[index] + offset / 5f;
         }
+        
+        [HarmonyPatch(typeof(BuildTool_BlueprintPaste), "_OnClose")]
+        [HarmonyPrefix]
+        public static void Close()
+        {
+            if (BlueprintTweaksPlugin.resetFunctionsOnMenuExit.Value)
+            {
+                isLockedLongitude = false;
+                isLockedLatitude = false;
+                currentGridData.shouldShap = false;
+            }
+        }
 
 
         [HarmonyPatch(typeof(BuildTool_BlueprintPaste), "UpdateRaycast")]
