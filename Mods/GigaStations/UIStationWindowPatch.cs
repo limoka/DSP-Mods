@@ -70,10 +70,11 @@ namespace GigaStations
         [HarmonyPatch(typeof(UIStationWindow), "OnStationIdChange")]
         public static void OnStationIdChangePostfix(UIStationWindow __instance)
         {
-            if (__instance.stationId == 0 || __instance.factory == null)
+            if (__instance.stationId == 0 || __instance.factory == null || __instance.transport?.stationPool == null)
             {
                 return;
             }
+
             StationComponent stationComponent = __instance.transport.stationPool[__instance.stationId];
             __instance.minDeliverDroneSlider.value = ((stationComponent.deliveryDrones <= 1) ? 0f : (0.1f * stationComponent.deliveryDrones)) * 10f;
             __instance.minDeliverVesselSlider.value = ((stationComponent.deliveryShips <= 1) ? 0f : (0.1f * stationComponent.deliveryShips)) * 10f;
@@ -81,14 +82,16 @@ namespace GigaStations
         
         [HarmonyPrefix]
         [HarmonyPatch(typeof(UIStationWindow), "OnStationIdChange")]
+        [HarmonyPriority(Priority.Last)]
         public static void OnStationIdChangePre(UIStationWindow __instance, ref string __state)
         {
-            if (__instance.stationId == 0 || __instance.factory == null)
+            if (__instance.stationId == 0 || __instance.factory == null || __instance.transport?.stationPool == null)
             {
                 return;
             }
-            
+
             StationComponent stationComponent = __instance.transport.stationPool[__instance.stationId];
+
             ItemProto itemProto = LDB.items.Select(__instance.factory.entityPool[stationComponent.entityId].protoId);
 
             if (itemProto.ID != GigaStationsPlugin.pls.ID && itemProto.ID != GigaStationsPlugin.ils.ID && itemProto.ID != GigaStationsPlugin.collector.ID)
@@ -112,7 +115,7 @@ namespace GigaStations
         [HarmonyPatch(typeof(UIStationWindow), "OnStationIdChange")]
         public static void OnStationIdChangePost(UIStationWindow __instance, string __state)
         {
-            if (__instance.stationId == 0 || __instance.factory == null)
+            if (__instance.stationId == 0 || __instance.factory == null || __instance.transport?.stationPool == null)
             {
                 return;
             }
@@ -174,7 +177,9 @@ namespace GigaStations
             
                 __instance.windowTrans.sizeDelta = new Vector2(newXSize, newYSize);
 
-                scrollTrs.sizeDelta = new Vector2(scrollTrs.sizeDelta.x, 76 * GigaStationsPlugin.gridYCount);
+                int viewCount = verticalCount < GigaStationsPlugin.gridYCount ? verticalCount : GigaStationsPlugin.gridYCount;
+
+                scrollTrs.sizeDelta = new Vector2(scrollTrs.sizeDelta.x, 76 * viewCount);
                 contentTrs.sizeDelta = new Vector2(contentTrs.sizeDelta.x, 76 * verticalCount);
 
                 for (int i = 0; i < __instance.storageUIs.Length; i++)

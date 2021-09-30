@@ -30,14 +30,14 @@ Checkout the config of this mod! (You need to start the Game once with the mod i
 ## Settings
 ### General
 Setting						|Possible Values			|Default    |Description
--							|-							|-          |-			
+----                        | ----                      | ----      | ----
 `Grid X Max. Count`			|Number (Int32)	 1 to 3 	|1			|Amount of slots visible horizontally		
 `Grid Y Max. Count`			|Number (Int32)	 3 to 12	|5  		|Amount of slots visible vertically
 `Station Color`				|Color	 					|5FCCFFFF  	|Color tint of giga stations
 
 ### ILS
 Setting						|Possible Values			|Default    |Description													|Vanilla-Value
--							|-							|-          |-																|-
+----						|----						|----       |----															|----
 `Max. Item Slots`			|Number (Int32)	 5 to 12	|12			|The maximum Item Slots the Station can have.					|5
 `Max. Storage`				|Number (Int32)				|30000		|The maximum Storage capacity per Item-Slot.					|10000
 `Max. Vessels`				|Number (Int32) 10 to 30 	|30			|The maximum Logistic Vessels amount.							|10
@@ -47,7 +47,7 @@ Setting						|Possible Values			|Default    |Description													|Vanilla-Va
 
 ### PLS
 Setting						|Possible Values			|Default    |Description													|Vanilla-Value
--							|-							|-          |-																|-
+----						|----						|----       |----															|----
 `Max. Item Slots`			|Number (Int32)	 3 to 12	|12			|The maximum Item Slots the Station can have.					|3
 `Max. Storage`				|Number (Int32)				|15000		|The maximum Storage capacity per Item-Slot.					|5000
 `Max. Drones`				|Number (Int32) 50 to 150 	|150		|The maximum Logistic Drones amount.							|50
@@ -55,18 +55,18 @@ Setting						|Possible Values			|Default    |Description													|Vanilla-Va
 
 ### Collector
 Setting						|Possible Values			|Default    |Description													|Vanilla-Value
--							|-							|-          |-																|-
+----						|----						|----       |----															|----
 `Collect Speed Multiplier`	|Number (Int32)			 	|3			|The maximum Logistic Drones amount.							|1
 `Max. Storage`				|Number (Int32)				|15000		|The maximum Storage capacity per Item-Slot.					|5000
 
 ### Vessel
 Setting						|Possible Values			|Default    |Description															|Vanilla-Value
--							|-							|-          |-																		|-
+----						|----						|----       |----																	|----
 `Capacity Multiplier`		|Number (Int32)			 	|3			|Vessel Capacity Multiplier (Default Vanilla is 1000 at max. Level)		|1
 
 ### Drone
 Setting						|Possible Values			|Default    |Description															|Vanilla-Value
--							|-							|-          |-																		|-
+----						|----						|----       |----																	|----
 `Capacity Multiplier`		|Number (Int32)			 	|3			|Drone Capacity Multiplier (Default Vanilla is 100 at max. Level)		|1
 
 ## Installation
@@ -89,6 +89,12 @@ Feel free to contact me via Discord (Kremnev8#3756) for any feedback, bug-report
 Original author no longer has time to support this mod, so don't message him if this breaks.
 
 ## Changelog
+### v2.1.4
+- Improved compatibility with Nebula multiplayer mod
+### v2.1.3
+- Fixed display issues if station has less slots than max visible slots
+### v2.1.2
+- Fixed station upgrade function. Now drone and ship count is applied correctly
 ### v2.1.1
 - Added grid layout option, that can be enabled in config
 - Added color change option in config

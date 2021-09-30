@@ -256,61 +256,63 @@ namespace BlueprintTweaks
         {
             foreach (int objId in preSelectObjIds)
             {
+                
+                PrefabDesc desc = GetPrefabDesc(objId);
+
+                if (!BuildTool_Dismantle.showDemolishContainerQuery) continue;
+                if (objId <= 0) continue;
+                
                 EntityData data = factory.entityPool[objId];
 
-                PrefabDesc desc = LDB.items.Select(data.protoId).prefabDesc;
-
-                if (BuildTool_Dismantle.showDemolishContainerQuery)
+                if (desc.isStorage)
                 {
-                    if (objId > 0 && desc.isStorage)
-                    {
-                        int storageId = data.storageId;
-                        if (!factory.factoryStorage.TryTakeBackItems_Storage(player.package, storageId))
-                        {
-                            dismantleQueryObjectIds.Clear();
-                            foreach (int objId2 in preSelectObjIds)
-                            {
-                                dismantleQueryObjectIds.Add(objId2);
-                            }
 
-                            dismantleQueryBox = UIMessageBox.Show("拆除储物仓标题".Translate(), "拆除储物仓文字".Translate(), "否".Translate(),
-                                "是".Translate(), 0, DismantleQueryCancel, DismantleQueryConfirm);
-                            return;
+                    int storageId = data.storageId;
+                    if (!factory.factoryStorage.TryTakeBackItems_Storage(player.package, storageId))
+                    {
+                        dismantleQueryObjectIds.Clear();
+                        foreach (int objId2 in preSelectObjIds)
+                        {
+                            dismantleQueryObjectIds.Add(objId2);
                         }
+
+                        dismantleQueryBox = UIMessageBox.Show("拆除储物仓标题".Translate(), "拆除储物仓文字".Translate(), "否".Translate(),
+                            "是".Translate(), 0, DismantleQueryCancel, DismantleQueryConfirm);
+                        return;
                     }
+                }
 
-                    if (objId > 0 && desc.isTank)
+                if (desc.isTank)
+                {
+                    int tankId = data.tankId;
+                    if (!factory.factoryStorage.TryTakeBackItems_Tank(player.package, tankId))
                     {
-                        int tankId = data.tankId;
-                        if (!factory.factoryStorage.TryTakeBackItems_Tank(player.package, tankId))
+                        dismantleQueryObjectIds.Clear();
+                        foreach (int objId2 in preSelectObjIds)
                         {
-                            dismantleQueryObjectIds.Clear();
-                            foreach (int objId2 in preSelectObjIds)
-                            {
-                                dismantleQueryObjectIds.Add(objId2);
-                            }
-
-                            dismantleQueryBox = UIMessageBox.Show("拆除储液罐标题".Translate(), "拆除储液罐文字".Translate(), "否".Translate(),
-                                "是".Translate(), 0, DismantleQueryCancel, DismantleQueryConfirm);
-                            return;
+                            dismantleQueryObjectIds.Add(objId2);
                         }
+
+                        dismantleQueryBox = UIMessageBox.Show("拆除储液罐标题".Translate(), "拆除储液罐文字".Translate(), "否".Translate(),
+                            "是".Translate(), 0, DismantleQueryCancel, DismantleQueryConfirm);
+                        return;
                     }
+                }
 
-                    if (objId > 0 && desc.isStation)
+                if (desc.isStation)
+                {
+                    int stationId = data.stationId;
+                    if (factory.transport.stationPool[stationId] != null)
                     {
-                        int stationId = data.stationId;
-                        if (factory.transport.stationPool[stationId] != null)
+                        dismantleQueryObjectIds.Clear();
+                        foreach (int objId2 in preSelectObjIds)
                         {
-                            dismantleQueryObjectIds.Clear();
-                            foreach (int objId2 in preSelectObjIds)
-                            {
-                                dismantleQueryObjectIds.Add(objId2);
-                            }
-
-                            dismantleQueryBox = UIMessageBox.Show("拆除物流站标题".Translate(), "拆除物流站文字".Translate(), "否".Translate(),
-                                "是".Translate(), 0, DismantleQueryCancel, DismantleQueryConfirm);
-                            return;
+                            dismantleQueryObjectIds.Add(objId2);
                         }
+
+                        dismantleQueryBox = UIMessageBox.Show("拆除物流站标题".Translate(), "拆除物流站文字".Translate(), "否".Translate(),
+                            "是".Translate(), 0, DismantleQueryCancel, DismantleQueryConfirm);
+                        return;
                     }
                 }
             }
@@ -548,8 +550,7 @@ namespace BlueprintTweaks
 
         public bool ShouldAddObject(int objId)
         {
-            EntityData data = factory.entityPool[objId];
-            PrefabDesc desc = LDB.items.Select(data.protoId).prefabDesc;
+            PrefabDesc desc = GetPrefabDesc(objId);
 
             if (desc.isInserter)
             {

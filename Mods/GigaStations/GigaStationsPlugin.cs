@@ -24,7 +24,7 @@ namespace GigaStations
 
         public const string MOD_GUID = "org.kremnev8.plugin.GigaStationsUpdated";
         public const string MOD_NAME = "GigaStations";
-        public const string MOD_VER = "2.1.1";
+        public const string MOD_VER = "2.1.4";
         
         public const string LDB_TOOL_GUID = "me.xiaoye97.plugin.Dyson.LDBTool";
         public const string WARPERS_MOD_GUID = "ShadowAngel.DSP.DistributeSpaceWarper";

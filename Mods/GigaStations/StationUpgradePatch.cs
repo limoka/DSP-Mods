@@ -9,6 +9,13 @@ namespace GigaStations
     [HarmonyPatch]
     public static class StationUpgradePatch
     {
+        public static void UpdateArray<T>(ref T[] array, int newSize)
+        {
+            T[] oldArray = array;
+            array = new T[newSize];
+            Array.Copy(oldArray, array, oldArray.Length);
+        }
+        
         [HarmonyPatch(typeof(PlanetFactory), "UpgradeEntityWithComponents")]
         [HarmonyPostfix]
         // ReSharper disable once InconsistentNaming
@@ -19,26 +26,50 @@ namespace GigaStations
             if (stationId <= 0) return;
             
             StationComponent component = __instance.transport.stationPool[stationId];
-            //ItemProto itemProto = LDB.items.Select(__instance.entityPool[component.entityId].protoId);
+            PrefabDesc desc = newProto.prefabDesc;
             
-            if (component.isCollector) return;
-
             int newSize = component.isStellar ? GigaStationsPlugin.ilsMaxSlots : GigaStationsPlugin.plsMaxSlots;
             
-            StationStore[] storage = component.storage;
-            component.storage = new StationStore[newSize];
-            Array.Copy(storage, component.storage, storage.Length);
+            UpdateArray(ref component.storage, newSize);
 
             if (component.needs.Length != 13)
             {
-                int[] oldNeeds = component.needs;
-                component.needs = new int[13];
-                Array.Copy(oldNeeds, component.needs, oldNeeds.Length);
+                UpdateArray(ref component.needs, 13);
             }
+
+            if (component.isCollector)
+            {
+                component.collectSpeed = desc.stationCollectSpeed;
+                return;
+            }
+            
             component.energyPerTick = 1000000;
+
+            UpdateArray(ref component.workDroneDatas, desc.stationMaxDroneCount);
+            UpdateArray(ref component.workDroneOrders, desc.stationMaxDroneCount);
 
             if (component.isStellar)
             {
+                UpdateArray(ref component.workShipDatas, desc.stationMaxShipCount);
+                UpdateArray(ref component.workShipOrders, desc.stationMaxShipCount);
+                UpdateArray(ref component.shipRenderers, desc.stationMaxShipCount);
+                UpdateArray(ref component.shipUIRenderers, desc.stationMaxShipCount);
+                
+                component.shipDiskPos = new Vector3[desc.stationMaxShipCount];
+                component.shipDiskRot = new Quaternion[desc.stationMaxShipCount];
+                
+                int num = component.workShipDatas.Length;
+                for (int i = 0; i < num; i++)
+                {
+                    component.shipDiskRot[i] = Quaternion.Euler(0f, 360f / num * i, 0f);
+                    component.shipDiskPos[i] = component.shipDiskRot[i] * new Vector3(0f, 0f, 11.5f);
+                }
+                for (int j = 0; j < num; j++)
+                {
+                    component.shipDiskRot[j] = component.shipDockRot * component.shipDiskRot[j];
+                    component.shipDiskPos[j] = component.shipDockPos + component.shipDockRot * component.shipDiskPos[j];
+                }
+                
                 component.energyMax = GigaStationsPlugin.ilsMaxAcuGJ * 1000000000;
                 component.warperMaxCount = GigaStationsPlugin.ilsMaxWarps;
             }
@@ -64,7 +95,7 @@ namespace GigaStations
                 VFAudio.Create("ui-error", null, Vector3.zero, true, 5);
                 if (VFInput._buildConfirm.onDown || GameMain.gameTick % 10L == 0L)
                 {
-                    UIRealtimeTip.Popup("CantDowngradeWarn".Translate(), false, 0);
+                    UIRealtimeTip.Popup("CantDowngradeWarn".Translate(), false);
                 }
                 return false;
             }

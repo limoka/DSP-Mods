@@ -32,8 +32,8 @@ This mod is fully compatible with [Nebula Multiplayer Mod](https://dsp.thunderst
 
 More features might come in the future. If you have any feature you would like to see added, [message](#feedback-and-bug-report) me on Discord
 
-## Support me
-If you want to support my work you can [donate](https://paypal.me/kremnev8).<br/>
+## How can I support this mod
+If you like what I do and would like to support me you can [donate](https://paypal.me/kremnev8). <br/>
 If you want other means to support me, you can [message](#feedback-and-bug-report) me on discord about it.
 
 ## Feedback and Bug Report
@@ -57,6 +57,8 @@ Unzip folder `patchers` into `Dyson Sphere Program/BepInEx/patchers/BlueprintTwe
 Unzip folder `plugins` into `Dyson Sphere Program/BepInEx/plugins/BlueprintTweaks/`. (Create folder named `BlueprintTweaks`)<br/>
 
 ## Changelog
+### v1.2.1
+- Fixed errors when dismantling build previews using drag remove tool
 ### v1.2.0
 - Added Blueprint mirroring
 - Added drag remove Dismantle tool
