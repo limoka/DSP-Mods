@@ -57,6 +57,9 @@ Unzip folder `patchers` into `Dyson Sphere Program/BepInEx/patchers/BlueprintTwe
 Unzip folder `plugins` into `Dyson Sphere Program/BepInEx/plugins/BlueprintTweaks/`. (Create folder named `BlueprintTweaks`)<br/>
 
 ## Changelog
+### v1.2.2
+**Note: If you would like to see my other mods support Chinese or other languages, you can help. If you can translate strings (You can find them on my github repo) into your language, I can add support for it.**
+- Added Chinese language support
 ### v1.2.1
 - Fixed errors when dismantling build previews using drag remove tool
 ### v1.2.0

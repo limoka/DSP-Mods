@@ -5,6 +5,7 @@ using System.Security.Permissions;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+using BlueprintTweaks.Util;
 using CommonAPI;
 using HarmonyLib;
 using NebulaAPI;
@@ -26,7 +27,7 @@ namespace BlueprintTweaks
         
         public const string MOD_DISP_NAME = "Blueprint Tweaks";
         
-        public const string VERSION = "1.2.1";
+        public const string VERSION = "1.2.2";
 
         public const string FREE_FOUNDATIONS_GUID = "de.Hotte.DSP.FreeFoundations";
         
@@ -97,44 +98,61 @@ namespace BlueprintTweaks
             resource.LoadAssetBundle("blueprinttweaks");
             ProtoRegistry.AddResource(resource);
             
-            ProtoRegistry.RegisterString("KEYToggleBPGodModeDesc", "Toggle Blueprint God Mode");
-            ProtoRegistry.RegisterString("RecipesLabel", "Recipes");
-            ProtoRegistry.RegisterString("ChangeTipText", "Left-click to change recipe");
+            Harmony harmony = new Harmony(MODGUID);
             
-            ProtoRegistry.RegisterString("ChangeTipTitle", "Change Recipe");
-            ProtoRegistry.RegisterString("ChangeTipDesc", "Left-click to change recipe. When you click, picker menu will open, where a new recipe can be selected. All machines that used the old recipe will now use selected recipe. This change will take effect after saving.");
-            ProtoRegistry.RegisterString("KEYForceBPPlace", "Force Blueprint placement");
+            harmony.PatchAll(typeof(KeyBindPatch));
+            harmony.PatchAll(typeof(UIItemPickerPatch));
+            harmony.PatchAll(typeof(LDBToolPatch));
             
-            ProtoRegistry.RegisterString("KEYLockLongAxis", "Lock Longitude axis");
-            ProtoRegistry.RegisterString("KEYLockLatAxis", "Lock Latitude axis");
-            ProtoRegistry.RegisterString("KEYSetLocalOffset", "Set grid snapping offset");
+            ProtoRegistry.RegisterString("KEYToggleBPGodModeDesc", "Toggle Blueprint God Mode", "切换上帝模式浏览蓝图");
+            ProtoRegistry.RegisterString("RecipesLabel", "Recipes", "配方");
+            ProtoRegistry.RegisterString("ChangeTipText", "Left-click to change recipe", "左键点击更改配方");
             
-            ProtoRegistry.RegisterString("GridSizeLabel", "Blueprint Size");
-            ProtoRegistry.RegisterString("GridLongSize", "Width");
-            ProtoRegistry.RegisterString("GridLatSize", "Height");
+            ProtoRegistry.RegisterString("ChangeTipTitle", "Change Recipe", "更改配方");
+            ProtoRegistry.RegisterString("ChangeTipDesc", 
+                "Left-click to change recipe. When you click, picker menu will open, where a new recipe can be selected. All machines that used the old recipe will now use selected recipe. This change will take effect after saving.", 
+                "左键点击更改配方。点击将打开选择菜单，可在其中选择新配方。所有使用旧配方的机器将更新到选定的新配方。此更改将在保存后生效。");
+            ProtoRegistry.RegisterString("KEYForceBPPlace", "Force Blueprint placement", "强制蓝图放置");
             
-            ProtoRegistry.RegisterString("CantPasteThisInGasGiantWarn", "This Blueprint can't be pasted on a Gas Giant.");
+            ProtoRegistry.RegisterString("KEYLockLongAxis", "Lock Longitude axis", "经度锁定");
+            ProtoRegistry.RegisterString("KEYLockLatAxis", "Lock Latitude axis", "纬度锁定");
+            ProtoRegistry.RegisterString("KEYSetLocalOffset", "Set grid snapping offset", "设定网格捕捉偏移");
             
-            ProtoRegistry.RegisterString("FoundationsLabel", "Foundations");
-            ProtoRegistry.RegisterString("foundationsBPCountLabel", "recorded");
-            ProtoRegistry.RegisterString("foundationBPEnabledLabel", "Blueprint foundations");
+            ProtoRegistry.RegisterString("GridSizeLabel", "Blueprint Size", "蓝图尺寸");
+            ProtoRegistry.RegisterString("GridLongSize", "Width", "宽度");
+            ProtoRegistry.RegisterString("GridLatSize", "Height", "高度");
             
-            ProtoRegistry.RegisterString("TransportLabel", "Logistics");
-            ProtoRegistry.RegisterString("ChangeTipText2", "Left-click to change requested item");
-            ProtoRegistry.RegisterString("ChangeTip2Title", "Change requested items");
-            ProtoRegistry.RegisterString("ChangeTip2Desc", "Left-click to change requested item. When you click, picker menu will open, where a new item can be selected. Logistic station that used the old item will now use selected item. This change will take effect after saving.");
+            ProtoRegistry.RegisterString("CantPasteThisInGasGiantWarn", 
+                "This Blueprint can't be pasted on a Gas Giant.", 
+                "此蓝图无法放置在气态/冰巨星上。");
             
-            ProtoRegistry.RegisterString("copyColorsLabel", "Copy Custom foundation colors");
-            ProtoRegistry.RegisterString("copyColorsTip", "Copy Custom foundation colors");
-            ProtoRegistry.RegisterString("copyColorsTipDesc", "When enabled, Custom foundation colors will be saved with Blueprint Data. When such Blueprint will be pasted, current planet's Custom colors will be replaced with colors stored in the Blueprint");
+            ProtoRegistry.RegisterString("FoundationsLabel", "Foundations", "地基");
+            ProtoRegistry.RegisterString("foundationsBPCountLabel", "recorded", "块地基");
+            ProtoRegistry.RegisterString("foundationBPEnabledLabel", "Blueprint foundations", "蓝图包含地基");
             
-            ProtoRegistry.RegisterString("hasColorsLabel", "Contains Color data");
-            
-            ProtoRegistry.RegisterString("foundationsBlueprintTip", "Blueprint Foundations");
-            ProtoRegistry.RegisterString("foundationsBlueprintTipDesc", "When enabled, all Foundations (Including their colors and types) in your selection will be saved to the Blueprint. If there are buildings that lack support, but blueprint has foundations under them they will successfully be pasted");
+            ProtoRegistry.RegisterString("TransportLabel", "Logistics", "物流");
+            ProtoRegistry.RegisterString("ChangeTipText2", "Left-click to change requested item", "左键点击更改物流清单物品");
+            ProtoRegistry.RegisterString("ChangeTip2Title", "Change requested items", "更改物流清单物品");
+            ProtoRegistry.RegisterString("ChangeTip2Desc", 
+                "Left-click to change requested item. When you click, picker menu will open, where a new item can be selected. Logistic station that used the old item will now use selected item. This change will take effect after saving.", 
+                "左键点击更改物流清单物品。点击将打开选择菜单，可在其中选择新的物流清单物品。使用旧物流清单物品的物流塔将更新到选定的新物流清单物品。此更改将在保存后生效。");
 
-            ProtoRegistry.RegisterString("KEYMirrorLongAxis", "Mirror Blueprint in Longitude axis");
-            ProtoRegistry.RegisterString("KEYMirrorLatAxis", "Mirror Blueprint in Latitude axis");
+            
+            ProtoRegistry.RegisterString("copyColorsLabel", "Copy Custom foundation colors", "附带自定义调色板");
+            ProtoRegistry.RegisterString("copyColorsTip", "Copy Custom foundation colors", "附带自定义调色板");
+            ProtoRegistry.RegisterString("copyColorsTipDesc", 
+                "When enabled, Custom foundation colors will be saved with Blueprint Data. When such Blueprint will be pasted, current planet's Custom colors will be replaced with colors stored in the Blueprint",
+                "启用后，地基的自定义调色板将与蓝图数据一同保存。粘贴此类蓝图时，当前行星的地基自定义调色板将被蓝图中的调色板替代。");
+            
+            ProtoRegistry.RegisterString("hasColorsLabel", "Contains Color data", "含有颜色数据");
+            
+            ProtoRegistry.RegisterString("foundationsBlueprintTip", "Blueprint Foundations", "蓝图包含地基");
+            ProtoRegistry.RegisterString("foundationsBlueprintTipDesc", 
+                "When enabled, all Foundations (Including their colors and types) in your selection will be saved to the Blueprint. If there are buildings that lack support, but blueprint has foundations under them they will successfully be pasted",
+                "启用后，您选中的所有地基（包括它们的颜色和类型）都将保存到蓝图中。另外只要蓝图中的建筑下方包含地基，即便施工场地缺乏地基支撑，蓝图也能成功粘贴");
+
+            ProtoRegistry.RegisterString("KEYMirrorLongAxis", "Mirror Blueprint in Longitude axis", "经向镜像");
+            ProtoRegistry.RegisterString("KEYMirrorLatAxis", "Mirror Blueprint in Latitude axis", "纬向镜像");
             
             
             KeyBindPatch.Init();
@@ -142,11 +160,6 @@ namespace BlueprintTweaks
             BlueprintUtilsPatch2.Init();
 
             NebulaModAPI.RegisterPackets(Assembly.GetExecutingAssembly());
-            
-            Harmony harmony = new Harmony(MODGUID);
-            
-            harmony.PatchAll(typeof(KeyBindPatch));
-            harmony.PatchAll(typeof(UIItemPickerPatch));
 
             if (blueprintMirroring.Value)
             {

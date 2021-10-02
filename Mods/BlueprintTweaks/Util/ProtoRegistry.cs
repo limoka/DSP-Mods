@@ -507,7 +507,7 @@ namespace CommonAPI
         /// </summary>
         /// <param name="key">UNIQUE key of your localizedKey</param>
         /// <param name="enTrans">English translation for this key</param>
-        public static void RegisterString(string key, string enTrans)
+        public static void RegisterString(string key, string enTrans, string cnTrans = "")
         {
             int id = FindAvailableID(2566, LDB.strings, strings);
 
@@ -515,6 +515,7 @@ namespace CommonAPI
             {
                 Name = key,
                 ENUS = enTrans,
+                ZHCN = cnTrans,
                 ID = id
             };
 
