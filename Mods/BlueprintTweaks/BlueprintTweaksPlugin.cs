@@ -27,7 +27,7 @@ namespace BlueprintTweaks
         
         public const string MOD_DISP_NAME = "Blueprint Tweaks";
         
-        public const string VERSION = "1.2.2";
+        public const string VERSION = "1.2.3";
 
         public const string FREE_FOUNDATIONS_GUID = "de.Hotte.DSP.FreeFoundations";
         
