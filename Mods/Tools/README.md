@@ -1,5 +1,7 @@
 # Registry Tool
 
+This tool is DEPRECATED. If you were using it please migrate to [CommonAPI](https://github.com/kremnev8/CommonAPI). This library will be no longer supported.
+
 Registry is a library created to be used with [BepInEx](https://github.com/BepInEx/BepInEx) and [LDBTool](https://dsp.thunderstore.io/package/xiaoye97/LDBTool/) in order to facilitate the creation and loading of new content for Dyson Sphere Program, specialising particularly on Protodata
 
 ## How to use to develop your mod
