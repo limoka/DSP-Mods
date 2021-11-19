@@ -51,12 +51,19 @@ Then just click **Start modded**, and the game will run with the mod installed.
 ### Manually
 Install BepInEx from [here](https://dsp.thunderstore.io/package/xiaoye97/BepInEx/)<br/>
 Install LDBTool from [here](https://dsp.thunderstore.io/package/xiaoye97/LDBTool/)<br/>
+Install CommonAPI from [here](https://dsp.thunderstore.io/package/CommonAPI/CommonAPI/)<br/>
 Install NebulaMultiplayerModApi from [here](https://dsp.thunderstore.io/package/nebula/NebulaMultiplayerModApi/)<br/>
 
 Unzip folder `patchers` into `Dyson Sphere Program/BepInEx/patchers/BlueprintTweaks/` (Create folder named `BlueprintTweaks`)<br/>
 Unzip folder `plugins` into `Dyson Sphere Program/BepInEx/plugins/BlueprintTweaks/`. (Create folder named `BlueprintTweaks`)<br/>
 
 ## Changelog
+### v1.3.0
+**Important Note: Installation HAS changed. If you are installing manually, make sure to read installation instructions again!**
+- Migrated to CommonAPI
+- Updated to work with game version 0.8.23.9832 or higher
+### v1.2.4
+- Updated to work with game version 0.8.22.9331 or higher
 ### v1.2.3
 - Fixed load issues if mod was installed for the first time.
 ### v1.2.2

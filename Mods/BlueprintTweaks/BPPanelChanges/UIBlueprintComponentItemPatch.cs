@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using CommonAPI.Systems;
 using HarmonyLib;
 using UnityEngine;
 
@@ -28,7 +29,7 @@ namespace BlueprintTweaks
         {
             void OnClick(int itemId)
             {
-                UIItemPickerPatch.Popup(new Vector2(-300, 238), proto =>
+                UIItemPickerExtension.Popup(new Vector2(-300, 238), proto =>
                 {
                     if (proto == null) return;
                     

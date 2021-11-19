@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using kremnev8;
 using UnityEngine;
 
 // ReSharper disable InconsistentNaming
@@ -331,7 +330,7 @@ namespace GigaStations
             __instance.minDeliverDroneSlider.maxValue = 100;
             __instance.minDeliverVesselSlider.maxValue = 100;
 
-            GameObject prefab = Registry.bundle.LoadAsset<GameObject>("assets/gigastations/ui/station-scroll.prefab");
+            GameObject prefab = GigaStationsPlugin.resource.bundle.LoadAsset<GameObject>("assets/gigastations/ui/station-scroll.prefab");
 
             GameObject scrollPane = Object.Instantiate(prefab, __instance.transform, false);
             scrollTrs = (RectTransform)scrollPane.transform;

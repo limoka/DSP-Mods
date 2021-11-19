@@ -38,33 +38,12 @@ namespace GigaStations
                 updateCounter++;
             }
         }
-    }
 
-    [HarmonyPatch]
-    public static class MessagePatch
-    {
-        public delegate void RefAction<T1>(ref T1 arg1);
-        
-        [HarmonyPatch(typeof(GameLoader), "FixedUpdate")]
-        [HarmonyTranspiler]
-        public static IEnumerable<CodeInstruction> AddModificationWarn(IEnumerable<CodeInstruction> instructions)
+        internal static string GetFixMessage()
         {
-            CodeMatcher matcher = new CodeMatcher(instructions)
-                .MatchForward(false,
-                    new CodeMatch(OpCodes.Ldloc_0),
-                    new CodeMatch(OpCodes.Call, AccessTools.Method(typeof(string), nameof(string.IsNullOrEmpty))),
-                    new CodeMatch(OpCodes.Brtrue)
-                )
-                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloca_S, 0))
-                .InsertAndAdvance(
-                    Transpilers.EmitDelegate<RefAction<string>>((ref string text) =>
-                    {
-                        if (SaveFixPatch.updateCounter > 0)
-                            text = text + "\r\n" + string.Format(("ModificationWarn").Translate(), SaveFixPatch.updateCounter);
-                    }));
-
-
-            return matcher.InstructionEnumeration();
+            if (updateCounter <= 0) return "";
+            
+            return string.Format(("ModificationWarn").Translate(), SaveFixPatch.updateCounter);
         }
     }
 }

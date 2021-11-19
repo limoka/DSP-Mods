@@ -149,7 +149,6 @@ namespace BlueprintTweaks
                 .InsertAndAdvance(Transpilers.EmitDelegate<Func<BuildPreview, bool>>(bp =>
                 {
                     if (!isEnabled && !NebulaModAPI.NebulaIsInstalled) return true;
-
                     if (bp.desc.multiLevel)
                     {
                         BuildPreview current = bp;
@@ -165,16 +164,17 @@ namespace BlueprintTweaks
                     {
                         if (bp.input != null && !bp.input.IsGood())
                         {
-                            return false;
+                            return bp.input.desc.isBelt;
                         }
 
                         if (bp.output != null && !bp.output.IsGood())
                         {
-                            return false;
+                            return bp.output.desc.isBelt;
                         }
                     }
 
                     return true;
+
                 }))
                 .InsertAndAdvance(new CodeInstruction(OpCodes.Brfalse, label))
                 .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_3));

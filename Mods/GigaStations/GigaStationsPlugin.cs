@@ -1,13 +1,15 @@
 ﻿using System;
+using System.IO;
+using System.Reflection;
 using System.Security;
 using System.Security.Permissions;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+using CommonAPI;
+using CommonAPI.Systems;
 using HarmonyLib;
-using kremnev8;
 using UnityEngine;
-using xiaoye97;
 
 [module: UnverifiableCode]
 #pragma warning disable 618
@@ -17,14 +19,17 @@ namespace GigaStations
 {
     [BepInDependency(LDB_TOOL_GUID)]
     [BepInDependency(WARPERS_MOD_GUID, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(CommonAPIPlugin.GUID)]
     [BepInPlugin(MOD_GUID, MOD_NAME, MOD_VER)]
     [BepInProcess("DSPGAME.exe")]
+    
+    [CommonAPISubmoduleDependency(nameof(ProtoRegistry), nameof(UtilSystem))]
     public class GigaStationsPlugin : BaseUnityPlugin
     {
 
         public const string MOD_GUID = "org.kremnev8.plugin.GigaStationsUpdated";
         public const string MOD_NAME = "GigaStations";
-        public const string MOD_VER = "2.1.4";
+        public const string MOD_VER = "2.2.0";
         
         public const string LDB_TOOL_GUID = "me.xiaoye97.plugin.Dyson.LDBTool";
         public const string WARPERS_MOD_GUID = "ShadowAngel.DSP.DistributeSpaceWarper";
@@ -70,11 +75,17 @@ namespace GigaStations
         public static ModelProto ilsModel;
         public static ModelProto collectorModel;
 
+        public static ResourceData resource;
+
         void Awake()
         {
             logger = Logger;
+
+            string pluginfolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            resource = new ResourceData(MOD_NAME, "gigastations", pluginfolder);
+            resource.LoadAssetBundle("gigastations");
             
-            Registry.Init("gigastations", "gigastations", true, false);
+            ProtoRegistry.AddResource(resource);
 
 
             //General
@@ -107,45 +118,44 @@ namespace GigaStations
             //DroneCapacity
             droneCapacityMultiplier = Config.Bind("-|5|- Drone", "-| 1 Max. Capacity", 3, "Drone Capacity Multiplier\n1 == 100 Drone Capacity at max Level").Value;
 
-            Registry.RegisterString("PLS_Name" , "Planetary Giga Station");
-            Registry.RegisterString("PLS_Desc" , "Has more Slots, Capacity, etc. than a usual PLS.");
-            Registry.RegisterString("ILS_Name" , "Interstellar Giga Station");
-            Registry.RegisterString("ILS_Desc" , "Has more Slots, Capacity, etc. than a usual ILS.");
-            Registry.RegisterString("Collector_Name" , "Orbital Giga Collector");
-            Registry.RegisterString("Collector_Desc" , $"Has more Capacity and collects {colSpeedMultiplier}x faster than a usual Collector.");
+            ProtoRegistry.RegisterString("PLS_Name" , "Planetary Giga Station");
+            ProtoRegistry.RegisterString("PLS_Desc" , "Has more Slots, Capacity, etc. than a usual PLS.");
+            ProtoRegistry.RegisterString("ILS_Name" , "Interstellar Giga Station");
+            ProtoRegistry.RegisterString("ILS_Desc" , "Has more Slots, Capacity, etc. than a usual ILS.");
+            ProtoRegistry.RegisterString("Collector_Name" , "Orbital Giga Collector");
+            ProtoRegistry.RegisterString("Collector_Desc" , $"Has more Capacity and collects {colSpeedMultiplier}x faster than a usual Collector.");
             
-            Registry.RegisterString("ModificationWarn" , "  - [GigaStationsUpdated] Replaced {0} buildings");
+            ProtoRegistry.RegisterString("ModificationWarn" , "  - [GigaStationsUpdated] Replaced {0} buildings");
             
-            Registry.RegisterString("CantDowngradeWarn" , "Downgrading logistic station is not possible!");
+            ProtoRegistry.RegisterString("CantDowngradeWarn" , "Downgrading logistic station is not possible!");
             
             
-            pls = Registry.RegisterItem(2110, "PLS_Name", "PLS_Desc", "assets/gigastations/texture2d/icon_pls", 2701);
-            ils = Registry.RegisterItem(2111, "ILS_Name", "ILS_Desc", "assets/gigastations/texture2d/icon_ils", 2702);
-            collector = Registry.RegisterItem(2112, "Collector_Name", "Collector_Desc", "assets/gigastations/texture2d/icon_collector", 2703);
+            pls = ProtoRegistry.RegisterItem(2110, "PLS_Name", "PLS_Desc", "assets/gigastations/texture2d/icon_pls", 2701);
+            ils = ProtoRegistry.RegisterItem(2111, "ILS_Name", "ILS_Desc", "assets/gigastations/texture2d/icon_ils", 2702);
+            collector = ProtoRegistry.RegisterItem(2112, "Collector_Name", "Collector_Desc", "assets/gigastations/texture2d/icon_collector", 2703);
             collector.BuildInGas = true;
 
-            Registry.RegisterRecipe(410, ERecipeType.Assemble, 2400, new[] {2103, 1103, 1106, 1303, 1206}, new[] {1, 40, 40, 40, 20}, new[] {pls.ID},
+            ProtoRegistry.RegisterRecipe(410, ERecipeType.Assemble, 2400, new[] {2103, 1103, 1106, 1303, 1206}, new[] {1, 40, 40, 40, 20}, new[] {pls.ID},
                 new[] {1}, "PGS_Desc", 1604);
-            Registry.RegisterRecipe(411, ERecipeType.Assemble, 3600, new[] { 2110, 1107, 1206 }, new[] { 1, 40, 20 }, new[] {ils.ID},
+            ProtoRegistry.RegisterRecipe(411, ERecipeType.Assemble, 3600, new[] { 2110, 1107, 1206 }, new[] { 1, 40, 20 }, new[] {ils.ID},
                 new[] {1}, "ILS_Desc", 1605);
-            Registry.RegisterRecipe(412, ERecipeType.Assemble, 3600, new[] { 2111, 1205, 1406, 2207 }, new[] { 1, 50, 20, 20 }, new[] {collector.ID},
+            ProtoRegistry.RegisterRecipe(412, ERecipeType.Assemble, 3600, new[] { 2111, 1205, 1406, 2207 }, new[] { 1, 50, 20, 20 }, new[] {collector.ID},
                 new[] {1}, "Collector_Desc", 1606);
 
 
-            plsModel = Registry.RegisterModel(250, pls, "Entities/Prefabs/logistic-station", null, new[] {24, 38, 12, 10, 1}, 605, 2, new []{2103, 0});
-            ilsModel = Registry.RegisterModel(251, ils, "Entities/Prefabs/interstellar-logistic-station", null, new[] {24, 38, 12, 10, 1}, 606, 2, new []{2104, 0});
-            collectorModel = Registry.RegisterModel(252, collector, "Entities/Prefabs/orbital-collector", null, new[] {18, 11, 32, 1}, 607, 2, new []{2105, 0});
+            plsModel = ProtoRegistry.RegisterModel(250, pls, "Entities/Prefabs/logistic-station", null, new[] {24, 38, 12, 10, 1}, 605, 2, new []{2103, 0});
+            ilsModel = ProtoRegistry.RegisterModel(251, ils, "Entities/Prefabs/interstellar-logistic-station", null, new[] {24, 38, 12, 10, 1}, 606, 2, new []{2104, 0});
+            collectorModel = ProtoRegistry.RegisterModel(252, collector, "Entities/Prefabs/orbital-collector", null, new[] {18, 11, 32, 1}, 607, 2, new []{2105, 0});
 
-            Registry.onLoadingFinished += AddGigaPLS;
-            Registry.onLoadingFinished += AddGigaILS;
-            Registry.onLoadingFinished += AddGigaCollector;
+            ProtoRegistry.onLoadingFinished += AddGigaPLS;
+            ProtoRegistry.onLoadingFinished += AddGigaILS;
+            ProtoRegistry.onLoadingFinished += AddGigaCollector;
             
             var harmony = new Harmony(MOD_GUID);
 
             harmony.PatchAll(typeof(StationEditPatch));
             harmony.PatchAll(typeof(GameHistoryPatch));
             harmony.PatchAll(typeof(SaveFixPatch));
-            harmony.PatchAll(typeof(MessagePatch));
             harmony.PatchAll(typeof(StationUpgradePatch));
             harmony.PatchAll(typeof(UIStationWindowPatch));
             
@@ -157,6 +167,8 @@ namespace GigaStations
                 logger.LogInfo("Overriding Distribute Space Warpers config: ShowWarperSlot = true");
                 break;
             }
+            
+            UtilSystem.AddLoadMessageHandler(SaveFixPatch.GetFixMessage);
             
             logger.LogInfo("GigaStations is initialized!");
             

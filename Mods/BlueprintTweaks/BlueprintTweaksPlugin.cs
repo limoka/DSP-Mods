@@ -5,10 +5,11 @@ using System.Security.Permissions;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
-using BlueprintTweaks.Util;
 using CommonAPI;
+using CommonAPI.Systems;
 using HarmonyLib;
 using NebulaAPI;
+using UnityEngine;
 
 [module: UnverifiableCode]
 #pragma warning disable 618
@@ -19,6 +20,8 @@ namespace BlueprintTweaks
 {
     [BepInPlugin(MODGUID, MOD_DISP_NAME, VERSION)]
     [BepInDependency(NebulaModAPI.API_GUID)]
+    [BepInDependency(CommonAPIPlugin.GUID)]
+    [CommonAPISubmoduleDependency(nameof(ProtoRegistry), nameof(CustomKeyBindSystem))]
     public class BlueprintTweaksPlugin : BaseUnityPlugin, IMultiplayerMod
     {
         public const string MODNAME = "BlueprintTweaks";
@@ -27,9 +30,10 @@ namespace BlueprintTweaks
         
         public const string MOD_DISP_NAME = "Blueprint Tweaks";
         
-        public const string VERSION = "1.2.3";
+        public const string VERSION = "1.3.0";
 
         public const string FREE_FOUNDATIONS_GUID = "de.Hotte.DSP.FreeFoundations";
+        public const string FREE_FOUNDATIONS_GUID_2 = "com.aekoch.mods.dsp.UnlimitedFoundations";
         
         
         // Features keys
@@ -91,6 +95,10 @@ namespace BlueprintTweaks
             {
                 freeFoundationsIsInstalled = true;
             }
+            if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(FREE_FOUNDATIONS_GUID_2))
+            {
+                freeFoundationsIsInstalled = true;
+            }
             
             string pluginfolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
@@ -99,11 +107,7 @@ namespace BlueprintTweaks
             ProtoRegistry.AddResource(resource);
             
             Harmony harmony = new Harmony(MODGUID);
-            
-            harmony.PatchAll(typeof(KeyBindPatch));
-            harmony.PatchAll(typeof(UIItemPickerPatch));
-            harmony.PatchAll(typeof(LDBToolPatch));
-            
+
             ProtoRegistry.RegisterString("KEYToggleBPGodModeDesc", "Toggle Blueprint God Mode", "切换上帝模式浏览蓝图");
             ProtoRegistry.RegisterString("RecipesLabel", "Recipes", "配方");
             ProtoRegistry.RegisterString("ChangeTipText", "Left-click to change recipe", "左键点击更改配方");
@@ -154,12 +158,12 @@ namespace BlueprintTweaks
             ProtoRegistry.RegisterString("KEYMirrorLongAxis", "Mirror Blueprint in Longitude axis", "经向镜像");
             ProtoRegistry.RegisterString("KEYMirrorLatAxis", "Mirror Blueprint in Latitude axis", "纬向镜像");
             
-            
-            KeyBindPatch.Init();
             UIBlueprintInspectorPatch.Init();
             BlueprintUtilsPatch2.Init();
+            RegisterKeyBinds();
 
             NebulaModAPI.RegisterPackets(Assembly.GetExecutingAssembly());
+
 
             if (blueprintMirroring.Value)
             {
@@ -192,45 +196,128 @@ namespace BlueprintTweaks
             if (recipeChangeEnabled.Value || gridControlFeature.Value)
                 harmony.PatchAll(typeof(UIBlueprintInspectorPatch));
             if (forcePasteEnabled.Value)
+            {
                 harmony.PatchAll(typeof(BlueprintPastePatch));
+            }
 
             logger.LogInfo("Blueprint tweaks mod is initialized!");
         }
 
+        private static void RegisterKeyBinds()
+        {
+            if (cameraToggleEnabled.Value)
+            {
+                CustomKeyBindSystem.RegisterKeyBind<PressKeyBind>(new BuiltinKey
+                {
+                    id = 100,
+                    key = new CombineKey((int) KeyCode.J, 0, ECombineKeyAction.OnceClick, false),
+                    conflictGroup = 3071,
+                    name = "ToggleBPGodModeDesc",
+                    canOverride = true
+                });
+            }
+
+            if (forcePasteEnabled.Value)
+            {
+                CustomKeyBindSystem.RegisterKeyBind<HoldKeyBind>(new BuiltinKey
+                {
+                    id = 101,
+                    key = new CombineKey(0, 1, ECombineKeyAction.OnceClick, false),
+                    conflictGroup = 2052,
+                    name = "ForceBPPlace",
+                    canOverride = true
+                });
+            }
+
+            if (axisLockEnabled.Value)
+            {
+                CustomKeyBindSystem.RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
+                {
+                    id = 102,
+                    key = new CombineKey((int) KeyCode.G, CombineKey.CTRL_COMB, ECombineKeyAction.OnceClick, false),
+                    conflictGroup = 2052,
+                    name = "LockLongAxis",
+                    canOverride = true
+                });
+
+                CustomKeyBindSystem.RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
+                {
+                    id = 103,
+                    key = new CombineKey((int) KeyCode.T, CombineKey.CTRL_COMB, ECombineKeyAction.OnceClick, false),
+                    conflictGroup = 2052,
+                    name = "LockLatAxis",
+                    canOverride = true
+                });
+            }
+
+            if (gridControlFeature.Value)
+            {
+                CustomKeyBindSystem.RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
+                {
+                    id = 104,
+                    key = new CombineKey((int) KeyCode.B, CombineKey.CTRL_COMB, ECombineKeyAction.OnceClick, false),
+                    conflictGroup = 2052,
+                    name = "SetLocalOffset",
+                    canOverride = true
+                });
+            }
+            
+            if (blueprintMirroring.Value)
+            {
+                CustomKeyBindSystem.RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
+                {
+                    id = 105,
+                    key = new CombineKey((int) KeyCode.G, CombineKey.SHIFT_COMB, ECombineKeyAction.OnceClick, false),
+                    conflictGroup = 2052,
+                    name = "MirrorLongAxis",
+                    canOverride = true
+                });
+
+                CustomKeyBindSystem.RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
+                {
+                    id = 106,
+                    key = new CombineKey((int) KeyCode.T, CombineKey.SHIFT_COMB, ECombineKeyAction.OnceClick, false),
+                    conflictGroup = 2052,
+                    name = "MirrorLatAxis",
+                    canOverride = true
+                });
+            }
+        }
+
         private void Update()
         {
-            if (cameraToggleEnabled.Value && KeyBindPatch.GetKeyBind("ToggleBPGodModeDesc").keyValue)
+            if (cameraToggleEnabled.Value && CustomKeyBindSystem.GetKeyBind("ToggleBPGodModeDesc").keyValue)
             {
                 CameraFixPatch.mode = !CameraFixPatch.mode;
             }
 
-            if (axisLockEnabled.Value && KeyBindPatch.GetKeyBind("LockLongAxis").keyValue)
+            if (axisLockEnabled.Value && CustomKeyBindSystem.GetKeyBind("LockLongAxis").keyValue)
             {
                 GridSnappingPatches.LockLongitude();
             }
             
-            if (axisLockEnabled.Value &&  KeyBindPatch.GetKeyBind("LockLatAxis").keyValue)
+            if (axisLockEnabled.Value &&  CustomKeyBindSystem.GetKeyBind("LockLatAxis").keyValue)
             {
                 GridSnappingPatches.LockLatitude();
             }
             
-            if (gridControlFeature.Value && KeyBindPatch.GetKeyBind("SetLocalOffset").keyValue)
+            if (gridControlFeature.Value && CustomKeyBindSystem.GetKeyBind("SetLocalOffset").keyValue)
             {
                 GridSnappingPatches.SetOffset();
             }
 
             if (forcePasteEnabled.Value)
             {
-                BlueprintPastePatch.isEnabled = KeyBindPatch.GetKeyBind("ForceBPPlace").keyValue;
+                BlueprintPastePatch.isEnabled = CustomKeyBindSystem.GetKeyBind("ForceBPPlace").keyValue;
             }
             
-            if (blueprintMirroring.Value && KeyBindPatch.GetKeyBind("MirrorLongAxis").keyValue)
+            if (blueprintMirroring.Value && CustomKeyBindSystem.GetKeyBind("MirrorLongAxis").keyValue)
             {
                 BlueprintUtilsPatch2.mirrorLong = !BlueprintUtilsPatch2.mirrorLong;
                 BlueprintUtilsPatch2.UpdateBlueprintDisplay();
             }
             
-            if (blueprintMirroring.Value && KeyBindPatch.GetKeyBind("MirrorLatAxis").keyValue)
+            if (blueprintMirroring.Value && CustomKeyBindSystem.GetKeyBind("MirrorLatAxis").keyValue)
             {
                 BlueprintUtilsPatch2.mirrorLat = !BlueprintUtilsPatch2.mirrorLat;
                 BlueprintUtilsPatch2.UpdateBlueprintDisplay();

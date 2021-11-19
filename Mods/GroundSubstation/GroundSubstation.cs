@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Security;
@@ -7,9 +8,10 @@ using System.Security.Permissions;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+using CommonAPI;
+using CommonAPI.Systems;
 using HarmonyLib;
 using UnityEngine;
-using kremnev8;
 
 [module: UnverifiableCode]
 #pragma warning disable 618
@@ -18,9 +20,17 @@ using kremnev8;
 
 namespace GroundSubstation
 {
-    [BepInPlugin("org.kremnev8.plugin.groundsubstation", "Ground Substation", "1.0.4")]
+    [BepInPlugin(GUID, NAME, VERSION)]
+    [BepInDependency(CommonAPIPlugin.GUID)]
+    [CommonAPISubmoduleDependency(nameof(ProtoRegistry), nameof(UtilSystem))]
     public class GroundSubstation : BaseUnityPlugin
     {
+        public const string ID = "groundsubstation";
+        public const string GUID = "org.kremnev8.plugin." + ID;
+        public const string NAME = "Ground Substation";
+        
+        public const string VERSION = "1.1.0";
+        
         public enum ModeType
         {
             SIMPLE,
@@ -45,6 +55,7 @@ namespace GroundSubstation
         public static ConfigEntry<SubstaionType> type;
 
         public static ManualLogSource logger;
+        public static ResourceData resource;
 
         void Awake()
         {
@@ -59,10 +70,15 @@ namespace GroundSubstation
 
             type = Config.Bind("General", "SubstationType", SubstaionType.GROUND, "Which model to use(Has no effect in advanced mode!)");
             
+            string pluginfolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            resource = new ResourceData(ID, "custommachines", pluginfolder);
+            resource.LoadAssetBundle("substationbundle");
+            resource.ResolveVertaFolder();
+            
+            ProtoRegistry.AddResource(resource);
 
-            Registry.Init("substationbundle", "custommachines", true, true);
 
-            Material mainMat = Registry.CreateMaterial("VF Shaders/Forward/PBR Standard Substation", "ground-substation",
+            Material mainMat = ProtoRegistry.CreateMaterial("VF Shaders/Forward/PBR Standard Substation", "ground-substation",
                 "#FF7070FF",
                 new[]
                 {
@@ -73,7 +89,7 @@ namespace GroundSubstation
                 });
 
             //VF Shaders/Forward/Unlit Additive Substation
-            Material effectMat = Registry.CreateMaterial("VF Shaders/Forward/Unlit Additive Substation", "substation-effects",
+            Material effectMat = ProtoRegistry.CreateMaterial("VF Shaders/Forward/Unlit Additive Substation", "substation-effects",
                 "#00000000",
                 new[]
                 {
@@ -89,8 +105,8 @@ namespace GroundSubstation
             effectMat.SetVector(UVSpeed, new Vector4(0, 1, 0, 0));
             effectMat.SetFloat(InvFade, 0.4f);
 
-            Registry.registerString("SubstationModificationWarn", "  - [GroundSubstation] Replaced {0} buildings");
-            Registry.registerString("SubstationRestoreWarn", "  - [GroundSubstation] Restored {0} buildings (Save the game! You can now remove this mod safely)");
+            ProtoRegistry.RegisterString("SubstationModificationWarn", "  - [GroundSubstation] Replaced {0} buildings");
+            ProtoRegistry.RegisterString("SubstationRestoreWarn", "  - [GroundSubstation] Restored {0} buildings (Save the game! You can now remove this mod safely)");
 
             if (mode.Value == ModeType.SIMPLE)
             {
@@ -98,10 +114,10 @@ namespace GroundSubstation
                 switch (type.Value)
                 {
                     case SubstaionType.GROUND:
-                        Registry.modelMats.Add("assets/custommachines/prefabs/ground-substation", new []{mainMat, effectMat});
+                        ProtoRegistry.AddLodMaterials("assets/custommachines/prefabs/ground-substation", 0, new []{mainMat, effectMat});
                         break;
                     case SubstaionType.SATELITE:
-                        Registry.modelMats.Add("assets/custommachines/prefabs/orbital-substation", new []{mainMat, effectMat});
+                        ProtoRegistry.AddLodMaterials("assets/custommachines/prefabs/orbital-substation", 0, new []{mainMat, effectMat});
                         break;
                 }
                 Harmony.CreateAndPatchAll(typeof(VFPreloadPatch), "groundsubstation");
@@ -111,16 +127,14 @@ namespace GroundSubstation
             else if (mode.Value == ModeType.ADVANCED)
             {
                 Logger.LogInfo("Initialising in ADVANCED mode");
-                Registry.registerModel(firstSubstationId, "Entities/Prefabs/orbital-substation", new[] {mainMat, effectMat});
-                Registry.registerModel(firstSubstationId + 1, "assets/custommachines/prefabs/ground-substation", new[] {mainMat, effectMat});
-                Registry.registerModel(firstSubstationId + 2, "assets/custommachines/prefabs/orbital-substation", new[] {mainMat, effectMat});
+                ProtoRegistry.RegisterModel(firstSubstationId, "Entities/Prefabs/orbital-substation", new[] {mainMat, effectMat});
+                ProtoRegistry.RegisterModel(firstSubstationId + 1, "assets/custommachines/prefabs/ground-substation", new[] {mainMat, effectMat});
+                ProtoRegistry.RegisterModel(firstSubstationId + 2, "assets/custommachines/prefabs/orbital-substation", new[] {mainMat, effectMat});
                 Harmony.CreateAndPatchAll(typeof(BuildTool_ClickPatch), "groundsubstation");
                 
                 Harmony.CreateAndPatchAll(typeof(GameDataPatch), "groundsubstation");
                 Harmony.CreateAndPatchAll(typeof(EntityDataPatch), "groundsubstation");
                 Harmony.CreateAndPatchAll(typeof(PlayerControlGizmoPatch), "groundsubstation");
-                Harmony.CreateAndPatchAll(typeof(PlanetFactoryPatch), "groundsubstation");
-                Harmony.CreateAndPatchAll(typeof(GameLoaderPatch), "groundsubstation");
             }
             else
             {
@@ -128,16 +142,26 @@ namespace GroundSubstation
                 
                 Harmony.CreateAndPatchAll(typeof(GameDataPatch), "groundsubstation");
                 Harmony.CreateAndPatchAll(typeof(EntityDataPatch), "groundsubstation");
-                Harmony.CreateAndPatchAll(typeof(GameLoaderPatch), "groundsubstation");
             }
+            
+            UtilSystem.AddLoadMessageHandler(GetReplaceMessage);
             
             
             Logger.LogInfo("Ground Substation mod is initialized!");
 
-            Registry.onLoadingFinished += afterLoad;
+            ProtoRegistry.onLoadingFinished += AfterLoad;
         }
 
-        public void afterLoad()
+        private static string GetReplaceMessage()
+        {
+            bool remove = mode.Value == ModeType.REMOVE;
+            if (EntityDataPatch.updateCounter <= 0) return "";
+            
+            return string.Format((remove ? "SubstationRestoreWarn" : "SubstationModificationWarn").Translate(), EntityDataPatch.updateCounter);
+        }
+        
+
+        public void AfterLoad()
         {
             ItemProto item = LDB.items.Select(2212);
             item.ModelIndex = firstSubstationId;
@@ -154,24 +178,6 @@ namespace GroundSubstation
     public static class VFPreloadPatch
     {
         public static ModelProto substation;
-        
-        [HarmonyPatch(typeof(VFPreload), "InvokeOnLoadWorkEnded")]
-        [HarmonyPrefix]
-        public static void Prefix1()
-        {
-            PrefabDesc pdesc = substation.prefabDesc;
-
-            Material[] mats = Registry.modelMats[substation.PrefabPath];
-            for (int i = 0; i < pdesc.lodCount; i++)
-            {
-                for (int j = 0; j < pdesc.lodMaterials[i].Length; j++)
-                {
-                    if (j >= mats.Length) continue;
-                    
-                    pdesc.lodMaterials[i][j] = mats[j];
-                }
-            }
-        }
 
         [HarmonyPatch(typeof(VFPreload), "PreloadThread")]
         [HarmonyPrefix]
@@ -209,7 +215,7 @@ namespace GroundSubstation
     [HarmonyPatch]
     public static class EntityDataPatch
     {
-        public static int updateCounter = 0;
+        public static int updateCounter;
 
         [HarmonyPatch(typeof(EntityData), "Import")]
         [HarmonyPostfix]
@@ -288,53 +294,6 @@ namespace GroundSubstation
             }
 
             return true;
-        }
-    }
-
-    [HarmonyPatch]
-    static class PlanetFactoryPatch
-    {
-        [HarmonyPatch(typeof(PlanetFactory), "CreateEntityDisplayComponents")]
-        [HarmonyPrefix]
-        public static void Prefix(PlanetFactory __instance, int entityId, ref PrefabDesc desc, short modelIndex)
-        {
-            if (modelIndex == 0) return;
-            if (modelIndex >= LDB.models.modelArray.Length) return;
-
-            ModelProto proto = LDB.models.modelArray[modelIndex];
-            if (proto != null)
-            {
-                desc = proto.prefabDesc;
-            }
-        }
-    }
-
-    [HarmonyPatch]
-    static class GameLoaderPatch
-    {
-        public delegate void RefAction<T1>(ref T1 arg1);
-
-        [HarmonyPatch(typeof(GameLoader), "FixedUpdate")]
-        [HarmonyTranspiler]
-        static IEnumerable<CodeInstruction> AddModificationWarn(IEnumerable<CodeInstruction> instructions)
-        {
-            CodeMatcher matcher = new CodeMatcher(instructions)
-                .MatchForward(false,
-                    new CodeMatch(OpCodes.Ldloc_0),
-                    new CodeMatch(OpCodes.Call, AccessTools.Method(typeof(string), nameof(string.IsNullOrEmpty))),
-                    new CodeMatch(OpCodes.Brtrue)
-                )
-                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloca_S, 0))
-                .InsertAndAdvance(
-                    Transpilers.EmitDelegate<RefAction<string>>((ref string text) =>
-                    {
-                        bool remove = GroundSubstation.mode.Value == GroundSubstation.ModeType.REMOVE;
-                        if (EntityDataPatch.updateCounter > 0)
-                            text = text + "\r\n" + string.Format((remove ? "SubstationRestoreWarn" : "SubstationModificationWarn").Translate(), EntityDataPatch.updateCounter);
-                    }));
-
-
-            return matcher.InstructionEnumeration();
         }
     }
 

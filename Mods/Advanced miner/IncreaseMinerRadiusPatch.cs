@@ -5,7 +5,7 @@ using System.Reflection.Emit;
 using HarmonyLib;
 using UnityEngine;
 
-namespace DSPAdvancedMiner
+namespace AdvancedMiner
 {
     [HarmonyPatch]
     public static class BuildToolClickPatch
