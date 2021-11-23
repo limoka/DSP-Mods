@@ -7,9 +7,13 @@ List of features:<br/>
 Interface changes:
 - Allow using 3rd person view in Blueprint mode.
 - Allow toggling between 3d person and planet view when in Blueprint mode using `J` key
+- Add paste button to Blueprint Browser window. Pressing it is equivalent to double clicking currently selected blueprint.
+
+Change your blueprint on the fly:
 - Selectively change recipes on machines during any moment using a new panel in blueprint inspector
 - Selectively change cargo requested/provided by logistic stations in a new panel in blueprint inspector
 - Allow changing building tiers. Left-click on a building in component panel to use.<br/>
+- Allow changing belt hint icons. Left-click on a hint icon in component panel to use.<br/>
 
 Big features:
 - Allow forcing Blueprint paste even if some buildings collide or can't be built. Use `Shift` key to use this feature.
@@ -58,6 +62,11 @@ Unzip folder `patchers` into `Dyson Sphere Program/BepInEx/patchers/BlueprintTwe
 Unzip folder `plugins` into `Dyson Sphere Program/BepInEx/plugins/BlueprintTweaks/`. (Create folder named `BlueprintTweaks`)<br/>
 
 ## Changelog
+### v1.3.1
+- Added Belt hints change feature
+- Added Paste button to blueprint Browser window
+- Fixed unablity to open drag remove tool
+- Fixed CommonAPI module not loaded errors
 ### v1.3.0
 **Important Note: Installation HAS changed. If you are installing manually, make sure to read installation instructions again!**
 - Migrated to CommonAPI

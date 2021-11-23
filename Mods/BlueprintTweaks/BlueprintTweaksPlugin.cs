@@ -5,6 +5,7 @@ using System.Security.Permissions;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+using BlueprintTweaks.BlueprintBrowserUIChanges;
 using CommonAPI;
 using CommonAPI.Systems;
 using HarmonyLib;
@@ -21,7 +22,7 @@ namespace BlueprintTweaks
     [BepInPlugin(MODGUID, MOD_DISP_NAME, VERSION)]
     [BepInDependency(NebulaModAPI.API_GUID)]
     [BepInDependency(CommonAPIPlugin.GUID)]
-    [CommonAPISubmoduleDependency(nameof(ProtoRegistry), nameof(CustomKeyBindSystem))]
+    [CommonAPISubmoduleDependency(nameof(ProtoRegistry), nameof(CustomKeyBindSystem), nameof(PickerExtensionsSystem))]
     public class BlueprintTweaksPlugin : BaseUnityPlugin, IMultiplayerMod
     {
         public const string MODNAME = "BlueprintTweaks";
@@ -30,7 +31,7 @@ namespace BlueprintTweaks
         
         public const string MOD_DISP_NAME = "Blueprint Tweaks";
         
-        public const string VERSION = "1.3.0";
+        public const string VERSION = "1.3.1";
 
         public const string FREE_FOUNDATIONS_GUID = "de.Hotte.DSP.FreeFoundations";
         public const string FREE_FOUNDATIONS_GUID_2 = "com.aekoch.mods.dsp.UnlimitedFoundations";
@@ -48,10 +49,13 @@ namespace BlueprintTweaks
 
         public static bool freeFoundationsIsInstalled;
 
-        public static ConfigEntry<bool> cameraToggleEnabled { get; set; }
+        public static ConfigEntry<bool> cameraToggleEnabled;
+        public static ConfigEntry<bool> addPasteButtonEnabled;
+        
         public static ConfigEntry<bool> recipeChangeEnabled;
         public static ConfigEntry<bool> changeTierEnabled;
         public static ConfigEntry<bool> logisticCargoChangeEnabled;
+        public static ConfigEntry<bool> beltHintsChangeEnable;
 
         public static ConfigEntry<bool> forcePasteEnabled;
         public static ConfigEntry<bool> axisLockEnabled;
@@ -69,10 +73,13 @@ namespace BlueprintTweaks
             logger = Logger;
 
             cameraToggleEnabled = Config.Bind("Interface", "cameraToggle", true, "Allows toggling camera between 3rd person and god view\nAll values are applied on restart");
+            addPasteButtonEnabled = Config.Bind("Interface", "addBluprintPasteButton", true, "If enabled new button will be added to Blueprint Browser. Pressing it will paste curretly selected blueprint\nAll values are applied on restart");
             
             recipeChangeEnabled = Config.Bind("Interface", "recipeChange", true, "Add recipe change panel to blueprint inspectors\nAll values are applied on restart");
             logisticCargoChangeEnabled = Config.Bind("Interface", "changeLogisticCargo", true, "Allows changing cargo requested/provided by logistic stations");
             changeTierEnabled = Config.Bind("Interface", "changeTier", true, "Allows using change tier functionality\nAll values are applied on restart");
+            beltHintsChangeEnable = Config.Bind("Interface", "beltHintChange", true, "Add belt hint change panel to blueprint inspectors\nAll values are applied on restart");
+
             
             forcePasteEnabled = Config.Bind("Features", "forcePaste", true, "Allows using key to force blueprint placement\nAll values are applied on restart");
             axisLockEnabled = Config.Bind("Features", "axisLock", true, "Allows using Latitude/Longtitude axis locks\nAll values are applied on restart");
@@ -107,6 +114,8 @@ namespace BlueprintTweaks
             ProtoRegistry.AddResource(resource);
             
             Harmony harmony = new Harmony(MODGUID);
+
+            #region Strings
 
             ProtoRegistry.RegisterString("KEYToggleBPGodModeDesc", "Toggle Blueprint God Mode", "切换上帝模式浏览蓝图");
             ProtoRegistry.RegisterString("RecipesLabel", "Recipes", "配方");
@@ -158,12 +167,27 @@ namespace BlueprintTweaks
             ProtoRegistry.RegisterString("KEYMirrorLongAxis", "Mirror Blueprint in Longitude axis", "经向镜像");
             ProtoRegistry.RegisterString("KEYMirrorLatAxis", "Mirror Blueprint in Latitude axis", "纬向镜像");
             
+            
+            ProtoRegistry.RegisterString("BeltHintsLabel", "Belt Hints", "腰带提示");
+            ProtoRegistry.RegisterString("HintsChangeTipText", "Left-click to change belt hints", "左键单击更改腰带提示");
+            
+            ProtoRegistry.RegisterString("ChangeHintsTipTitle", "You can change belt hints", "您可以更改腰带提示");
+            ProtoRegistry.RegisterString("ChangeHintsTipDesc", 
+                "Left-click to change hints on belts. When you click, picker menu will open, where a new icon can be selected. All belts that used the old icon will now use selected icon. This change will take effect after saving.", 
+                "左键点击更改腰带提示。点击将打开选择菜单，可在其中选择新腰带提示。所有使用旧腰带提示的输送带将更新到选定的新腰带提示。此更改将在保存后生效。");
+            
+            #endregion
+            
             UIBlueprintInspectorPatch.Init();
             BlueprintUtilsPatch2.Init();
             RegisterKeyBinds();
 
             NebulaModAPI.RegisterPackets(Assembly.GetExecutingAssembly());
 
+            if (addPasteButtonEnabled.Value)
+            {
+                harmony.PatchAll(typeof(UIBlueprintBrowserPatch));
+            }
 
             if (blueprintMirroring.Value)
             {
