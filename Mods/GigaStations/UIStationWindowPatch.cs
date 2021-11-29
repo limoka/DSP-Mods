@@ -1,4 +1,7 @@
-﻿using HarmonyLib;
+﻿using System.Collections.Generic;
+using System.Reflection;
+using System.Reflection.Emit;
+using HarmonyLib;
 using UnityEngine;
 
 // ReSharper disable InconsistentNaming
@@ -10,75 +13,42 @@ namespace GigaStations
     {
         public static RectTransform contentTrs;
         public static RectTransform scrollTrs;
-        
-        [HarmonyPrefix]
+
+        [HarmonyTranspiler] 
         [HarmonyPatch(typeof(UIStationWindow), "OnMinDeliverVesselValueChange")]
-        public static bool OnMinDeliverVesselValueChangePrefix(UIStationWindow __instance, ref float value)
-        {
-            if (__instance.event_lock)
-            {
-                return false;
-            }
-            if (__instance.stationId == 0 || __instance.factory == null)
-            {
-                return false;
-            }
-            StationComponent stationComponent = __instance.transport.stationPool[__instance.stationId];
-            if (stationComponent == null || stationComponent.id != __instance.stationId)
-            {
-                return false;
-            }
-            int num = (int)(value * 1f + 0.5f);
-            if (num < 1)
-            {
-                num = 1;
-            }
-            stationComponent.deliveryShips = num;
-            __instance.minDeliverVesselValue.text = num.ToString("0") + " %";
-            return false;
-        }
-
-        [HarmonyPrefix]
         [HarmonyPatch(typeof(UIStationWindow), "OnMinDeliverDroneValueChange")]
-        public static bool OnMinDeliverDroneValueChangePrefix(UIStationWindow __instance, ref float value)
+        public static IEnumerable<CodeInstruction> Replace10With1Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-            if (__instance.event_lock)
-            {
-                return false;
-            }
-            if (__instance.stationId == 0 || __instance.factory == null)
-            {
-                return false;
-            }
-            StationComponent stationComponent = __instance.transport.stationPool[__instance.stationId];
-            if (stationComponent == null || stationComponent.id != __instance.stationId)
-            {
-                return false;
-            }
-            int num = (int)(value * 1f + 0.5f);
-            if (num < 1)
-            {
-                num = 1;
-            }
-            stationComponent.deliveryDrones = num;
-            __instance.minDeliverDroneValue.text = num.ToString("0") + " %";
-            return false;
-        }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(UIStationWindow), "OnStationIdChange")]
-        public static void OnStationIdChangePostfix(UIStationWindow __instance)
-        {
-            if (__instance.stationId == 0 || __instance.factory == null || __instance.transport?.stationPool == null)
-            {
-                return;
-            }
+            CodeMatcher matcher = new CodeMatcher(instructions)
+                .MatchForward(false, new CodeMatch(instr => instr.opcode == OpCodes.Ldc_R4 && Mathf.Approximately((float)instr.operand, 10f)))
+                .SetOperandAndAdvance(1f);
 
-            StationComponent stationComponent = __instance.transport.stationPool[__instance.stationId];
-            __instance.minDeliverDroneSlider.value = ((stationComponent.deliveryDrones <= 1) ? 0f : (0.1f * stationComponent.deliveryDrones)) * 10f;
-            __instance.minDeliverVesselSlider.value = ((stationComponent.deliveryShips <= 1) ? 0f : (0.1f * stationComponent.deliveryShips)) * 10f;
+            return matcher.InstructionEnumeration();
         }
         
+        [HarmonyTranspiler] 
+        [HarmonyPatch(typeof(UIStationWindow), "OnStationIdChange")]
+        public static IEnumerable<CodeInstruction> RemoveDivisionBy10(IEnumerable<CodeInstruction> instructions)
+        {
+
+            CodeMatcher matcher = new CodeMatcher(instructions)
+                .MatchForward(false, new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(StationComponent), nameof(StationComponent.deliveryDrones))))
+                .MatchForward(false, new CodeMatch(instr => instr.opcode == OpCodes.Ldc_R4 && Mathf.Approximately((float)instr.operand, 0.1f)))
+                .SetAndAdvance(OpCodes.Nop, null)
+                .Advance(2)
+                .SetAndAdvance(OpCodes.Nop, null);
+            
+            matcher
+                .MatchForward(false, new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(StationComponent), nameof(StationComponent.deliveryShips))))
+                .MatchForward(false, new CodeMatch(instr => instr.opcode == OpCodes.Ldc_R4 && Mathf.Approximately((float)instr.operand, 0.1f)))
+                .SetAndAdvance(OpCodes.Nop, null)
+                .Advance(2)
+                .SetAndAdvance(OpCodes.Nop, null);
+
+            return matcher.InstructionEnumeration();
+        }
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(UIStationWindow), "OnStationIdChange")]
         [HarmonyPriority(Priority.Last)]
