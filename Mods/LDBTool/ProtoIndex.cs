@@ -51,15 +51,24 @@ namespace xiaoye97
             throw new ArgumentException($"Unknown Proto type: {type.FullName}");
         }
 
+        public static Type GetProtoTypeAt(int num)
+        {
+            return protoTypes[num];
+        }
+
         public static string GetProtoName(Proto proto)
         {
             return proto.GetType().Name.Replace("Proto", "");
+        }
+        
+        public static string[] GetProtoNames()
+        {
+            return protoTypes.Select(type => type.Name.Replace("Proto", "")).ToArray();
         }
 
         internal static Type[] GetAllProtoTypes()
         {
             return protoTypes;
         }
-        
     }
 }

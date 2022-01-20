@@ -1,6 +1,9 @@
 using System;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using HarmonyLib;
 
 namespace xiaoye97.UI
 {
@@ -11,20 +14,21 @@ namespace xiaoye97.UI
     {
         public static bool Show;
         private static Rect winRect = new Rect(0, 0, 500, 800);
-        private static int selectType;
-        private static int SelectType
+        private static int selectIndex;
+        private static int SelectIndex
         {
-            get { return selectType; }
+            get => selectIndex;
             set
             {
-                if (selectType != value)
+                if (selectIndex != value)
                 {
-                    selectType = value;
+                    selectIndex = value;
                     ProtoSetEx.needSearch = true;
                 }
             }
         }
-        private static string[] protoTypeNames = Enum.GetNames(typeof(ProtoType));
+
+        private static string[] protoTypeNames = ProtoIndex.GetProtoNames();
         public static ISkin Skin;
 
         public static void OnGUI()
@@ -38,7 +42,7 @@ namespace xiaoye97.UI
             if (Skin != null) GUI.skin = Skin.GetSkin();
             GUILayout.BeginVertical();
             GUILayout.BeginHorizontal(GUI.skin.box);
-            SelectType = GUILayout.SelectionGrid(SelectType, protoTypeNames, 13);
+            SelectIndex = GUILayout.SelectionGrid(SelectIndex, protoTypeNames, 10);
             GUILayout.Space(20);
             if (GUILayout.Button("Close", GUILayout.Width(80)))
             {
@@ -46,20 +50,18 @@ namespace xiaoye97.UI
             }
             GUILayout.EndHorizontal();
 
-            ProtoType type = (ProtoType)SelectType;
-            if (type == ProtoType.AdvisorTip) LDB.advisorTips.ShowSet();
-            else if (type == ProtoType.Audio) LDB.audios.ShowSet();
-            else if (type == ProtoType.EffectEmitter) LDB.effectEmitters.ShowSet();
-            else if (type == ProtoType.Item) LDB.items.ShowSet();
-            else if (type == ProtoType.Model) LDB.models.ShowSet();
-            else if (type == ProtoType.Player) LDB.players.ShowSet();
-            else if (type == ProtoType.Recipe) LDB.recipes.ShowSet();
-            else if (type == ProtoType.String) LDB.strings.ShowSet();
-            else if (type == ProtoType.Tech) LDB.techs.ShowSet();
-            else if (type == ProtoType.Theme) LDB.themes.ShowSet();
-            else if (type == ProtoType.Tutorial) LDB.tutorial.ShowSet();
-            else if (type == ProtoType.Vege) LDB.veges.ShowSet();
-            else if (type == ProtoType.Vein) LDB.veins.ShowSet();
+            Type selectedType = ProtoIndex.GetProtoTypeAt(selectIndex);
+            
+            PropertyInfo protoProperty = typeof(LDB).GetProperties().First(property =>
+            {
+                Type setType = typeof(ProtoSet<>).MakeGenericType(selectedType);
+                return setType.IsAssignableFrom(property.PropertyType);
+            });
+            
+            object protoSet = protoProperty.GetValue(null);
+            MethodInfo method = typeof(ProtoSetEx).GetMethod(nameof(ProtoSetEx.ShowSet), AccessTools.all).MakeGenericMethod(selectedType);
+            method.Invoke(null, new[] {protoSet});
+
             GUILayout.EndVertical();
             GUI.DragWindow();
         }
@@ -68,26 +70,28 @@ namespace xiaoye97.UI
     public static class ProtoSetEx
     {
         private static Vector2 sv;
-        private static Dictionary<Type, int> selectPages = new Dictionary<Type, int>()
+        private static Dictionary<Type, int> selectPages = new Dictionary<Type, int>();
+
+        static ProtoSetEx()
         {
-            {typeof(AdvisorTipProtoSet) , 0 },
-            {typeof(AudioProtoSet) , 0 },
-            {typeof(EffectEmitterProtoSet) , 0 },
-            {typeof(ItemProtoSet) , 0 },
-            {typeof(ModelProtoSet) , 0 },
-            {typeof(PlayerProtoSet) , 0 },
-            {typeof(RecipeProtoSet) , 0 },
-            {typeof(StringProtoSet) , 0 },
-            {typeof(TechProtoSet) , 0 },
-            {typeof(ThemeProtoSet) , 0 },
-            {typeof(TutorialProtoSet) , 0 },
-            {typeof(VegeProtoSet) , 0 },
-            {typeof(VeinProtoSet) , 0 }
-        };
+            foreach (PropertyInfo propertyInfo in typeof(LDB).GetProperties())
+            {
+                Type setType = propertyInfo.PropertyType;
+                if (!setType.IsConstructedGenericType)
+                {
+                    setType = setType.BaseType;
+                }
+
+                Type protoType = setType.GetGenericArguments()[0];
+                selectPages.Add(protoType, 0);
+                
+            }
+        }
+        
         private static string search = "";
         private static string Search
         {
-            get { return search; }
+            get => search;
             set
             {
                 if (search != value)
@@ -115,7 +119,7 @@ namespace xiaoye97.UI
             needSearch = false;
         }
 
-        public static void ShowSet<T>(this ProtoSet<T> protoSet) where T : Proto
+        public static void ShowSet<T>(ProtoSet<T> protoSet) where T : Proto
         {
             if (ProtoDataUI.Skin != null) GUI.skin = ProtoDataUI.Skin.GetSkin();
             GUILayout.BeginHorizontal(GUI.skin.box);
@@ -124,11 +128,11 @@ namespace xiaoye97.UI
             {
                 SearchLDB(protoSet);
             }
-            GUILayout.Label($"Page {selectPages[protoSet.GetType()] + 1} / {searchResultList.Count / 100 + 1}", GUILayout.Width(80));
-            if (GUILayout.Button("-", GUILayout.Width(20))) selectPages[protoSet.GetType()]--;
-            if (GUILayout.Button("+", GUILayout.Width(20))) selectPages[protoSet.GetType()]++;
-            if (selectPages[protoSet.GetType()] < 0) selectPages[protoSet.GetType()] = searchResultList.Count / 100;
-            else if (selectPages[protoSet.GetType()] > searchResultList.Count / 100) selectPages[protoSet.GetType()] = 0;
+            GUILayout.Label($"Page {selectPages[typeof(T)] + 1} / {searchResultList.Count / 100 + 1}", GUILayout.Width(80));
+            if (GUILayout.Button("-", GUILayout.Width(20))) selectPages[typeof(T)]--;
+            if (GUILayout.Button("+", GUILayout.Width(20))) selectPages[typeof(T)]++;
+            if (selectPages[typeof(T)] < 0) selectPages[typeof(T)] = searchResultList.Count / 100;
+            else if (selectPages[typeof(T)] > searchResultList.Count / 100) selectPages[typeof(T)] = 0;
             GUILayout.EndHorizontal();
 
             GUILayout.BeginVertical(GUI.skin.box);
@@ -143,7 +147,7 @@ namespace xiaoye97.UI
             }
             GUILayout.EndHorizontal();
             sv = GUILayout.BeginScrollView(sv);
-            for (int i = selectPages[protoSet.GetType()] * 100; i < Mathf.Min(selectPages[protoSet.GetType()] * 100 + 100, searchResultList.Count); i++)
+            for (int i = selectPages[typeof(T)] * 100; i < Mathf.Min(selectPages[typeof(T)] * 100 + 100, searchResultList.Count); i++)
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.Label($"{i}", GUILayout.Width(40));

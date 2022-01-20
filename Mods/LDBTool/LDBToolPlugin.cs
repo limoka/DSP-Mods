@@ -21,7 +21,7 @@ namespace xiaoye97
     {
         public const string MODNAME = "LDBTool";
         public const string MODGUID = "me.xiaoye97.plugin.Dyson.LDBTool";
-        public const string VERSION = "2.0.0";
+        public const string VERSION = "2.0.1";
         
         internal static ManualLogSource logger;
         internal static ConfigEntry<bool> ShowProto;
