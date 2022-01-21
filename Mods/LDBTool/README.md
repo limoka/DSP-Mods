@@ -26,6 +26,10 @@ Unzip mod arhive into `Dyson Sphere Program/BepInEx/plugins/LDBTool/`. (Create f
 Feel free to contact me via Discord (Kremnev8#3756) for any feedback, bug-reports or suggestions.
 
 ## Changelog
+### v2.0.3
+- Removed caching of string protos and grid indexes. Now only if a player has changed value manually will it be overwriting the default. With this old config files were purged. A backup is saved in case players had some important settings there.
+### v2.0.2
+- Fixed some old mods causing missing method exception. Please note that using MethedEx.Copy in your mods is unrecomended. It will be removed soon.
 ### v2.0.1
 - Fix README
 - All Protos can now be seen in Proto view menu

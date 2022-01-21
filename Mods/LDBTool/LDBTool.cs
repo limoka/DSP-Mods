@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using BepInEx;
@@ -149,10 +150,14 @@ namespace xiaoye97
         private static ConfigFile CustomStringZHCN = new ConfigFile($"{Paths.ConfigPath}/LDBTool/LDBTool.CustomLocalization.ZHCN.cfg", true);
         private static ConfigFile CustomStringENUS = new ConfigFile($"{Paths.ConfigPath}/LDBTool/LDBTool.CustomLocalization.ENUS.cfg", true);
         private static ConfigFile CustomStringFRFR = new ConfigFile($"{Paths.ConfigPath}/LDBTool/LDBTool.CustomLocalization.FRFR.cfg", true);
-
+        
+        public static PropertyInfo OrphanedEntriesProp;
 
         internal static void Init()
         {
+            Type configFile = AccessTools.TypeByName("BepInEx.Configuration.ConfigFile");
+            OrphanedEntriesProp = configFile.GetProperty("OrphanedEntries", AccessTools.all);
+            
             for (int i = 0; i <= ProtoIndex.GetProtosCount(); i++)
             {
                 PreToAdd.Add(new List<Proto>());
@@ -161,6 +166,25 @@ namespace xiaoye97
                 IDDict.Add(new Dictionary<string, ConfigEntry<int>>());
                 GridIndexDict.Add(new Dictionary<string, ConfigEntry<int>>());
             }
+
+            UpdateCustomDataFile(CustomGridIndex);
+            UpdateCustomDataFile(CustomStringENUS);
+            UpdateCustomDataFile(CustomStringZHCN);
+            UpdateCustomDataFile(CustomStringFRFR);
+        }
+
+        internal static void UpdateCustomDataFile(ConfigFile file)
+        {
+            if (!file.ContainsKey(new ConfigDefinition("General", "Version")))
+            {
+                File.Copy(file.ConfigFilePath, file.ConfigFilePath + ".bak", true);
+                file.Clear();
+                ((Dictionary<ConfigDefinition, string>)OrphanedEntriesProp.GetValue(file)).Clear();
+            }
+            
+            ConfigEntry<string> version = file.Bind("General", "Version", LDBToolPlugin.VERSION, "Version of LDB Tool which created this file. DO NOT EDIT THIS MANUALLY!");
+            version.Value = LDBToolPlugin.VERSION;
+            file.Save();
         }
 
         /// <summary>
@@ -227,13 +251,17 @@ namespace xiaoye97
             
             if (proto is ItemProto item)
             {
-                entry = CustomGridIndex.Bind(ProtoIndex.GetProtoName(proto), item.ID.ToString(), item.GridIndex, $"Item Name = {item.Name}");
-                item.GridIndex = entry.Value;
+                entry = CustomGridIndex.Bind(ProtoIndex.GetProtoName(proto), item.ID.ToString(), 0, $"Default Grid Index = {item.GridIndex}\nItem Name = {item.Name}");
+                
+                if (entry.Value != 0)
+                    item.GridIndex = entry.Value;
             }
             else if (proto is RecipeProto recipe)
             {
-                entry = CustomGridIndex.Bind(ProtoIndex.GetProtoName(proto), recipe.ID.ToString(), recipe.GridIndex, $"Recipe Name = {recipe.Name}");
-                recipe.GridIndex = entry.Value;
+                entry = CustomGridIndex.Bind(ProtoIndex.GetProtoName(proto), recipe.ID.ToString(), 0, $"Default Grid Index = {recipe.GridIndex}\nRecipe Name = {recipe.Name}");
+               
+                if (entry.Value != 0)
+                    recipe.GridIndex = entry.Value;
             }
 
             if (entry == null) return;
@@ -257,24 +285,18 @@ namespace xiaoye97
         {
             if (!(proto is StringProto stringProto)) return;
             
-            var zhcn = CustomStringZHCN.Bind("String", stringProto.Name, stringProto.ZHCN, stringProto.Name);
-            var enus = CustomStringENUS.Bind("String", stringProto.Name, stringProto.ENUS, stringProto.Name);
-            var frfr = CustomStringFRFR.Bind("String", stringProto.Name, stringProto.FRFR, stringProto.Name);
+            var zhcn = CustomStringZHCN.Bind("String", stringProto.Name, "", "Default String = " + stringProto.ZHCN);
+            var enus = CustomStringENUS.Bind("String", stringProto.Name, "", "Default String = " + stringProto.ENUS);
+            var frfr = CustomStringFRFR.Bind("String", stringProto.Name, "", "Default String = " + stringProto.FRFR);
                 
-            if (!String.Equals(zhcn.Value, ""))
+            if (!string.Equals(zhcn.Value, ""))
                 stringProto.ZHCN = zhcn.Value;
-            else
-                zhcn.Value = stringProto.ZHCN;
 
-            if (!String.Equals(enus.Value, ""))
+            if (!string.Equals(enus.Value, ""))
                 stringProto.ENUS = enus.Value;
-            else
-                enus.Value = stringProto.ENUS;
 
-            if (!String.Equals(frfr.Value, ""))
+            if (!string.Equals(frfr.Value, ""))
                 stringProto.FRFR = frfr.Value;
-            else
-                frfr.Value = stringProto.FRFR;
                 
             if (!string.IsNullOrEmpty(zhcn.Value))
             {

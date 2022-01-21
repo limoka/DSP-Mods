@@ -32,7 +32,7 @@ namespace FasterMachines
         
         public const string MOD_DISP_NAME = "Faster Machines";
         
-        public const string VERSION = "1.0.0";
+        public const string VERSION = "1.0.5";
         
         public const string LDB_TOOL_GUID = "me.xiaoye97.plugin.Dyson.LDBTool";
 
@@ -282,13 +282,13 @@ namespace FasterMachines
             smelterMk3Item.SetIcon("Assets/BetterMachines/Icons/smelter-3", false);
             
             smelterMk2item = ProtoRegistry.RegisterItem(3700, "smelterMk2", "smelterMk2Desc",
-                "Assets/BetterMachines/Icons/smelter-2", ProtoRegistry.GetGridIndex(2, 2, 5), 50, EItemType.Production);
+                "Assets/BetterMachines/Icons/smelter-2", ProtoRegistry.GetGridIndex(2, 5, 4), 50, EItemType.Production);
 
             ItemProto chemicalPlantMk2item = ProtoRegistry.RegisterItem(3701, "chemicalPlantMk2", "chemicalPlantMk2Desc",
-                "Assets/BetterMachines/Icons/chemical-plant-mk2", ProtoRegistry.GetGridIndex(2, 5, 4), 50, EItemType.Production);
+                "Assets/BetterMachines/Icons/chemical-plant-mk2", ProtoRegistry.GetGridIndex(2, 5, 5), 50, EItemType.Production);
             
             ItemProto chemicalPlantMk3item = ProtoRegistry.RegisterItem(3702, "chemicalPlantMk3", "chemicalPlantMk3Desc",
-                "Assets/BetterMachines/Icons/chemical-plant-mk3", ProtoRegistry.GetGridIndex(2, 6, 4), 50, EItemType.Production);
+                "Assets/BetterMachines/Icons/chemical-plant-mk3", ProtoRegistry.GetGridIndex(2, 6, 5), 50, EItemType.Production);
             
             ItemProto storageMk3Item = ProtoRegistry.RegisterItem(3703, "storageMk3", "storageMk3Desc",
                 "Assets/BetterMachines/Icons/storage-3", ProtoRegistry.GetGridIndex(2, 1, 6), 50, EItemType.Logistics);
@@ -297,13 +297,13 @@ namespace FasterMachines
                 "Assets/BetterMachines/Icons/storage-4", ProtoRegistry.GetGridIndex(2, 2, 6), 50, EItemType.Logistics);
             
             ItemProto tankMk2Item = ProtoRegistry.RegisterItem(3705, "liquidTankMk2", "liquidTankMk2Desc",
-                "Assets/BetterMachines/Icons/storage-tank-2", ProtoRegistry.GetGridIndex(2, 3, 6), 50, EItemType.Logistics);
+                "Assets/BetterMachines/Icons/storage-tank-2", ProtoRegistry.GetGridIndex(2, 1, 5), 50, EItemType.Logistics);
             
             ItemProto tankMk3Item = ProtoRegistry.RegisterItem(3706, "liquidTankMk3", "liquidTankMk3Desc",
-                "Assets/BetterMachines/Icons/storage-tank-3", ProtoRegistry.GetGridIndex(2, 4, 6), 50, EItemType.Logistics);
+                "Assets/BetterMachines/Icons/storage-tank-3", ProtoRegistry.GetGridIndex(2, 2, 5), 50, EItemType.Logistics);
             
             beltMk4Item = ProtoRegistry.RegisterItem(3707, "beltMk4", "beltMk4Desc",
-                "Assets/BetterMachines/Icons/belt-4", ProtoRegistry.GetGridIndex(2, 5, 6), 300, EItemType.Logistics);
+                "Assets/BetterMachines/Icons/belt-4", ProtoRegistry.GetGridIndex(2, 3, 5), 300, EItemType.Logistics);
 
 
             #endregion
@@ -353,7 +353,7 @@ namespace FasterMachines
             
             // Smelter mk3 <= Smelter mk2,  Particle container * 8, Plane filter * 4, Particle broadband * 8
             ProtoRegistry.EditRecipe(116, ERecipeType.Assemble, 300, new[] {smelterMk2item.ID, 1206, 1304, 1402}, new[] {1, 8, 4, 8},
-                new[] {2315}, new[] {1}, "smelterMk3Desc", 1417, ProtoRegistry.GetGridIndex(2, 3, 5));  
+                new[] {2315}, new[] {1}, "smelterMk3Desc", 1417, ProtoRegistry.GetGridIndex(2, 6, 4));  
 
             // Chem plant mk2 <= Chem plant mk1, Titanium alloy * 4, Titanium glass * 4, Processor * 4
             ProtoRegistry.RegisterRecipe(251, ERecipeType.Assemble, 360, new[] {2309, 1107, 1119, 1303}, new[] {1, 4, 4, 4},
@@ -387,8 +387,9 @@ namespace FasterMachines
             LDBTool.SetBuildBar(3, 5, 2011);
             LDBTool.SetBuildBar(3, 6, 2012);
             LDBTool.SetBuildBar(3, 7, 2013);
-            LDBTool.SetBuildBar(3, 8, 2030);
-            LDBTool.SetBuildBar(3, 9, 2020);
+            LDBTool.SetBuildBar(3, 8, 2040);
+            LDBTool.SetBuildBar(3, 9, 2030);
+            LDBTool.SetBuildBar(3, 10, 2020);
             
             LDBTool.SetBuildBar(4, 5 , 2106); //Move default position for Liquid Tank mk1
             
@@ -430,23 +431,24 @@ namespace FasterMachines
             assDesc3.ApplyProperties(new PrefabDesc());
 
             assemblerMk3.prefabDesc.assemblerSpeed = (int) (assDesc3.assembleSpeed * 10000);
-            
+
+            // Spray coater grid index
+            LDB.recipes.Select(109).GridIndex = ProtoRegistry.GetGridIndex(2, 7, 4);
+            LDB.items.Select(2313).GridIndex = ProtoRegistry.GetGridIndex(2, 8, 4);
             
             
             // Arc smelter grid index
+            LDB.recipes.Select(56).GridIndex = ProtoRegistry.GetGridIndex(2, 4, 4);
             ItemProto smelterMk1Item = LDB.items.Select(2302);
             ItemProto smelterMk3Item = LDB.items.Select(2315);
             ItemProto chemicalPlantMk1Item = LDB.items.Select(2309);
             ItemProto beltMk3 = LDB.items.Select(2003);
             beltMk3.recipes = null;
             beltMk3.FindRecipes();
-            
-            smelterMk1Item.GridIndex = ProtoRegistry.GetGridIndex(2, 1, 5);
             smelterMk1Item.FindRecipes();
-            LDB.recipes.Select(56).GridIndex = ProtoRegistry.GetGridIndex(2, 1, 5);
-            
+
             // Plane smelter grid index
-            smelterMk3Item.GridIndex = ProtoRegistry.GetGridIndex(2, 3, 5);
+            smelterMk3Item.GridIndex = ProtoRegistry.GetGridIndex(2, 6, 4);
             smelterMk1Item.recipes = null; //Reload smelter recipes
             smelterMk2item.recipes = null;
             smelterMk3Item.recipes = null;
@@ -456,15 +458,11 @@ namespace FasterMachines
             
 
             // Chemical plant mk1 grid index
-            chemicalPlantMk1Item.GridIndex = ProtoRegistry.GetGridIndex(2, 4, 4);
+            chemicalPlantMk1Item.GridIndex = ProtoRegistry.GetGridIndex(2, 4, 5);
             chemicalPlantMk1Item.recipes = null;
             chemicalPlantMk1Item.FindRecipes();
-            LDB.recipes.Select(22).GridIndex = ProtoRegistry.GetGridIndex(2, 4, 4);
+            LDB.recipes.Select(22).GridIndex = ProtoRegistry.GetGridIndex(2, 4, 5);
 
-            // Fractionator grid index
-            LDB.recipes.Select(110).GridIndex = ProtoRegistry.GetGridIndex(2, 7, 4);
-            LDB.items.Select(2314).GridIndex = ProtoRegistry.GetGridIndex(2, 7, 4);
-            
             
             ColorUtility.TryParseHtmlString("#F9D352FF", out Color yellow);
             
@@ -484,9 +482,6 @@ namespace FasterMachines
 
             smelterMk3.prefabDesc.workEnergyPerTick = 24000;
             smelterMk3.prefabDesc.idleEnergyPerTick = 800;
-
-            liquidTankMk2.prefabDesc.fluidStorageCount = 20000;
-            liquidTankMk3.prefabDesc.fluidStorageCount = 30000;
 
             beltMk4Item.BuildMode = 2; //Belt Build mode
             beltMk4.prefabDesc.beltPrototype = beltMk4Item.ID;

@@ -70,16 +70,45 @@ namespace BlueprintTweaks
             {
                 BuildPreview preview = __instance.bpPool[i];
 
-                if (!preview.IsCollide() || !preview.desc.isBelt) continue;
-                
-                if (preview.output == null) continue;
+                if (preview.desc.isBelt)
+                {
+                    CheckBelts(__instance, preview);
+                }else if (preview.desc.isInserter)
+                {
+                    CheckInserter(__instance, preview);
+                }
+            }
 
-                if (!preview.output.IsCollide()) continue;
+            __result = true;
+            __instance.actionBuild.model.cursorState = 0;
+        }
+
+        private static void CheckInserter(BuildTool_BlueprintPaste tool, BuildPreview preview)
+        {
+            if (preview.input.IsCollide() && preview.input.desc.isBelt)
+            {
+                preview.input = null;
+                MatchInserterEntityOnly(tool, preview);
+            }
+            if (preview.output.IsCollide() && preview.output.desc.isBelt)
+            {
+                preview.output = null;
+                MatchInserterEntityOnly(tool, preview);
+            }
+        }
+
+        private static void CheckBelts(BuildTool_BlueprintPaste tool, BuildPreview preview)
+        {
+            if (preview.IsCollide())
+            {
+                if (preview.output == null) return;
+
+                if (!preview.output.IsCollide()) return;
 
 
                 int overlapCount = Physics.OverlapSphereNonAlloc(preview.lpos, 0.28f, BuildTool._tmp_cols, 425984, QueryTriggerInteraction.Collide);
 
-                PlanetPhysics physics = __instance.player.planetData.physics;
+                PlanetPhysics physics = tool.player.planetData.physics;
 
                 for (int m = 0; m < overlapCount; m++)
                 {
@@ -94,17 +123,17 @@ namespace BlueprintTweaks
                     }
 
                     if (objectId == 0) continue;
-                    ItemProto itemProto = __instance.GetItemProto(objectId);
+                    ItemProto itemProto = tool.GetItemProto(objectId);
                     if (!itemProto.prefabDesc.isBelt) continue;
 
 
-                    __instance.factory.ReadObjectConn(objectId, 0, out bool _, out int otherObjId, out int _);
+                    tool.factory.ReadObjectConn(objectId, 0, out bool _, out int otherObjId, out int _);
 
                     //0 next
                     //1 prev
 
-                    __instance.factory.ReadObjectConn(objectId, 1, out bool _, out otherObjId, out int _);
-                    
+                    tool.factory.ReadObjectConn(objectId, 1, out bool _, out otherObjId, out int _);
+
                     if (preview.output.IsCollide())
                     {
                         if (otherObjId == 0)
@@ -119,9 +148,37 @@ namespace BlueprintTweaks
                     }
                 }
             }
+        }
+        
+        
+        [HarmonyPatch(typeof(BuildTool_BlueprintPaste), "MatchInserter")]
+        [HarmonyReversePatch]
+        private static void MatchInserterEntityOnly(BuildTool_BlueprintPaste tool, BuildPreview bp)
+        {
+            IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+            {
+                CodeMatcher matcher = new CodeMatcher(instructions)
+                    .MatchForward(true,
+                        new CodeMatch(OpCodes.Ldloca_S),
+                        new CodeMatch(OpCodes.Call, AccessTools.PropertyGetter(typeof(ColliderData), nameof(ColliderData.objType)))
+                    )
+                    .MatchForward(false,
+                        new CodeMatch(OpCodes.Ldloca_S),
+                        new CodeMatch(OpCodes.Call, AccessTools.PropertyGetter(typeof(ColliderData), nameof(ColliderData.objType)))
+                    );
+                
+                matcher.Opcode = OpCodes.Nop;
+                matcher.Operand = null;
+                matcher.Advance(1)
+                    .SetInstructionAndAdvance(new CodeInstruction(OpCodes.Nop))
+                    .SetInstructionAndAdvance(new CodeInstruction(OpCodes.Nop))
+                    .SetOpcodeAndAdvance(OpCodes.Br);
 
-            __result = true;
-            __instance.actionBuild.model.cursorState = 0;
+                return matcher.InstructionEnumeration();
+            }
+
+            // make compiler happy
+            _ = Transpiler(null);
         }
 
         [HarmonyPatch(typeof(BuildTool_BlueprintPaste), "Operating")]
@@ -162,6 +219,19 @@ namespace BlueprintTweaks
 
                     if (bp.desc.isInserter)
                     {
+                        if (bp.input != null && !bp.input.IsGood() && bp.input.desc.isBelt)
+                        {
+                            BlueprintTweaksPlugin.logger.LogDebug(bp.input.coverObjId);
+                            bp.input = null;
+                        }
+                        
+                        if (bp.output != null && !bp.output.IsGood() && bp.output.desc.isBelt)
+                        {
+                            BlueprintTweaksPlugin.logger.LogDebug(bp.output.coverObjId);
+                            bp.output = null;
+                            return true;
+                        }
+                        
                         if (bp.input != null && !bp.input.IsGood())
                         {
                             return bp.input.desc.isBelt;

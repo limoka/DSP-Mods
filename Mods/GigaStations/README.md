@@ -79,8 +79,9 @@ If prompted to download with dependencies, select `Yes`.
 Then just click **Start modded**, and the game will run with the mod installed.
 
 ### Manually
-Install BepInEx from [here](https://dsp.thunderstore.io/package/xiaoye97/BepInEx/)
-Install LDBTool from [here](https://dsp.thunderstore.io/package/xiaoye97/LDBTool/)
+Install BepInEx from [here](https://dsp.thunderstore.io/package/xiaoye97/BepInEx/)<br/>
+Install LDBTool from [here](https://dsp.thunderstore.io/package/xiaoye97/LDBTool/)<br/>
+Install CommonAPI from [here](https://dsp.thunderstore.io/package/CommonAPI/CommonAPI/)<br/>
 
 Then unzip all files into `Dyson Sphere Program/BepInEx/plugins/GigaStationsUpdated/`. (Create folder named `GigaStationsUpdated`)
 
@@ -89,6 +90,21 @@ Feel free to contact me via Discord (Kremnev8#3756) for any feedback, bug-report
 Original author no longer has time to support this mod, so don't message him if this breaks.
 
 ## Changelog
+### v2.2.4
+- Fixed that stones on Hurricane Stone Forest planets appeared as logistic stations.
+- Fixed station UI glitching when opened second time without closing.
+### v2.2.3
+- Updated to work with game version `0.9.24.11182` or higher
+### v2.2.2
+- Added plugin catergories on Thunderstore page.
+### v2.2.1
+- Fixed compatatbiliy issue with Nebula where minimun drone and ship load percent value multiplying by 10 when clients open Station window, while host is not looking at that UI
+### v2.2.0
+**Important Note: Installation HAS changed. If you are installing manually, make sure to read installation instructions again!**
+- Migrated to CommonAPI
+- Updated to work with game version `0.8.23.9832` or higher
+### v2.1.5
+- Updated to work with version `0.8.22.9331` of the game and up
 ### v2.1.4
 - Improved compatibility with Nebula multiplayer mod
 ### v2.1.3

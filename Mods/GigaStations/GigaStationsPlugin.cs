@@ -29,7 +29,7 @@ namespace GigaStations
 
         public const string MOD_GUID = "org.kremnev8.plugin.GigaStationsUpdated";
         public const string MOD_NAME = "GigaStations";
-        public const string MOD_VER = "2.2.1";
+        public const string MOD_VER = "2.2.4";
         
         public const string LDB_TOOL_GUID = "me.xiaoye97.plugin.Dyson.LDBTool";
         public const string WARPERS_MOD_GUID = "ShadowAngel.DSP.DistributeSpaceWarper";
@@ -143,9 +143,9 @@ namespace GigaStations
                 new[] {1}, "Collector_Desc", 1606);
 
 
-            plsModel = ProtoRegistry.RegisterModel(250, pls, "Entities/Prefabs/logistic-station", null, new[] {24, 38, 12, 10, 1}, 605, 2, new []{2103, 0});
-            ilsModel = ProtoRegistry.RegisterModel(251, ils, "Entities/Prefabs/interstellar-logistic-station", null, new[] {24, 38, 12, 10, 1}, 606, 2, new []{2104, 0});
-            collectorModel = ProtoRegistry.RegisterModel(252, collector, "Entities/Prefabs/orbital-collector", null, new[] {18, 11, 32, 1}, 607, 2, new []{2105, 0});
+            plsModel = ProtoRegistry.RegisterModel(300, pls, "Entities/Prefabs/logistic-station", null, new[] {24, 38, 12, 10, 1}, 605, 2, new []{2103, 0});
+            ilsModel = ProtoRegistry.RegisterModel(301, ils, "Entities/Prefabs/interstellar-logistic-station", null, new[] {24, 38, 12, 10, 1}, 606, 2, new []{2104, 0});
+            collectorModel = ProtoRegistry.RegisterModel(302, collector, "Entities/Prefabs/orbital-collector", null, new[] {18, 11, 32, 1}, 607, 2, new []{2105, 0});
 
             ProtoRegistry.onLoadingFinished += AddGigaPLS;
             ProtoRegistry.onLoadingFinished += AddGigaILS;

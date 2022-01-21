@@ -254,7 +254,7 @@ namespace BlueprintTweaks
             int result = tool.player.sandCount - cost;
             if (result <= 0) return false;
 
-            tool.player.package.TakeItem(PlatformSystem.REFORM_ID, reformCount);
+            tool.player.package.TakeItem(PlatformSystem.REFORM_ID, reformCount, out int _);
             tool.player.SetSandCount(result);
 
             return true;

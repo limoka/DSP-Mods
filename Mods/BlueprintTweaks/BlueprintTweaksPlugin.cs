@@ -31,7 +31,7 @@ namespace BlueprintTweaks
         
         public const string MOD_DISP_NAME = "Blueprint Tweaks";
         
-        public const string VERSION = "1.3.1";
+        public const string VERSION = "1.4.0";
 
         public const string FREE_FOUNDATIONS_GUID = "de.Hotte.DSP.FreeFoundations";
         public const string FREE_FOUNDATIONS_GUID_2 = "com.aekoch.mods.dsp.UnlimitedFoundations";
@@ -41,6 +41,7 @@ namespace BlueprintTweaks
 
         public const string DRAG_REMOVE = "DragRemove";
         public const string BLUEPRINT_FOUNDATIONS = "BlueprintFoundations";
+        public const string PASTE_LOCKED = "PasteLocked";
 
         public static ManualLogSource logger;
         public static ResourceData resource;
@@ -56,12 +57,14 @@ namespace BlueprintTweaks
         public static ConfigEntry<bool> changeTierEnabled;
         public static ConfigEntry<bool> logisticCargoChangeEnabled;
         public static ConfigEntry<bool> beltHintsChangeEnable;
+        public static ConfigEntry<bool> keepBlueprintDesc;
 
         public static ConfigEntry<bool> forcePasteEnabled;
         public static ConfigEntry<bool> axisLockEnabled;
         public static ConfigEntry<bool> gridControlFeature;
         public static ConfigEntry<bool> blueprintMirroring;
         public static ConfigEntry<bool> dragRemove;
+        public static ConfigEntry<bool> pasteLocked;
         
         public static ConfigEntry<bool> blueprintFoundations;
         
@@ -79,19 +82,26 @@ namespace BlueprintTweaks
             logisticCargoChangeEnabled = Config.Bind("Interface", "changeLogisticCargo", true, "Allows changing cargo requested/provided by logistic stations");
             changeTierEnabled = Config.Bind("Interface", "changeTier", true, "Allows using change tier functionality\nAll values are applied on restart");
             beltHintsChangeEnable = Config.Bind("Interface", "beltHintChange", true, "Add belt hint change panel to blueprint inspectors\nAll values are applied on restart");
+            keepBlueprintDesc = Config.Bind("Interface", "keepBlueprintDescription", true, "When pasting blueprint string into existing blueprint you can hold shift to keep description and icons");
 
+            
             
             forcePasteEnabled = Config.Bind("Features", "forcePaste", true, "Allows using key to force blueprint placement\nAll values are applied on restart");
             axisLockEnabled = Config.Bind("Features", "axisLock", true, "Allows using Latitude/Longtitude axis locks\nAll values are applied on restart");
             gridControlFeature = Config.Bind("Features", "gridControl", true, "Allows changing grid size and its offset\nAll values are applied on restart");
             blueprintMirroring = Config.Bind("Features", "blueprintMirroring", true, "Allows mirroring Blueprints\nAll values are applied on restart");
             dragRemove = Config.Bind("Features", "dragRemove", true, "Allows using drag remove function\nAll values are applied on restart");
+            pasteLocked = Config.Bind("Features", "PasteLockedRecipes", true, "Allow pasting assemblers with recipes which have not been unlocked yet. Assemblers with recipes that are not unlocked will not work.");
+
             
             blueprintFoundations = Config.Bind("Features", "blueprintFoundations", true, "Allow blueprinting foundations along with buildings.\nAll values are applied on restart");
             
             resetFunctionsOnMenuExit = Config.Bind("Misc", "resetOnExit", true, "If enabled when you exit build mode, some functions (Axis/Grid lock, Mirror) will reset their state");
             canBlueprintOnGasGiants = Config.Bind("Misc", "bpOnGasGiants", true, "Allow using Blueprints on Gas Giants\nAll values are applied on restart");
 
+            
+            
+            
             Config.MigrateConfig<bool>("General", "Interface", new []{"cameraToggle", "recipeChange", "changeLogisticCargo", "changeTier"});
             Config.MigrateConfig<bool>("General", "Features", new []{"forcePaste", "axisLock", "gridControl", "gridControl", "blueprintFoundations"});
             Config.MigrateConfig<bool>("General", "Misc", new []{"bpOnGasGiants"});
@@ -176,6 +186,8 @@ namespace BlueprintTweaks
                 "Left-click to change hints on belts. When you click, picker menu will open, where a new icon can be selected. All belts that used the old icon will now use selected icon. This change will take effect after saving.", 
                 "左键点击更改腰带提示。点击将打开选择菜单，可在其中选择新腰带提示。所有使用旧腰带提示的输送带将更新到选定的新腰带提示。此更改将在保存后生效。");
             
+            ProtoRegistry.RegisterString("recipeLockedWarn", "Recipe is locked", "食谱已锁定");
+            
             #endregion
             
             UIBlueprintInspectorPatch.Init();
@@ -183,6 +195,16 @@ namespace BlueprintTweaks
             RegisterKeyBinds();
 
             NebulaModAPI.RegisterPackets(Assembly.GetExecutingAssembly());
+
+            if (keepBlueprintDesc.Value)
+            {
+                harmony.PatchAll(typeof(KeepBPName.UIBlueprintInspectorPatch));
+            }
+
+            if (pasteLocked.Value)
+            {
+                harmony.PatchAll(PASTE_LOCKED);
+            }
 
             if (addPasteButtonEnabled.Value)
             {
@@ -310,6 +332,9 @@ namespace BlueprintTweaks
 
         private void Update()
         {
+            if (!GameMain.isRunning) return;
+            if (GameMain.localPlanet == null) return;   
+        
             if (cameraToggleEnabled.Value && CustomKeyBindSystem.GetKeyBind("ToggleBPGodModeDesc").keyValue)
             {
                 CameraFixPatch.mode = !CameraFixPatch.mode;

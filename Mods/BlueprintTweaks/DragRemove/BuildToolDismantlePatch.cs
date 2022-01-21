@@ -1,5 +1,9 @@
 ﻿using CommonAPI;
 using HarmonyLib;
+using UnityEngine;
+
+// ReSharper disable InconsistentNaming
+// ReSharper disable RedundantAssignment
 
 namespace BlueprintTweaks
 {
@@ -15,6 +19,23 @@ namespace BlueprintTweaks
             
             __result = false;
             return false;
+        }
+        
+        [HarmonyPatch(typeof(BuildTool_Dismantle), "_OnClose")]
+        [HarmonyPrefix]
+        public static void OnCloseBefore(BuildTool_Dismantle __instance, ref int __state)
+        {
+            __state = __instance.cursorType;
+        }
+        
+        [HarmonyPatch(typeof(BuildTool_Dismantle), "_OnClose")]
+        [HarmonyPostfix]
+        public static void OnCloseAfter(BuildTool_Dismantle __instance, int __state)
+        {
+            if (__state == 2)
+            {
+                __instance.cursorType = 2;
+            }
         }
     }
 }

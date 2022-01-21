@@ -92,13 +92,16 @@ namespace GigaStations
             StationComponent stationComponent = __instance.transport.stationPool[__instance.stationId];
             ItemProto itemProto = LDB.items.Select(__instance.factory.entityPool[stationComponent.entityId].protoId);
 
-            int storageCount = (!stationComponent.isCollector) ? stationComponent.storage.Length : stationComponent.collectionIds.Length;
+            int storageCount = ((stationComponent.isCollector || stationComponent.isVeinCollector) ? stationComponent.collectionIds.Length : stationComponent.storage.Length);
 
             int baseYSize = stationComponent.isStellar ? 376 : 316;
             if (stationComponent.isCollector)
             {
                 baseYSize = 136;
             }
+            
+            ((RectTransform) __instance.storageUIs[0].transform).anchoredPosition = new Vector2(0, 0);
+            
 
             if (itemProto.ID != GigaStationsPlugin.pls.ID && itemProto.ID != GigaStationsPlugin.ils.ID && itemProto.ID != GigaStationsPlugin.collector.ID)
             {
@@ -267,7 +270,7 @@ namespace GigaStations
                 }
                 if (VFInput.shift || VFInput.control)
                 {
-                    num5 = __instance.player.package.AddItemStacked(1210, num5);
+                    num5 = __instance.player.package.AddItemStacked(1210, num5, 0, out int _);
                     if (warperCount2 != num5)
                     {
                         UIRealtimeTip.Popup("无法添加物品".Translate());

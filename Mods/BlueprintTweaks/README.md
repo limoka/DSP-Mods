@@ -8,6 +8,7 @@ Interface changes:
 - Allow using 3rd person view in Blueprint mode.
 - Allow toggling between 3d person and planet view when in Blueprint mode using `J` key
 - Add paste button to Blueprint Browser window. Pressing it is equivalent to double clicking currently selected blueprint.
+- When pasting blueprint string into existing blueprint you can hold `Shift` key to keep description and icons
 
 Change your blueprint on the fly:
 - Selectively change recipes on machines during any moment using a new panel in blueprint inspector
@@ -15,7 +16,7 @@ Change your blueprint on the fly:
 - Allow changing building tiers. Left-click on a building in component panel to use.<br/>
 - Allow changing belt hint icons. Left-click on a hint icon in component panel to use.<br/>
 
-Big features:
+Features:
 - Allow forcing Blueprint paste even if some buildings collide or can't be built. Use `Shift` key to use this feature.
 - Allow using La**T**itude/Lon**G**itude axis lock. Use `Ctrl + T/G` to toggle
 - Allow changing grid snapping. Set blueprint grid size in its settings, then press `Ctrl + B` in desired initial position.
@@ -23,6 +24,7 @@ Big features:
 - Allow blueprinting Foundations. Also allows copying Custom foundations color palettes. If you blueprint buildings with foundations under them, you can place blueprint where foundations are needed. Blueprint strings with this feature are `compatible` with vanilla strings.
 - Allow to use blueprint like selection to Dismantle buildings. You can find its button in dismantle panel.
 - Allow mirroring blueprints. Use `Shift + T/G` to toggle mirror in La**T**itude/Lon**G**itude axis.
+- Allow pasting assemblers with recipes which have not been unlocked yet. Assemblers with recipes that are not unlocked will not work.
 
 Axis lock supports: Blueprint, Construction and Reform modes<br/>
 Grid snapping supports: Blueprint and Construction modes<br/>
@@ -62,6 +64,16 @@ Unzip folder `patchers` into `Dyson Sphere Program/BepInEx/patchers/BlueprintTwe
 Unzip folder `plugins` into `Dyson Sphere Program/BepInEx/plugins/BlueprintTweaks/`. (Create folder named `BlueprintTweaks`)<br/>
 
 ## Changelog
+### v1.4.0
+- Updated to work with game version 0.9.24.11182 or higher
+- Added ability to keep icons and description of a blueprint when pasting string into it.
+- Now assemblers with recipes that are not unlocked will keep their recipe setting, but will not work until recipe is unlocked.
+### v1.3.4
+- Added plugin catergories on Thunderstore page.
+### v1.3.3
+- Fixed potential errors if keybinds are pressed while player is not on a planet
+### v1.3.2
+- Fixed discription being: "Example mod description"
 ### v1.3.1
 - Added Belt hints change feature
 - Added Paste button to blueprint Browser window

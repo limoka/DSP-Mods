@@ -244,16 +244,21 @@ namespace GigaStations
 
         // Fixing Belt cannot input for item-slots 7-12
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(CargoPath), "TryPickItemAtRear", new[] { typeof(int[]), typeof(int) }, new[] { ArgumentType.Normal, ArgumentType.Out })]
+        [HarmonyPatch(typeof(CargoPath), "TryPickItemAtRear", new[] { typeof(int[]), typeof(int), typeof(byte), typeof(byte) }, new[] { ArgumentType.Normal, ArgumentType.Out, ArgumentType.Out, ArgumentType.Out })]
         // ReSharper disable once RedundantAssignment
-        public static bool TryPickItemAtRear(CargoPath __instance, int[] needs, out int needIdx, ref int __result)
+        public static bool TryPickItemAtRear(CargoPath __instance, int[] needs, out int needIdx, out byte stack, out byte inc, ref int __result)
         {
             needIdx = -1;
+            stack = 1;
+            inc = 0;
+            
             int num = __instance.bufferLength - 5 - 1;
             if (__instance.buffer[num] == 250)
             {
                 int num2 = __instance.buffer[num + 1] - 1 + (__instance.buffer[num + 2] - 1) * 100 + (__instance.buffer[num + 3] - 1) * 10000 + (__instance.buffer[num + 4] - 1) * 1000000;
                 int item = __instance.cargoContainer.cargoPool[num2].item;
+                stack = __instance.cargoContainer.cargoPool[num2].stack;
+                inc = __instance.cargoContainer.cargoPool[num2].inc;
 
                 for (int i = 0; i < needs.Length; i++)
                 {
@@ -278,9 +283,10 @@ namespace GigaStations
 
 
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(StationComponent), "TakeItem", new[] { typeof(int), typeof(int), typeof(int[]) }, new[] { ArgumentType.Ref, ArgumentType.Ref, ArgumentType.Normal })]
-        public static bool TakeItemPrefix(StationComponent __instance, ref int _itemId, ref int _count, ref int[] _needs)
+        [HarmonyPatch(typeof(StationComponent), "TakeItem", new[] { typeof(int), typeof(int), typeof(int[]), typeof(int) }, new[] { ArgumentType.Ref, ArgumentType.Ref, ArgumentType.Normal, ArgumentType.Out })]
+        public static bool TakeItemPrefix(StationComponent __instance, ref int _itemId, ref int _count, ref int[] _needs, out int _inc)
         {
+            _inc = 0;
             bool flag = false;
             if (_needs == null)
             {
@@ -299,22 +305,29 @@ namespace GigaStations
 
             if (_itemId > 0 && _count > 0 && (flag))
             {
-                int num = __instance.storage.Length;
-                for (int i = 0; i < num; i++)
+                StationStore[] obj = __instance.storage;
+                lock (obj)
                 {
-                    if (__instance.storage[i].itemId == _itemId && __instance.storage[i].count > 0)
+                    int num = __instance.storage.Length;
+                    for (int i = 0; i < num; i++)
                     {
-                        _count = ((_count >= __instance.storage[i].count) ? __instance.storage[i].count : _count);
-                        _itemId = __instance.storage[i].itemId;
-                        StationStore[] array = __instance.storage;
-                        int num2 = i;
-                        array[num2].count = array[num2].count - _count;
-                        return false;
+                        if (__instance.storage[i].itemId == _itemId && __instance.storage[i].count > 0)
+                        {
+                            _count = ((_count >= __instance.storage[i].count) ? __instance.storage[i].count : _count);
+                            _itemId = __instance.storage[i].itemId;
+                            _inc = (int)(__instance.storage[i].inc / (double)__instance.storage[i].count * _count + 0.5);
+                            StationStore[] array = __instance.storage;
+                            
+                            array[i].count = array[i].count - _count;
+                            array[i].inc = array[i].inc - _inc;
+                            return false;
+                        }
                     }
                 }
             }
             _itemId = 0;
             _count = 0;
+            _inc = 0;
 
             return false;
         }

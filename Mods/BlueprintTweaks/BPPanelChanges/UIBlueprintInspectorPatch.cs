@@ -36,6 +36,9 @@ namespace BlueprintTweaks
             if (BlueprintTweaksPlugin.logisticCargoChangeEnabled.Value)
                 panelPrefabs.Add("Assets/BlueprintTweaks/UI/transport-panel.prefab");
             
+            if (BlueprintTweaksPlugin.beltHintsChangeEnable.Value)
+                panelPrefabs.Add("Assets/BlueprintTweaks/UI/hints-group.prefab");
+            
             panelPrefabs.Add("assets/blueprinttweaks/ui/string-copy-panel.prefab");
         }
         
