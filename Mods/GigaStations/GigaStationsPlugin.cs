@@ -20,16 +20,16 @@ namespace GigaStations
     [BepInDependency(LDB_TOOL_GUID)]
     [BepInDependency(WARPERS_MOD_GUID, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency(CommonAPIPlugin.GUID)]
-    [BepInPlugin(MOD_GUID, MOD_NAME, MOD_VER)]
+    [BepInPlugin(MODGUID, MODNAME, VERSION)]
     [BepInProcess("DSPGAME.exe")]
     
     [CommonAPISubmoduleDependency(nameof(ProtoRegistry), nameof(UtilSystem))]
     public class GigaStationsPlugin : BaseUnityPlugin
     {
 
-        public const string MOD_GUID = "org.kremnev8.plugin.GigaStationsUpdated";
-        public const string MOD_NAME = "GigaStations";
-        public const string MOD_VER = "2.2.4";
+        public const string MODGUID = "org.kremnev8.plugin.GigaStationsUpdated";
+        public const string MODNAME = "GigaStationsUpdated";
+        public const string VERSION = "2.2.7";
         
         public const string LDB_TOOL_GUID = "me.xiaoye97.plugin.Dyson.LDBTool";
         public const string WARPERS_MOD_GUID = "ShadowAngel.DSP.DistributeSpaceWarper";
@@ -82,7 +82,7 @@ namespace GigaStations
             logger = Logger;
 
             string pluginfolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            resource = new ResourceData(MOD_NAME, "gigastations", pluginfolder);
+            resource = new ResourceData(MODNAME, "gigastations", pluginfolder);
             resource.LoadAssetBundle("gigastations");
             
             ProtoRegistry.AddResource(resource);
@@ -151,13 +151,13 @@ namespace GigaStations
             ProtoRegistry.onLoadingFinished += AddGigaILS;
             ProtoRegistry.onLoadingFinished += AddGigaCollector;
             
-            var harmony = new Harmony(MOD_GUID);
+            var harmony = new Harmony(MODGUID);
 
             harmony.PatchAll(typeof(StationEditPatch));
-            harmony.PatchAll(typeof(GameHistoryPatch));
             harmony.PatchAll(typeof(SaveFixPatch));
             harmony.PatchAll(typeof(StationUpgradePatch));
             harmony.PatchAll(typeof(UIStationWindowPatch));
+            harmony.PatchAll(typeof(BlueprintBuilding_Patch));
             
             foreach (var pluginInfo in BepInEx.Bootstrap.Chainloader.PluginInfos)
             {

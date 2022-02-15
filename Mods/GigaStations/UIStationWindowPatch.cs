@@ -98,9 +98,15 @@ namespace GigaStations
             if (stationComponent.isCollector)
             {
                 baseYSize = 136;
+            }else if (stationComponent.isVeinCollector)
+            {
+                baseYSize = 289;
             }
-            
+
             ((RectTransform) __instance.storageUIs[0].transform).anchoredPosition = new Vector2(0, 0);
+
+            int yPos = stationComponent.isVeinCollector ? -190 : -90;
+            scrollTrs.anchoredPosition = new Vector2(scrollTrs.anchoredPosition.x, yPos);
             
 
             if (itemProto.ID != GigaStationsPlugin.pls.ID && itemProto.ID != GigaStationsPlugin.ils.ID && itemProto.ID != GigaStationsPlugin.collector.ID)
@@ -113,6 +119,7 @@ namespace GigaStations
                 scrollTrs.sizeDelta = new Vector2(scrollTrs.sizeDelta.x, 76 * storageCount);
                 contentTrs.sizeDelta = new Vector2(contentTrs.sizeDelta.x, 76 * storageCount);
                 int newYSize = baseYSize + 76 * storageCount;
+
                 __instance.windowTrans.sizeDelta = new Vector2(600, newYSize);
                 return;
             }
@@ -324,6 +331,8 @@ namespace GigaStations
                 __instance.storageUIs[i].stationWindow = __instance;
                 __instance.storageUIs[i]._Create();
             }
+            __instance.veinCollectorPanel._Create();
+            
             return false;
         }
     }

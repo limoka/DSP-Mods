@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace GigaStations
 {
-    [BepInPlugin(MOD_GUID, MOD_NAME, GigaStationsPlugin.MOD_VER)]
+    [BepInPlugin(MOD_GUID, MOD_NAME, GigaStationsPlugin.VERSION)]
     [BepInDependency(NebulaModAPI.API_GUID)]
     public class NebulaCompat : BaseUnityPlugin
     {

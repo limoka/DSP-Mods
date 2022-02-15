@@ -1,153 +1,157 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
+using UnityEngine;
 
 // ReSharper disable InconsistentNaming
 
 namespace GigaStations
 {
     [HarmonyPatch]
-    public class StationEditPatch
+    public static class StationEditPatch
     {
         [HarmonyPostfix]
         [HarmonyPatch(typeof(UIRoot), "OnGameMainObjectCreated")]
         public static void OnGameMainObjectCreatedPostfix(UIRoot __instance)
         {
-           
-            if (GameMain.history.TechUnlocked(3508))
-            {
-                GigaStationsPlugin.logger.LogInfo("\nLogistic carrier capacity Level 8\nSetting Carrier Capacity Multipliers from settings...");
-                GigaStationsPlugin.logger.LogInfo($"\nLevel 8\nSetting Vessels Capacity: 1000 * {GigaStationsPlugin.vesselCapacityMultiplier} = {1000 * GigaStationsPlugin.vesselCapacityMultiplier}\nSetting Drones Capacity: 100 * {GigaStationsPlugin.droneCapacityMultiplier} = {100 * GigaStationsPlugin.droneCapacityMultiplier}");
-                GameMain.history.logisticShipCarries = GigaStationsPlugin.vesselCapacityMultiplier * 1000;
-                GameMain.history.logisticDroneCarries = GigaStationsPlugin.droneCapacityMultiplier * 100;
-            }
-            else if (GameMain.history.TechUnlocked(3507))
-            {
-                GigaStationsPlugin.logger.LogInfo("\nLogistic carrier capacity Level 7\nSetting Carrier Capacity Multipliers from settings...");
-                GigaStationsPlugin.logger.LogInfo($"\nLevel 7\nSetting Vessels Capacity: 800 * {GigaStationsPlugin.vesselCapacityMultiplier} = {800 * GigaStationsPlugin.vesselCapacityMultiplier}\nSetting Drones Capacity: 80 * {GigaStationsPlugin.droneCapacityMultiplier} = {80 * GigaStationsPlugin.droneCapacityMultiplier}");
-                GameMain.history.logisticShipCarries = GigaStationsPlugin.vesselCapacityMultiplier * 800;
-                GameMain.history.logisticDroneCarries = GigaStationsPlugin.droneCapacityMultiplier * 80;
-            }
-            else if (GameMain.history.TechUnlocked(3506))
-            {
-                GigaStationsPlugin.logger.LogInfo("\nLogistic carrier capacity Level 6\nSetting Carrier Capacity Multipliers from settings...");
-                GigaStationsPlugin.logger.LogInfo($"\nLevel 6\nSetting Vessels Capacity: 600 * {GigaStationsPlugin.vesselCapacityMultiplier} = {600 * GigaStationsPlugin.vesselCapacityMultiplier}\nSetting Drones Capacity: 70 * {GigaStationsPlugin.droneCapacityMultiplier} = {70 * GigaStationsPlugin.droneCapacityMultiplier}");
-                GameMain.history.logisticShipCarries = GigaStationsPlugin.vesselCapacityMultiplier * 600;
-                GameMain.history.logisticDroneCarries = GigaStationsPlugin.droneCapacityMultiplier * 70;
-            }
-            else if (GameMain.history.TechUnlocked(3505))
-            {
-                GigaStationsPlugin.logger.LogInfo("\nLogistic carrier capacity Level 5\nSetting Carrier Capacity Multipliers from settings...");
-                GigaStationsPlugin.logger.LogInfo($"\nLevel 5\nSetting Vessels Capacity: 500 * {GigaStationsPlugin.vesselCapacityMultiplier} = {500 * GigaStationsPlugin.vesselCapacityMultiplier}\nSetting Drones Capacity: 60 * {GigaStationsPlugin.droneCapacityMultiplier} = {60 * GigaStationsPlugin.droneCapacityMultiplier}");
-                GameMain.history.logisticShipCarries = GigaStationsPlugin.vesselCapacityMultiplier * 500;
-                GameMain.history.logisticDroneCarries = GigaStationsPlugin.droneCapacityMultiplier * 60;
-            }
-            else if (GameMain.history.TechUnlocked(3504))
-            {
-                GigaStationsPlugin.logger.LogInfo("\nLogistic carrier capacity Level 4\nSetting Carrier Capacity Multipliers from settings...");
-                GigaStationsPlugin.logger.LogInfo($"\nLevel 4\nSetting Vessels Capacity: 400 * {GigaStationsPlugin.vesselCapacityMultiplier} = {400 * GigaStationsPlugin.vesselCapacityMultiplier}\nSetting Drones Capacity: 50 * {GigaStationsPlugin.droneCapacityMultiplier} = {50 * GigaStationsPlugin.droneCapacityMultiplier}");
-                GameMain.history.logisticShipCarries = GigaStationsPlugin.vesselCapacityMultiplier * 400;
-                GameMain.history.logisticDroneCarries = GigaStationsPlugin.droneCapacityMultiplier * 50;
-            }
-            else if (GameMain.history.TechUnlocked(3503))
-            {
-                GigaStationsPlugin.logger.LogInfo("\nLogistic carrier capacity Level 3\nSetting Carrier Capacity Multipliers from settings...");
-                GigaStationsPlugin.logger.LogInfo($"\nLevel 3\nSetting Vessels Capacity: 300 * {GigaStationsPlugin.vesselCapacityMultiplier} = {300 * GigaStationsPlugin.vesselCapacityMultiplier}\nSetting Drones Capacity: 40 * {GigaStationsPlugin.droneCapacityMultiplier} = {40 * GigaStationsPlugin.droneCapacityMultiplier}");
-                GameMain.history.logisticShipCarries = GigaStationsPlugin.vesselCapacityMultiplier * 300;
-                GameMain.history.logisticDroneCarries = GigaStationsPlugin.droneCapacityMultiplier * 40;
-            }
-            else if (GameMain.history.TechUnlocked(3502))
-            {
-                GigaStationsPlugin.logger.LogInfo("\nLogistic carrier capacity Level 2\nSetting Carrier Capacity Multipliers from settings...");
-                GigaStationsPlugin.logger.LogInfo($"\nLevel 2\nSetting Vessels Capacity: 200 * {GigaStationsPlugin.vesselCapacityMultiplier} = {200 * GigaStationsPlugin.vesselCapacityMultiplier}\nSetting Drones Capacity: 35 * {GigaStationsPlugin.droneCapacityMultiplier} = {35 * GigaStationsPlugin.droneCapacityMultiplier}");
-                GameMain.history.logisticShipCarries = GigaStationsPlugin.vesselCapacityMultiplier * 200;
-                GameMain.history.logisticDroneCarries = GigaStationsPlugin.droneCapacityMultiplier * 35;
-            }
-            else if (GameMain.history.TechUnlocked(3501))
-            {
-                GigaStationsPlugin.logger.LogInfo("\nLogistic carrier capacity Level 1\nSetting Carrier Capacity Multipliers from settings...");
-                GigaStationsPlugin.logger.LogInfo($"\nLevel 1\nSetting Vessels Capacity: 200 * {GigaStationsPlugin.vesselCapacityMultiplier} = {200 * GigaStationsPlugin.vesselCapacityMultiplier}\nSetting Drones Capacity: 30 * {GigaStationsPlugin.droneCapacityMultiplier} = {30 * GigaStationsPlugin.droneCapacityMultiplier}");
-                GameMain.history.logisticShipCarries = GigaStationsPlugin.vesselCapacityMultiplier * 200;
-                GameMain.history.logisticDroneCarries = GigaStationsPlugin.droneCapacityMultiplier * 30;
-            }
-            else // still lvl 0
-            {
-                GigaStationsPlugin.logger.LogInfo("\nLogistic carrier capacity Level 0\nSetting Carrier Capacity Multipliers from settings...");
-                GigaStationsPlugin.logger.LogInfo($"\nLevel 0\nSetting Vessels Capacity: 200 * {GigaStationsPlugin.vesselCapacityMultiplier} = {200 * GigaStationsPlugin.vesselCapacityMultiplier}\nSetting Drones Capacity: 25 * {GigaStationsPlugin.droneCapacityMultiplier} = {25 * GigaStationsPlugin.droneCapacityMultiplier}");
-                GameMain.history.logisticShipCarries = GigaStationsPlugin.vesselCapacityMultiplier * 200;
-                GameMain.history.logisticDroneCarries = GigaStationsPlugin.droneCapacityMultiplier * 25;
-            }
-            
+            CalculateCarrierCapacity();
         }
 
-        public static void History_onTechUnlocked(int techitemID, int techitemLevel)
+        public static CodeMatcher MoveToLabel(this CodeMatcher matcher, Label label)
         {
-            /*
-            lvl 0	+d:  0	+v:   0	= d:  25 v:  200
-            lvl 1	+d:  5	+v:   0	= d:  30 v:  200
-            lvl 2	+d:  5	+v:   0	= d:  35 v:  200
-            lvl 3	+d:  5	+v: 100	= d:  40 v:  300
-            lvl 4	+d: 10	+v: 100 = d:  50 v:  400
-            lvl 5	+d: 10	+v: 100 = d:  60 v:  500
-            lvl 6	+d: 10	+v: 100 = d:  70 v:  600
-            lvl 7	+d: 10	+v: 200 = d:  80 v:  800
-            lvl 8	+d: 20	+v: 200 = d: 100 v: 1000
-            */
-
-            
-            switch (techitemID)
+            while (!matcher.Labels.Contains(label))
             {
-                case 3508:
-                    GigaStationsPlugin.logger.LogInfo($"\nUnlocked Logistic carrier capacity Level {techitemLevel}\nSetting Carrier Capacity Multipliers from settings...");
-                    GigaStationsPlugin.logger.LogInfo($"\nLevel {techitemLevel}\nSetting Vessels Capacity: 1000 * {GigaStationsPlugin.vesselCapacityMultiplier} = {1000 * GigaStationsPlugin.vesselCapacityMultiplier}\nSetting Drones Capacity: 100 * {GigaStationsPlugin.droneCapacityMultiplier} = {100 * GigaStationsPlugin.droneCapacityMultiplier}");
-                    GameMain.history.logisticShipCarries = GigaStationsPlugin.vesselCapacityMultiplier * 1000;
-                    GameMain.history.logisticDroneCarries = GigaStationsPlugin.droneCapacityMultiplier * 100;
-                    break;
-                case 3507:
-                    GigaStationsPlugin.logger.LogInfo($"\nUnlocked Logistic carrier capacity Level {techitemLevel}\nSetting Carrier Capacity Multipliers from settings...");
-                    GigaStationsPlugin.logger.LogInfo($"\nLevel {techitemLevel}\nSetting Vessels Capacity: 800 * {GigaStationsPlugin.vesselCapacityMultiplier} = {800 * GigaStationsPlugin.vesselCapacityMultiplier}\nSetting Drones Capacity: 80 * {GigaStationsPlugin.droneCapacityMultiplier} = {80 * GigaStationsPlugin.droneCapacityMultiplier}");
-                    GameMain.history.logisticShipCarries = GigaStationsPlugin.vesselCapacityMultiplier * 800;
-                    GameMain.history.logisticDroneCarries = GigaStationsPlugin.droneCapacityMultiplier * 80;
-                    break;
-                case 3506:
-                    GigaStationsPlugin.logger.LogInfo($"\nUnlocked Logistic carrier capacity Level {techitemLevel}\nSetting Carrier Capacity Multipliers from settings...");
-                    GigaStationsPlugin.logger.LogInfo($"\nLevel {techitemLevel}\nSetting Vessels Capacity: 600 * {GigaStationsPlugin.vesselCapacityMultiplier} = {600 * GigaStationsPlugin.vesselCapacityMultiplier}\nSetting Drones Capacity: 70 * {GigaStationsPlugin.droneCapacityMultiplier} = {70 * GigaStationsPlugin.droneCapacityMultiplier}");
-                    GameMain.history.logisticShipCarries = GigaStationsPlugin.vesselCapacityMultiplier * 600;
-                    GameMain.history.logisticDroneCarries = GigaStationsPlugin.droneCapacityMultiplier * 70;
-                    break;
-                case 3505:
-                    GigaStationsPlugin.logger.LogInfo($"\nUnlocked Logistic carrier capacity Level {techitemLevel}\nSetting Carrier Capacity Multipliers from settings...");
-                    GigaStationsPlugin.logger.LogInfo($"\nLevel {techitemLevel}\nSetting Vessels Capacity: 500 * {GigaStationsPlugin.vesselCapacityMultiplier} = {500 * GigaStationsPlugin.vesselCapacityMultiplier}\nSetting Drones Capacity: 60 * {GigaStationsPlugin.droneCapacityMultiplier} = {60 * GigaStationsPlugin.droneCapacityMultiplier}");
-                    GameMain.history.logisticShipCarries = GigaStationsPlugin.vesselCapacityMultiplier * 500;
-                    GameMain.history.logisticDroneCarries = GigaStationsPlugin.droneCapacityMultiplier * 60;
-                    break;
-                case 3504:
-                    GigaStationsPlugin.logger.LogInfo($"\nUnlocked Logistic carrier capacity Level {techitemLevel}\nSetting Carrier Capacity Multipliers from settings...");
-                    GigaStationsPlugin.logger.LogInfo($"\nLevel {techitemLevel}\nSetting Vessels Capacity: 400 * {GigaStationsPlugin.vesselCapacityMultiplier} = {400 * GigaStationsPlugin.vesselCapacityMultiplier}\nSetting Drones Capacity: 50 * {GigaStationsPlugin.droneCapacityMultiplier} = {50 * GigaStationsPlugin.droneCapacityMultiplier}");
-                    GameMain.history.logisticShipCarries = GigaStationsPlugin.vesselCapacityMultiplier * 400;
-                    GameMain.history.logisticDroneCarries = GigaStationsPlugin.droneCapacityMultiplier * 50;
-                    break;
-                case 3503:
-                    GigaStationsPlugin.logger.LogInfo($"\nUnlocked Logistic carrier capacity Level {techitemLevel}\nSetting Carrier Capacity Multipliers from settings...");
-                    GigaStationsPlugin.logger.LogInfo($"\nLevel {techitemLevel}\nSetting Vessels Capacity: 300 * {GigaStationsPlugin.vesselCapacityMultiplier} = {300 * GigaStationsPlugin.vesselCapacityMultiplier}\nSetting Drones Capacity: 40 * {GigaStationsPlugin.droneCapacityMultiplier} = {40 * GigaStationsPlugin.droneCapacityMultiplier}");
-                    GameMain.history.logisticShipCarries = GigaStationsPlugin.vesselCapacityMultiplier * 300;
-                    GameMain.history.logisticDroneCarries = GigaStationsPlugin.droneCapacityMultiplier * 40;
-                    break;
-                case 3502:
-                    GigaStationsPlugin.logger.LogInfo($"\nUnlocked Logistic carrier capacity Level {techitemLevel}\nSetting Carrier Capacity Multipliers from settings...");
-                    GigaStationsPlugin.logger.LogInfo($"\nLevel {techitemLevel}\nSetting Vessels Capacity: 200 * {GigaStationsPlugin.vesselCapacityMultiplier} = {200 * GigaStationsPlugin.vesselCapacityMultiplier}\nSetting Drones Capacity: 35 * {GigaStationsPlugin.droneCapacityMultiplier} = {35 * GigaStationsPlugin.droneCapacityMultiplier}");
-                    GameMain.history.logisticShipCarries = GigaStationsPlugin.vesselCapacityMultiplier * 200;
-                    GameMain.history.logisticDroneCarries = GigaStationsPlugin.droneCapacityMultiplier * 35;
-                    break;
-                case 3501:
-                    GigaStationsPlugin.logger.LogInfo($"\nUnlocked Logistic carrier capacity Level {techitemLevel}\nSetting Carrier Capacity Multipliers from settings...");
-                    GigaStationsPlugin.logger.LogInfo($"\nLevel {techitemLevel}\nSetting Vessels Capacity: 200 * {GigaStationsPlugin.vesselCapacityMultiplier} = {200 * GigaStationsPlugin.vesselCapacityMultiplier}\nSetting Drones Capacity: 30 * {GigaStationsPlugin.droneCapacityMultiplier} = {30 * GigaStationsPlugin.droneCapacityMultiplier}");
-                    GameMain.history.logisticShipCarries = GigaStationsPlugin.vesselCapacityMultiplier * 200;
-                    GameMain.history.logisticDroneCarries = GigaStationsPlugin.droneCapacityMultiplier * 30;
-                    break;
+                matcher.Advance(1);
             }
+
+            return matcher;
+        }
+
+        private static readonly Dictionary<OpCode, OpCode> storeToLoad = new Dictionary<OpCode, OpCode>
+        {
+            {OpCodes.Stloc_0, OpCodes.Ldloc_0},
+            {OpCodes.Stloc_1, OpCodes.Ldloc_1},
+            {OpCodes.Stloc_2, OpCodes.Ldloc_2},
+            {OpCodes.Stloc_3, OpCodes.Ldloc_3},
+            {OpCodes.Stloc, OpCodes.Ldloc},
+            {OpCodes.Stloc_S, OpCodes.Ldloc_S}
+        };
+
+        public static OpCode ToLoad(this OpCode opCode)
+        {
+            if (storeToLoad.Keys.Contains(opCode))
+            {
+                return storeToLoad[opCode];
+            }
+            
+            throw new ArgumentException($"Can't convert instruction {opCode.ToString()} to a load instruction!");
+        }
+        
+        [HarmonyTranspiler] 
+        [HarmonyPatch(typeof(GameHistoryData), "UnlockTechFunction")]
+        public static IEnumerable<CodeInstruction> MultiplyTechValues(IEnumerable<CodeInstruction> instructions)
+        {
+
+            CodeMatcher matcher = new CodeMatcher(instructions)
+                .MatchForward(false, new CodeMatch(OpCodes.Switch));
+
+            Label[] jumpTable = (Label[]) matcher.Operand;
+
+            matcher.MoveToLabel(jumpTable[17]) // 18 - 1
+                .MatchForward(false, new CodeMatch(OpCodes.Add))
+                .InsertAndAdvance(Transpilers.EmitDelegate<Func<int>>(() => GigaStationsPlugin.droneCapacityMultiplier))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Mul));
+            
+            matcher.MoveToLabel(jumpTable[18]) // 19 - 1
+                .MatchForward(false, new CodeMatch(OpCodes.Add))
+                .InsertAndAdvance(Transpilers.EmitDelegate<Func<int>>(() => GigaStationsPlugin.vesselCapacityMultiplier))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Mul));
+
+            return matcher.InstructionEnumeration();
+        }
+        
+        public delegate void RefAction<in T1, T2>(T1 arg, ref T2 arg2);
+        
+        [HarmonyTranspiler] 
+        [HarmonyPatch(typeof(TechProto), "UnlockFunctionText")]
+        public static IEnumerable<CodeInstruction> MultiplyUnlockText(IEnumerable<CodeInstruction> instructions)
+        {
+
+            CodeMatcher matcher = new CodeMatcher(instructions)
+                .MatchForward(false, new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(TechProto), nameof(TechProto.UnlockFunctions))))
+                .MatchForward(false, new CodeMatch(instr => instr.IsStloc()));
+                
+            OpCode typeStlocOpcode = matcher.Opcode.ToLoad();
+            object typeStlocOperand = matcher.Operand;
+
+            matcher.MatchForward(false, new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(TechProto), nameof(TechProto.UnlockValues))))
+                .MatchForward(false, new CodeMatch(OpCodes.Stloc_S));
+
+            object arg = matcher.Operand;
+            matcher.Advance(1)
+                .InsertAndAdvance(new CodeInstruction(typeStlocOpcode, typeStlocOperand))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloca_S, arg))
+                .InsertAndAdvance(Transpilers.EmitDelegate<RefAction<int, int>>((int type, ref int value) =>
+                {
+                    if (type == 18)
+                    {
+                        value *= GigaStationsPlugin.droneCapacityMultiplier;
+                    }else if (type == 19)
+                    {
+                        value *= GigaStationsPlugin.vesselCapacityMultiplier;
+                    }
+                }));
+
+            return matcher.InstructionEnumeration();
+        }
+
+        private static void CalculateCarrierCapacity()
+        {
+            int logisticDroneCarries = 25 * GigaStationsPlugin.droneCapacityMultiplier;
+            int logisticShipCarries = 200 * GigaStationsPlugin.vesselCapacityMultiplier;
+            
+            void Accumulate(int type, double value, int levels)
+            {
+                int num = (int)Math.Round(value);
+                if (type == 18)
+                {
+                    logisticDroneCarries += num * GigaStationsPlugin.droneCapacityMultiplier * levels;
+                }else if (type == 19)
+                {
+                    logisticShipCarries += num * GigaStationsPlugin.vesselCapacityMultiplier * levels;
+                }
+            }
+
+            int currentLevel = 0;
+            
+            for (int i = 3501; i <= 3510; i++)
+            {
+                if (GameMain.history.TechUnlocked(i))
+                {
+                    TechProto tech = LDB.techs.Select(i);
+
+                    currentLevel = GameMain.history.techStates[i].curLevel;
+                    int levelMul = 1;
+                    
+                    if (tech.Level != tech.MaxLevel)
+                    {
+                        levelMul = currentLevel - tech.Level + 1;
+                    }
+                    for (int j = 0; j < tech.UnlockFunctions.Length; j++)
+                    {
+                        Accumulate(tech.UnlockFunctions[j], tech.UnlockValues[j], levelMul);
+                    }
+                }
+            }
+            
+            GigaStationsPlugin.logger.LogInfo($"\nUnlocked Logistic carrier capacity Level {currentLevel}\nSetting Carrier Capacity Multipliers from settings...");
+            GigaStationsPlugin.logger.LogInfo($"\nLevel {currentLevel}\nSetting Vessels Capacity: {logisticShipCarries}\nSetting Drones Capacity: {logisticDroneCarries}");
+            
+            GameMain.history.logisticDroneCarries = logisticDroneCarries;
+            GameMain.history.logisticShipCarries = logisticShipCarries;
         }
         
 
@@ -231,11 +235,11 @@ namespace GigaStations
             {
                 if (i == num && !__instance.isCollector)
                 {
-                    __instance.needs[num] = ((!__instance.isStellar || __instance.warperCount >= __instance.warperMaxCount) ? 0 : 1210); // HIDDEN SLOT?!?!
+                    __instance.needs[num] = !__instance.isStellar || __instance.warperCount >= __instance.warperMaxCount ? 0 : 1210; // HIDDEN SLOT?!?!
                 }
                 else if (i < __instance.needs.Length)
                 {
-                    __instance.needs[i] = ((i >= num || __instance.storage[i].count >= __instance.storage[i].max) ? 0 : __instance.storage[i].itemId);
+                    __instance.needs[i] = i >= num || __instance.storage[i].count >= __instance.storage[i].max ? 0 : __instance.storage[i].itemId;
                 }
             }
             return false;
@@ -287,10 +291,10 @@ namespace GigaStations
         public static bool TakeItemPrefix(StationComponent __instance, ref int _itemId, ref int _count, ref int[] _needs, out int _inc)
         {
             _inc = 0;
-            bool flag = false;
+            bool itemIsNeeded = false;
             if (_needs == null)
             {
-                flag = true;
+                itemIsNeeded = true;
             }
             else
             {
@@ -298,12 +302,12 @@ namespace GigaStations
                 {
                     if (need == _itemId)
                     {
-                        flag = true;
+                        itemIsNeeded = true;
                     }
                 }
             }
 
-            if (_itemId > 0 && _count > 0 && (flag))
+            if (_itemId > 0 && _count > 0 && itemIsNeeded)
             {
                 StationStore[] obj = __instance.storage;
                 lock (obj)
@@ -313,13 +317,13 @@ namespace GigaStations
                     {
                         if (__instance.storage[i].itemId == _itemId && __instance.storage[i].count > 0)
                         {
-                            _count = ((_count >= __instance.storage[i].count) ? __instance.storage[i].count : _count);
+                            _count = _count >= __instance.storage[i].count ? __instance.storage[i].count : _count;
                             _itemId = __instance.storage[i].itemId;
                             _inc = (int)(__instance.storage[i].inc / (double)__instance.storage[i].count * _count + 0.5);
                             StationStore[] array = __instance.storage;
                             
-                            array[i].count = array[i].count - _count;
-                            array[i].inc = array[i].inc - _inc;
+                            array[i].count -= _count;
+                            array[i].inc -= _inc;
                             return false;
                         }
                     }
@@ -335,7 +339,7 @@ namespace GigaStations
         [HarmonyPrefix]
         [HarmonyPatch(typeof(StationComponent), "AddItem")]
         // ReSharper disable once RedundantAssignment
-        public static bool AddItemPrefix(StationComponent __instance, ref int itemId, ref int count, ref int __result)
+        public static bool AddItemPrefix(StationComponent __instance, int itemId, int count, int inc, ref int __result)
         {
             __result = 0;
             if (itemId <= 0) return false;
@@ -348,7 +352,9 @@ namespace GigaStations
                     if (__instance.storage[i].itemId != itemId) continue;
 
                     StationStore[] array = __instance.storage;
-                    array[i].count = array[i].count + count;
+                    array[i].count += count;
+                    array[i].inc += inc;
+                    
                     __result = count;
                     return false;
                 }
