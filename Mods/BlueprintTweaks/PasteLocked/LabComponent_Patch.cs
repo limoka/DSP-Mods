@@ -10,12 +10,12 @@ namespace BlueprintTweaks.PasteLocked
         [HarmonyPrefix]
         public static bool CheckAssemblerRecipe(ref LabComponent __instance)
         {
-            if (__instance.recipeIsLocked)
+            if (!__instance.recipeIsLocked)
             {
-                __instance.recipeIsLocked = !GameMain.history.RecipeUnlocked(__instance.recipeId);
+                __instance.recipeIsLocked = GameMain.history.RecipeUnlocked(__instance.recipeId);
             }
 
-            return !__instance.recipeIsLocked;
+            return __instance.recipeIsLocked;
         }
 
         [HarmonyPatch(typeof(LabComponent), "SetFunction")]
@@ -24,7 +24,7 @@ namespace BlueprintTweaks.PasteLocked
         {
             if (__instance.recipeId > 0)
             {
-                __instance.recipeIsLocked = !GameMain.history.RecipeUnlocked(__instance.recipeId);
+                __instance.recipeIsLocked = GameMain.history.RecipeUnlocked(__instance.recipeId);
             }
         }
     }

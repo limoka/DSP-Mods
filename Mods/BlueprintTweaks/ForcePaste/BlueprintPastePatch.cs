@@ -64,7 +64,7 @@ namespace BlueprintTweaks
                 }
             }
 
-            if (__result || !isEnabled) return;
+            if (!isEnabled) return;
 
             for (int i = 0; i < __instance.bpCursor; i++)
             {
@@ -85,15 +85,29 @@ namespace BlueprintTweaks
 
         private static void CheckInserter(BuildTool_BlueprintPaste tool, BuildPreview preview)
         {
-            if (preview.input.IsCollide() && preview.input.desc.isBelt)
+            if (preview.input != null && preview.input.desc.isBelt)
             {
-                preview.input = null;
-                MatchInserterEntityOnly(tool, preview);
+                if (preview.input.IsCollide())
+                {
+                    preview.input = null;
+                    MatchInserterEntityOnly(tool, preview); 
+                }else if (preview.input.coverObjId != 0)
+                {
+                    preview.inputObjId = preview.input.coverObjId;
+                    preview.input = null;
+                }
             }
-            if (preview.output.IsCollide() && preview.output.desc.isBelt)
+            if (preview.output != null && preview.output.desc.isBelt)
             {
-                preview.output = null;
-                MatchInserterEntityOnly(tool, preview);
+                if (preview.output.IsCollide())
+                {
+                    preview.output = null;
+                    MatchInserterEntityOnly(tool, preview);
+                }else if (preview.output.coverObjId != 0)
+                {
+                    preview.inputObjId = preview.output.coverObjId;
+                    preview.output = null;
+                }
             }
         }
 
@@ -143,6 +157,7 @@ namespace BlueprintTweaks
                             preview.output.bpgpuiModelId = 0;
                             preview.output = null;
                             preview.condition = EBuildCondition.Ok;
+                            BlueprintTweaksPlugin.logger.LogInfo("Setting belt condition to OK");
                             break;
                         }
                     }
@@ -219,18 +234,6 @@ namespace BlueprintTweaks
 
                     if (bp.desc.isInserter)
                     {
-                        if (bp.input != null && !bp.input.IsGood() && bp.input.desc.isBelt)
-                        {
-                            BlueprintTweaksPlugin.logger.LogDebug(bp.input.coverObjId);
-                            bp.input = null;
-                        }
-                        
-                        if (bp.output != null && !bp.output.IsGood() && bp.output.desc.isBelt)
-                        {
-                            BlueprintTweaksPlugin.logger.LogDebug(bp.output.coverObjId);
-                            bp.output = null;
-                            return true;
-                        }
                         
                         if (bp.input != null && !bp.input.IsGood())
                         {

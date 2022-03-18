@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Reflection.Emit;
 using HarmonyLib;
 using UnityEngine;
 
@@ -89,11 +91,11 @@ namespace BlueprintTweaks
             }
         }
         
-        public static Vector3 SnapModified(this PlanetAuxData auxData, Vector3 pos, bool onTerrain, GridData gridData)
+        public static Vector3 SnapModified(this PlanetAuxData auxData, Vector3 pos, bool onTerrain)
         {
             if (auxData.activeGridIndex < auxData.customGrids.Count)
             {
-                Vector3 vector3 = auxData.customGrids[auxData.activeGridIndex].SnapModified(pos, gridData);
+                Vector3 vector3 = auxData.customGrids[auxData.activeGridIndex].SnapModifiedInternal(pos);
                 float radius = auxData.planet.realRadius + 0.2f;
                 if (!onTerrain)
                     radius = Mathf.Max(auxData.planet.radius, Mathf.Floor((float) ((pos.magnitude - (double) auxData.planet.radius) / 1.33333325386047)) * 1.333333f + auxData.planet.radius) + 0.2f;
@@ -102,7 +104,7 @@ namespace BlueprintTweaks
             return pos;
         }
         
-        public static Vector3 SnapModified(this PlanetGrid grid, Vector3 pos, GridData gridData)
+        public static Vector3 SnapModifiedInternal(this PlanetGrid grid, Vector3 pos)
         {
             pos.Normalize();
             float latitude = BlueprintUtils.GetLatitudeRad(pos);
@@ -113,8 +115,8 @@ namespace BlueprintTweaks
             
             float longitudeCount = longitude / 6.283185f * longitudeSegmentCount;
             
-            float snappedLatitude = SnapWithOffset(latitudeCount, gridData, 1);
-            float snappedLongitude = SnapWithOffset(longitudeCount, gridData, 0);
+            float snappedLatitude = SnapWithOffset(latitudeCount, currentGridData, 1);
+            float snappedLongitude = SnapWithOffset(longitudeCount, currentGridData, 0);
             
             float latRad = snappedLatitude / grid.segment * 6.28318548202515f;
             float longRad = snappedLongitude /  longitudeSegmentCount * 6.28318548202515f;
@@ -169,115 +171,105 @@ namespace BlueprintTweaks
             }
         }
 
-
         [HarmonyPatch(typeof(BuildTool_BlueprintPaste), "UpdateRaycast")]
-        [HarmonyPostfix]
-        // ReSharper disable once InconsistentNaming
-        public static void UpdateBPPaste(BuildTool_BlueprintPaste __instance)
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> PasteSnap(IEnumerable<CodeInstruction> instructions)
         {
-            if (!VFInput.onGUI && VFInput.inScreen && __instance.castGround)
-            {
-                float x = __instance.blueprint.dragBoxSize_x;
-                float y = __instance.blueprint.dragBoxSize_y;
-
-                currentGridData.snapGrid = new Vector2(x, y);
-                
-                
-                float longitude = 0;
-                float latitude = 0;
-                BlueprintUtils.GetLongitudeLatitudeRad(__instance.castGroundPos.normalized, ref longitude, ref latitude);
-                if (isLockedLongitude)
-                    longitude = lockLongitude;
-                
-                if (isLockedLatitude)
-                    latitude = lockLatitude;
-
-                __instance.castGroundPos = BlueprintUtils.GetDir(longitude, latitude) * __instance.castGroundPos.magnitude;
-                __instance.castGroundPosSnapped = __instance.actionBuild.planetAux.SnapModified(__instance.castGroundPos, __instance.castTerrain, currentGridData);
-                if (__instance.isDragging)
+            CodeMatcher matcher = new CodeMatcher(instructions)
+                .MatchForward(true,
+            new CodeMatch(x => x.IsLdloc()),
+                    new CodeMatch(OpCodes.Stfld, AccessTools.Field(typeof(BuildTool_BlueprintPaste), nameof(BuildTool_Click.castGroundPos)))
+                )   
+                .Advance(1)
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldarg_0))
+                .InsertAndAdvance(Transpilers.EmitDelegate<Action<BuildTool_BlueprintPaste>>(tool =>
                 {
-                    __instance.castGroundPosSnapped = __instance.castGroundPosSnapped.normalized * __instance.startGroundPosSnapped.magnitude;
-                }
-                __instance.controller.cmd.test = __instance.castGroundPosSnapped;
-                Vector3 normalized = __instance.castGroundPosSnapped.normalized;
-                if (Physics.Raycast(new Ray(__instance.castGroundPosSnapped + normalized * 10f, -normalized), out RaycastHit raycastHit, 20f, 8720, QueryTriggerInteraction.Collide))
-                {
-                    __instance.controller.cmd.test = raycastHit.point;
-                }
-                __instance.cursorTarget = __instance.castGroundPosSnapped;
-            }
+                    float x = tool.blueprint.dragBoxSize_x;
+                    float y = tool.blueprint.dragBoxSize_y;
+
+                    currentGridData.snapGrid = new Vector2(x, y);
+
+                    float longitude = 0;
+                    float latitude = 0;
+                    BlueprintUtils.GetLongitudeLatitudeRad(tool.castGroundPos.normalized, ref longitude, ref latitude);
+                    
+                    if (isLockedLongitude)
+                        longitude = lockLongitude;
+                    if (isLockedLatitude)
+                        latitude = lockLatitude;
+
+                    tool.castGroundPos = BlueprintUtils.GetDir(longitude, latitude) * tool.castGroundPos.magnitude;
+                }));
+
+            matcher.MatchForward(false, new CodeMatch(OpCodes.Callvirt, AccessTools.Method(typeof(PlanetAuxData), nameof(PlanetAuxData.Snap))))
+                .SetInstruction(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(GridSnappingPatches), nameof(SnapModified))));
+
+            return matcher.InstructionEnumeration();
         }
-        
+
         [HarmonyPatch(typeof(BuildTool_Click), "UpdateRaycast")]
-        [HarmonyPostfix]
-        // ReSharper disable once InconsistentNaming
-        public static void UpdateBuild(BuildTool_Click __instance)
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> ClickSnap(IEnumerable<CodeInstruction> instructions)
         {
-            if (!VFInput.onGUI && VFInput.inScreen && __instance.castGround)
-            {
-                currentGridData.snapGrid = __instance.handPrefabDesc.blueprintBoxSize;
-                currentGridData.snapGrid.x = Mathf.Round(currentGridData.snapGrid.x);
-                currentGridData.snapGrid.y = Mathf.Round(currentGridData.snapGrid.y);
+            CodeMatcher matcher = new CodeMatcher(instructions)
+                .MatchForward(true,
+                    new CodeMatch(x => x.IsLdloc()),
+                    new CodeMatch(OpCodes.Stfld, AccessTools.Field(typeof(BuildTool_Click), nameof(BuildTool_Click.castGroundPos)))
+                )   
+                .Advance(1)
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldarg_0))
+                .InsertAndAdvance(Transpilers.EmitDelegate<Action<BuildTool_Click>>(tool =>
+                {
+                    currentGridData.snapGrid = tool.handPrefabDesc.blueprintBoxSize;
+                    currentGridData.snapGrid.x = Mathf.Round(currentGridData.snapGrid.x);
+                    currentGridData.snapGrid.y = Mathf.Round(currentGridData.snapGrid.y);
 
-                float longitude = 0;
-                float latitude = 0;
-                BlueprintUtils.GetLongitudeLatitudeRad(__instance.castGroundPos.normalized, ref longitude, ref latitude);
-                if (isLockedLongitude)
-                    longitude = lockLongitude;
-                
-                if (isLockedLatitude)
-                    latitude = lockLatitude;
-                
+                    float longitude = 0;
+                    float latitude = 0;
+                    BlueprintUtils.GetLongitudeLatitudeRad(tool.castGroundPos.normalized, ref longitude, ref latitude);
+                    
+                    if (isLockedLongitude)
+                        longitude = lockLongitude;
+                    if (isLockedLatitude)
+                        latitude = lockLatitude;
 
-                __instance.castGroundPos = BlueprintUtils.GetDir(longitude, latitude) * __instance.castGroundPos.magnitude;
-                if (VFInput._ignoreGrid && __instance.handPrefabDesc.minerType == EMinerType.Vein)
-                {
-                    __instance.castGroundPosSnapped = __instance.castGroundPos.normalized * (__instance.planet.realRadius + 0.2f);
-                }
-                else
-                {
-                    __instance.castGroundPosSnapped = __instance.actionBuild.planetAux.SnapModified(__instance.castGroundPos, __instance.castTerrain, currentGridData);
-                }
-                if (__instance.controller.cmd.stage == 1)
-                {
-                    __instance.castGroundPosSnapped = __instance.castGroundPosSnapped.normalized * __instance.startGroundPosSnapped.magnitude;
-                }
-                __instance.controller.cmd.test = __instance.castGroundPosSnapped;
-                Vector3 normalized = __instance.castGroundPosSnapped.normalized;
-                if (Physics.Raycast(new Ray(__instance.castGroundPosSnapped + normalized * 10f, -normalized), out RaycastHit raycastHit, 20f, 8720, QueryTriggerInteraction.Collide))
-                {
-                    __instance.controller.cmd.test = raycastHit.point;
-                }
-                __instance.cursorTarget = __instance.castGroundPosSnapped;
-                __instance.cursorValid = true;
-            }
+                    tool.castGroundPos = BlueprintUtils.GetDir(longitude, latitude) * tool.castGroundPos.magnitude;
+                }));
+
+            matcher.MatchForward(false, new CodeMatch(OpCodes.Callvirt, AccessTools.Method(typeof(PlanetAuxData), nameof(PlanetAuxData.Snap))))
+                .SetInstruction(new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(GridSnappingPatches), nameof(SnapModified))));
+
+            return matcher.InstructionEnumeration();
         }
         
         [HarmonyPatch(typeof(BuildTool_Reform), "UpdateRaycast")]
-        [HarmonyPostfix]
-        // ReSharper disable once InconsistentNaming
-        public static void UpdateReform(BuildTool_Reform __instance)
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> ClickReform(IEnumerable<CodeInstruction> instructions)
         {
-            if (!VFInput.onGUI && VFInput.inScreen && __instance.castGround)
-            {
-                currentGridData.snapGrid = new Vector2(__instance.brushSize, __instance.brushSize);
+            CodeMatcher matcher = new CodeMatcher(instructions)
+                .MatchForward(true,
+                    new CodeMatch(x => x.IsLdloc()),
+                    new CodeMatch(OpCodes.Stfld, AccessTools.Field(typeof(BuildTool_Reform), nameof(BuildTool_Click.castGroundPos)))
+                )   
+                .Advance(1)
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldarg_0))
+                .InsertAndAdvance(Transpilers.EmitDelegate<Action<BuildTool_Reform>>(tool =>
+                {
+                    currentGridData.snapGrid = new Vector2(tool.brushSize, tool.brushSize);
 
-                float longitude = 0;
-                float latitude = 0;
-                BlueprintUtils.GetLongitudeLatitudeRad(__instance.castGroundPos.normalized, ref longitude, ref latitude);
-                if (isLockedLongitude)
-                    longitude = lockLongitude;
-                
-                if (isLockedLatitude)
-                    latitude = lockLatitude;
-                
-                __instance.castGroundPos = BlueprintUtils.GetDir(longitude, latitude) * __instance.castGroundPos.magnitude;
-                __instance.factory.platformSystem.EnsureReformData();
-                __instance.cursorPointCount = __instance.planet.aux.ReformSnap(__instance.castGroundPos, __instance.brushSize, __instance.brushType, __instance.brushColor, __instance.cursorPoints, __instance.cursorIndices, __instance.factory.platformSystem, out __instance.reformCenterPoint);
-                __instance.cursorTarget = __instance.reformCenterPoint;
-                __instance.cursorValid = true;
-                
-            }
+                    float longitude = 0;
+                    float latitude = 0;
+                    BlueprintUtils.GetLongitudeLatitudeRad(tool.castGroundPos.normalized, ref longitude, ref latitude);
+                    
+                    if (isLockedLongitude)
+                        longitude = lockLongitude;
+                    if (isLockedLatitude)
+                        latitude = lockLatitude;
+
+                    tool.castGroundPos = BlueprintUtils.GetDir(longitude, latitude) * tool.castGroundPos.magnitude;
+                }));
+
+            return matcher.InstructionEnumeration();
         }
     }
 }

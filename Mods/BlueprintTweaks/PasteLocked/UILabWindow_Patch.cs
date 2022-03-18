@@ -16,7 +16,7 @@ namespace BlueprintTweaks.PasteLocked
             }
             LabComponent labComponent = __instance.factorySystem.labPool[__instance.labId];
 
-            if (labComponent.recipeIsLocked)
+            if (!labComponent.recipeIsLocked)
             {
                 __instance.stateText.text = "recipeLockedWarn".Translate();
                 __instance.stateText.color = __instance.workStoppedColor;

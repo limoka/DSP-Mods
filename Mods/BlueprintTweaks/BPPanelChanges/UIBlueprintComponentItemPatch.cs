@@ -34,7 +34,7 @@ namespace BlueprintTweaks
                     if (proto == null) return;
                     
                     SetBuildings(inspector, itemId, proto);
-                }, proto => proto.Upgrades.Contains(itemId));
+                }, proto => proto.Upgrades?.Contains(itemId) == true);
             }
 
             return OnClick;

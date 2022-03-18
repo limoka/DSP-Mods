@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace BlueprintTweaks
@@ -18,8 +19,6 @@ namespace BlueprintTweaks
 
         public int castObjectId;
 
-        public int castObjectIdDisplayed;
-
         public Vector3 castObjectPos;
 
         public bool cursorValid;
@@ -30,15 +29,14 @@ namespace BlueprintTweaks
 
         public Vector3 lastGroundPosSnapped = Vector3.zero;
 
-        public BPGratBox preSelectGratBox = BPGratBox.zero;
+        public BPGratBox selectGratBox = BPGratBox.zero;
 
-        public BPGratBox lastPreSelectGratBox = BPGratBox.zero;
+        public BPGratBox lastSelectGratBox = BPGratBox.zero;
 
-        public BPGratBox preSelectArcBox = BPGratBox.zero;
+        public BPGratBox selectArcBox = BPGratBox.zero;
 
-        public HashSet<int> preSelectObjIds;
-
-        public float divideLineRad = -3.1415927f;
+        public HashSet<int> selectObjIds;
+        public HashSet<int> edgeObjIds;
 
         public BuildPreview[] bpPool;
 
@@ -58,55 +56,55 @@ namespace BlueprintTweaks
 
         public bool isSelecting;
 
-        private List<int> dismantleQueryObjectIds = new List<int>();
         private UIMessageBox dismantleQueryBox;
-        
-        private int neighborId0;
-        private int neighborId1;
-        private int neighborId2;
-        private int neighborId3;
 
+        private bool waitingForPlayerInput;
         public override void _OnInit()
         {
-            preSelectObjIds = new HashSet<int>();
+            selectObjIds = new HashSet<int>();
+            edgeObjIds = new HashSet<int>();
+            
             SetDisplayPreviewCapacity(256);
+            waitingForPlayerInput = false;
         }
 
         public override void _OnFree()
         {
-            preSelectObjIds = null;
+            selectObjIds = null;
+            edgeObjIds = null;
             FreeBuildPreviews();
+            waitingForPlayerInput = false;
         }
 
         public override void _OnOpen()
         {
-            ClearPreSelection();
+            ClearSelection();
             ResetBuildPreviews();
             castTerrain = false;
             castGround = false;
             castGroundPos = Vector3.zero;
             startGroundPosSnapped = lastGroundPosSnapped = castGroundPosSnapped = Vector3.zero;
-            lastPreSelectGratBox = preSelectGratBox = preSelectArcBox = BPGratBox.zero;
+            lastSelectGratBox = selectGratBox = selectArcBox = BPGratBox.zero;
             castObjectId = 0;
-            castObjectIdDisplayed = 0;
             castObjectPos = Vector3.zero;
             cursorValid = false;
             cursorTarget = Vector3.zero;
             isSelecting = false;
+            waitingForPlayerInput = false;
         }
 
         public override void _OnClose()
         {
             DismantleQueryRemove();
-            ClearPreSelection();
+            ClearSelection();
             ResetBuildPreviews();
             startGroundPosSnapped = lastGroundPosSnapped = castGroundPosSnapped = Vector3.zero;
-            lastPreSelectGratBox = preSelectGratBox = preSelectArcBox = BPGratBox.zero;
+            lastSelectGratBox = selectGratBox = selectArcBox = BPGratBox.zero;
             castObjectId = 0;
-            castObjectIdDisplayed = 0;
             castObjectPos = Vector3.zero;
             cursorValid = false;
             cursorTarget = Vector3.zero;
+            waitingForPlayerInput = false;
         }
 
         public override void _OnTick(long time)
@@ -198,12 +196,14 @@ namespace BlueprintTweaks
 
         public void Operating()
         {
+            if (waitingForPlayerInput) return;
+            
             if (!isSelecting && VFInput.blueprintCopyOperate0.onDown && cursorValid)
             {
                 isSelecting = true;
                 startGroundPosSnapped = castGroundPosSnapped;
                 lastGroundPosSnapped = startGroundPosSnapped;
-                InitPreSelectGratBox();
+                InitSelectGratBox();
                 VFInput.UseMouseLeft();
             }
 
@@ -212,9 +212,10 @@ namespace BlueprintTweaks
             bool onDown = VFInput.blueprintCopyOperate0.onDown || VFInput.blueprintCopyOperate1.onDown;
             if (isSelecting && (onDown && cursorValid || VFInput.blueprintCopyOperate0.onUp && castObjectId != 0 && !point))
             {
-                CheckDismantle();   
-                ClearPreSelection();
-                DeterminePreviews();
+                CheckDismantle();  
+                if (waitingForPlayerInput) return;
+                
+                ResetBuildPreviews();
                 isSelecting = false;
                 VFInput.UseMouseLeft();
                 VFInput.UseEnterConfirm();
@@ -224,37 +225,34 @@ namespace BlueprintTweaks
                 isSelecting = false;
                 startGroundPosSnapped = castGroundPosSnapped;
                 lastGroundPosSnapped = startGroundPosSnapped;
-                ClearPreSelection();
-                DeterminePreviews();
+                ClearSelection();
+                ResetBuildPreviews();
             }
 
-            bool changed = false;
             if (isSelecting)
             {
-                DeterminePreSelectGratBox();
-                InitDivideLine();
-                if (lastPreSelectGratBox != preSelectGratBox)
+                DetermineSelectGratBox();
+                if (lastSelectGratBox != selectGratBox)
                 {
-                    DetermineAddPreSelection();
-                    lastPreSelectGratBox = preSelectGratBox;
-                    changed = true;
+                    DetermineAddSelection();
+                    lastSelectGratBox = selectGratBox;
                 }
             }
             else
             {
                 startGroundPosSnapped = castGroundPosSnapped;
-                changed = castObjectId != castObjectIdDisplayed;
+                ReDeterminePreviews();
             }
 
-            if (changed)
+            if (point)
             {
-                DeterminePreviews();
+                ReDeterminePreviews();
             }
         }
 
         public void CheckDismantle()
         {
-            foreach (int objId in preSelectObjIds)
+            foreach (int objId in selectObjIds)
             {
                 
                 PrefabDesc desc = GetPrefabDesc(objId);
@@ -270,14 +268,9 @@ namespace BlueprintTweaks
                     int storageId = data.storageId;
                     if (!factory.factoryStorage.TryTakeBackItems_Storage(player.package, storageId))
                     {
-                        dismantleQueryObjectIds.Clear();
-                        foreach (int objId2 in preSelectObjIds)
-                        {
-                            dismantleQueryObjectIds.Add(objId2);
-                        }
-
                         dismantleQueryBox = UIMessageBox.Show("拆除储物仓标题".Translate(), "拆除储物仓文字".Translate(), "否".Translate(),
                             "是".Translate(), 0, DismantleQueryCancel, DismantleQueryConfirm);
+                        waitingForPlayerInput = true;
                         return;
                     }
                 }
@@ -287,14 +280,10 @@ namespace BlueprintTweaks
                     int tankId = data.tankId;
                     if (!factory.factoryStorage.TryTakeBackItems_Tank(player.package, tankId))
                     {
-                        dismantleQueryObjectIds.Clear();
-                        foreach (int objId2 in preSelectObjIds)
-                        {
-                            dismantleQueryObjectIds.Add(objId2);
-                        }
 
                         dismantleQueryBox = UIMessageBox.Show("拆除储液罐标题".Translate(), "拆除储液罐文字".Translate(), "否".Translate(),
                             "是".Translate(), 0, DismantleQueryCancel, DismantleQueryConfirm);
+                        waitingForPlayerInput = true;
                         return;
                     }
                 }
@@ -304,14 +293,10 @@ namespace BlueprintTweaks
                     int stationId = data.stationId;
                     if (factory.transport.stationPool[stationId] != null)
                     {
-                        dismantleQueryObjectIds.Clear();
-                        foreach (int objId2 in preSelectObjIds)
-                        {
-                            dismantleQueryObjectIds.Add(objId2);
-                        }
 
                         dismantleQueryBox = UIMessageBox.Show("拆除物流站标题".Translate(), "拆除物流站文字".Translate(), "否".Translate(),
                             "是".Translate(), 0, DismantleQueryCancel, DismantleQueryConfirm);
+                        waitingForPlayerInput = true;
                         return;
                     }
                 }
@@ -322,142 +307,57 @@ namespace BlueprintTweaks
 
         public void DismantleAction()
         {
-            int num = 0;
-            foreach (int objId in preSelectObjIds)
-            {
-                if (ObjectIsBelt(objId))
-                {
-                    factory.ReadObjectConn(objId, 0, out bool _, out neighborId0, out int _);
-                    factory.ReadObjectConn(objId, 1, out bool _, out neighborId1, out int _);
-                    factory.ReadObjectConn(objId, 2, out bool _, out neighborId2, out int _);
-                    factory.ReadObjectConn(objId, 3, out bool _, out neighborId3, out int _);
-                    if (!ObjectIsBelt(neighborId0))
-                    {
-                        neighborId0 = 0;
-                    }
+            FastRemoveHelper.SwitchDelete(factory, selectObjIds.ToList(), edgeObjIds.ToList());
 
-                    if (!ObjectIsBelt(neighborId1))
-                    {
-                        neighborId1 = 0;
-                    }
+            VFAudio.Create("demolish-large", null, GameMain.mainPlayer.position, true, 5);
 
-                    if (!ObjectIsBelt(neighborId2))
-                    {
-                        neighborId2 = 0;
-                    }
-
-                    if (!ObjectIsBelt(neighborId3))
-                    {
-                        neighborId3 = 0;
-                    }
-                }
-
-                if (actionBuild.DoDismantleObject(objId))
-                {
-                    num++;
-                }
-            }
-
-            if (num > 5)
-            {
-                VFAudio.Create("demolish-large", null, GameMain.mainPlayer.position, true, 5);
-            }
-
-            if (!actionBuild.dismantleTool.chainReaction)
-            {
-                int num3 = 0;
-                foreach (int objId in preSelectObjIds)
-                {
-                    if ((objId == neighborId0 || objId == neighborId1 || objId == neighborId2 || objId == neighborId3))
-                    {
-                        if (ObjectIsBelt(objId))
-                        {
-                            factory.ReadObjectConn(objId, 0, out bool _, out neighborId0, out int _);
-                            factory.ReadObjectConn(objId, 1, out bool _, out neighborId1, out int _);
-                            factory.ReadObjectConn(objId, 2, out bool _, out neighborId2, out int _);
-                            factory.ReadObjectConn(objId, 3, out bool _, out neighborId3, out int _);
-                            if (!ObjectIsBelt(neighborId0))
-                            {
-                                neighborId0 = 0;
-                            }
-
-                            if (!ObjectIsBelt(neighborId1))
-                            {
-                                neighborId1 = 0;
-                            }
-
-                            if (!ObjectIsBelt(neighborId2))
-                            {
-                                neighborId2 = 0;
-                            }
-
-                            if (!ObjectIsBelt(neighborId3))
-                            {
-                                neighborId3 = 0;
-                            }
-                        }
-
-                        if (actionBuild.DoDismantleObject(objId))
-                        {
-                            num3++;
-                        }
-                    }
-                }
-
-                if (num3 > 5)
-                {
-                    VFAudio.Create("demolish-large", null, GameMain.mainPlayer.position, true, 5);
-                }
-            }
+            ClearSelection();
+            isSelecting = false;
+            waitingForPlayerInput = false;
         }
 
         public void DismantleQueryCancel()
         {
-            dismantleQueryObjectIds.Clear();
+            ClearSelection();
             dismantleQueryBox = null;
+            waitingForPlayerInput = false;
         }
 
         public void DismantleQueryConfirm()
         {
-            preSelectObjIds.Clear();
-            foreach (int objId in dismantleQueryObjectIds)
-            {
-                preSelectObjIds.Add(objId);
-            }
             DismantleAction();
-
             dismantleQueryBox = null;
         }
         
         public void DismantleQueryRemove()
         {
-            dismantleQueryObjectIds.Clear();
             if (dismantleQueryBox != null)
             {
                 dismantleQueryBox.OnButton1Click();
                 dismantleQueryBox = null;
             }
+            waitingForPlayerInput = false;
         }
 
-        private void InitPreSelectGratBox()
+        private void InitSelectGratBox()
         {
-            BlueprintUtils.GetMinimumGratBox(startGroundPosSnapped.normalized, ref preSelectGratBox);
-            preSelectArcBox = preSelectGratBox;
-            if (preSelectArcBox.y >= 1.5707864f)
+            BlueprintUtils.GetMinimumGratBox(startGroundPosSnapped.normalized, ref selectGratBox);
+            selectArcBox = selectGratBox;
+            if (selectArcBox.y >= 1.5707864f)
             {
-                preSelectArcBox.y = preSelectArcBox.w = 1.5707964f;
-                preSelectArcBox.z = preSelectArcBox.x + 628.31854f;
+                selectArcBox.y = selectArcBox.w = 1.5707964f;
+                selectArcBox.z = selectArcBox.x + 628.31854f;
             }
-            else if (preSelectArcBox.y <= -1.5707864f)
+            else if (selectArcBox.y <= -1.5707864f)
             {
-                preSelectArcBox.y = preSelectArcBox.w = -1.5707964f;
-                preSelectArcBox.z = preSelectArcBox.x + 628.31854f;
+                selectArcBox.y = selectArcBox.w = -1.5707964f;
+                selectArcBox.z = selectArcBox.x + 628.31854f;
             }
 
-            lastPreSelectGratBox = preSelectGratBox;
+            lastSelectGratBox = selectGratBox;
         }
 
-        public void DeterminePreSelectGratBox()
+        public void DetermineSelectGratBox()
         {
             if (cursorValid)
             {
@@ -467,36 +367,36 @@ namespace BlueprintTweaks
                 bool flag = latitudeRad >= 1.5707864f || latitudeRad <= -1.5707864f;
                 float num = flag ? 0f : longitudeRad - longitudeRad2;
                 num = Mathf.Repeat(num + 3.1415927f, 6.2831855f) - 3.1415927f;
-                preSelectArcBox.endLongitudeRad = preSelectArcBox.endLongitudeRad + num;
-                preSelectArcBox.endLatitudeRad = latitudeRad;
-                preSelectGratBox = preSelectArcBox;
-                preSelectGratBox.x = preSelectArcBox.x < preSelectArcBox.z ? preSelectArcBox.x : preSelectArcBox.z;
-                preSelectGratBox.z = preSelectArcBox.x > preSelectArcBox.z ? preSelectArcBox.x : preSelectArcBox.z;
-                if (preSelectArcBox.x < preSelectArcBox.z)
+                selectArcBox.endLongitudeRad = selectArcBox.endLongitudeRad + num;
+                selectArcBox.endLatitudeRad = latitudeRad;
+                selectGratBox = selectArcBox;
+                selectGratBox.x = selectArcBox.x < selectArcBox.z ? selectArcBox.x : selectArcBox.z;
+                selectGratBox.z = selectArcBox.x > selectArcBox.z ? selectArcBox.x : selectArcBox.z;
+                if (selectArcBox.x < selectArcBox.z)
                 {
-                    if (preSelectGratBox.z > preSelectGratBox.x + 6.2831855f - 1E-05f - 4E-06f)
+                    if (selectGratBox.z > selectGratBox.x + 6.2831855f - 1E-05f - 4E-06f)
                     {
-                        preSelectGratBox.z = preSelectGratBox.x + 6.2831855f - 1E-05f - 4E-06f;
+                        selectGratBox.z = selectGratBox.x + 6.2831855f - 1E-05f - 4E-06f;
                     }
 
-                    preSelectGratBox.z = Mathf.Repeat(preSelectGratBox.z + 3.1415927f, 6.2831855f) - 3.1415927f;
+                    selectGratBox.z = Mathf.Repeat(selectGratBox.z + 3.1415927f, 6.2831855f) - 3.1415927f;
                 }
                 else
                 {
-                    if (preSelectGratBox.x < preSelectGratBox.z - 6.2831855f + 1E-05f + 4E-06f)
+                    if (selectGratBox.x < selectGratBox.z - 6.2831855f + 1E-05f + 4E-06f)
                     {
-                        preSelectGratBox.x = preSelectGratBox.z - 6.2831855f + 1E-05f + 4E-06f;
+                        selectGratBox.x = selectGratBox.z - 6.2831855f + 1E-05f + 4E-06f;
                     }
 
-                    preSelectGratBox.x = Mathf.Repeat(preSelectGratBox.x + 3.1415927f, 6.2831855f) - 3.1415927f;
+                    selectGratBox.x = Mathf.Repeat(selectGratBox.x + 3.1415927f, 6.2831855f) - 3.1415927f;
                 }
 
-                preSelectGratBox.y = preSelectArcBox.y < preSelectArcBox.w ? preSelectArcBox.y : preSelectArcBox.w;
-                preSelectGratBox.w = preSelectArcBox.y > preSelectArcBox.w ? preSelectArcBox.y : preSelectArcBox.w;
+                selectGratBox.y = selectArcBox.y < selectArcBox.w ? selectArcBox.y : selectArcBox.w;
+                selectGratBox.w = selectArcBox.y > selectArcBox.w ? selectArcBox.y : selectArcBox.w;
                 float longitude = BlueprintUtils.GetLongitudeRadPerGrid(Mathf.Abs(castGroundPosSnapped.y) < Mathf.Abs(startGroundPosSnapped.y)
                     ? castGroundPosSnapped.normalized
                     : startGroundPosSnapped.normalized) * 0.33f;
-                preSelectGratBox.Extend(longitude, 0.002f);
+                selectGratBox.Extend(longitude, 0.002f);
                 if (!flag)
                 {
                     lastGroundPosSnapped = castGroundPosSnapped;
@@ -504,14 +404,22 @@ namespace BlueprintTweaks
             }
         }
 
-        public void DetermineAddPreSelection()
+        public void DetermineAddSelection()
         {
-            preSelectObjIds.Clear();
-            if (Mathf.Abs(preSelectArcBox.x - preSelectArcBox.z) < 0.01f && Mathf.Abs(preSelectArcBox.y - preSelectArcBox.w) < 0.01f && castObjectId != 0)
+            int segmentCnt = 200;
+            if ( GameMain.localPlanet?.aux?.activeGrid != null)
+            {
+                segmentCnt = GameMain.localPlanet.aux.activeGrid.segment;
+            }
+
+            selectObjIds.Clear();
+            edgeObjIds.Clear();
+            
+            if (Mathf.Abs(selectArcBox.x - selectArcBox.z) < 0.01f && Mathf.Abs(selectArcBox.y - selectArcBox.w) < 0.01f && castObjectId != 0)
             {
                 if (ShouldAddObject(castObjectId))
                 {
-                    preSelectObjIds.Add(castObjectId);
+                    selectObjIds.Add(castObjectId);
                 }
             }
             else
@@ -521,36 +429,50 @@ namespace BlueprintTweaks
                 for (int i = 1; i < entityCursor; i++)
                 {
                     int item = i;
-                    if (entityPool[i].id == i && preSelectGratBox.InGratBox(entityPool[i].pos))
+                    if (entityPool[i].id == i && selectGratBox.InGratBox(entityPool[i].pos))
                     {
                         if (ShouldAddObject(item))
                         {
-                            preSelectObjIds.Add(item);
+                            selectObjIds.Add(item);
+                            if (selectGratBox.IsOnEdgeOfGratBox(entityPool[i].pos, segmentCnt))
+                            {
+                                edgeObjIds.Add(item);
+                            }
                         }
                     }
                 }
 
                 PrebuildData[] prebuildPool = factory.prebuildPool;
                 int prebuildCursor = factory.prebuildCursor;
-                for (int j = 1; j < prebuildCursor; j++)
+                for (int i = 1; i < prebuildCursor; i++)
                 {
-                    int item2 = -j;
-                    if (prebuildPool[j].id == j && preSelectGratBox.InGratBox(prebuildPool[j].pos))
+                    int item = -i;
+                    if (prebuildPool[i].id == i && selectGratBox.InGratBox(prebuildPool[i].pos))
                     {
-                        if (ShouldAddObject(item2))
+                        if (ShouldAddObject(item))
                         {
-                            preSelectObjIds.Add(item2);
+                            selectObjIds.Add(item);
+                            if (selectGratBox.IsOnEdgeOfGratBox(prebuildPool[i].pos, segmentCnt))
+                            {
+                                edgeObjIds.Add(item);
+                            }
                         }
                     }
                 }
             }
 
-            DetermineChainPreSelection();
+            DetermineChainSelection();
+            DeterminePreviews();
         }
 
         public bool ShouldAddObject(int objId)
         {
             PrefabDesc desc = GetPrefabDesc(objId);
+
+            if (desc.isStation)
+            {
+                return !BlueprintTweaksPlugin.excludeStations.Value;
+            }
 
             if (desc.isInserter)
             {
@@ -565,7 +487,7 @@ namespace BlueprintTweaks
             return actionBuild.dismantleTool.filterFacility;
         }
 
-        public void DetermineChainPreSelection()
+        public void DetermineChainSelection()
         {
             if (!VFInput._chainReaction)
             {
@@ -578,7 +500,7 @@ namespace BlueprintTweaks
             }
 
             _tmp_int_list.Clear();
-            foreach (int objId in preSelectObjIds)
+            foreach (int objId in selectObjIds)
             {
                 int num = GetPrefabDesc(objId).slotPoses.Length;
                 if (num > 0)
@@ -598,29 +520,25 @@ namespace BlueprintTweaks
             {
                 if (ShouldAddObject(item))
                 {
-                    preSelectObjIds.Add(item);
+                    selectObjIds.Add(item);
                 }
             }
 
             _tmp_int_list.Clear();
         }
 
-        public void InitDivideLine()
+
+        public void ClearSelection()
         {
-            divideLineRad = Mathf.Repeat(preSelectArcBox.x, 6.2831855f) - 3.1415927f;
+            selectObjIds.Clear();
+            edgeObjIds.Clear();
+            lastSelectGratBox = selectGratBox = selectArcBox = BPGratBox.zero;
         }
 
-
-        public void ClearPreSelection()
-        {
-            preSelectObjIds.Clear();
-            lastPreSelectGratBox = preSelectGratBox = preSelectArcBox = BPGratBox.zero;
-        }
-
-        public void DeterminePreviews()
+        public void ReDeterminePreviews()
         {
             ResetBuildPreviews();
-            foreach (int objId in preSelectObjIds)
+            foreach (int objId in selectObjIds)
             {
                 BuildPreview buildPreview = GetBuildPreview(objId);
 
@@ -634,7 +552,45 @@ namespace BlueprintTweaks
                 AddBPGPUIModel(buildPreview3);
             }
 
-            castObjectIdDisplayed = castObjectId;
+            SyncAnimBuffer();
+            planet.factoryModel.bpgpuiManager.animBuffer = animBuffer;
+            planet.factoryModel.bpgpuiManager.SyncAllGPUBuffer();
+        }
+        
+        public void DeterminePreviews()
+        {
+            HashSet<int> missing = new HashSet<int>(selectObjIds);
+            for (int i = 1; i < bpCursor; i++)
+            {
+                BuildPreview buildPreview = bpPool[i];
+                if (buildPreview != null && buildPreview.bpgpuiModelId > 0)
+                {
+                    if (!selectObjIds.Contains(buildPreview.objId))
+                    {
+                        if (buildPreview.bpgpuiModelInstIndex >= 0)
+                            planet.factoryModel.bpgpuiManager.RemoveBuildPreviewModel(buildPreview.desc.modelIndex, buildPreview.bpgpuiModelInstIndex, false);
+                        RemoveBuildPreview(i);
+                    }
+                    else
+                    {
+                        missing.Remove(buildPreview.objId);
+                    }
+                }
+            }
+
+            foreach (int objId in missing)
+            {
+                BuildPreview buildPreview = GetBuildPreview(objId);
+                AddBPGPUIModel(buildPreview);
+            }
+
+            if (castObjectId != 0)
+            {
+                BuildPreview buildPreview3 = GetBuildPreview(castObjectId);
+
+                AddBPGPUIModel(buildPreview3);
+            }
+
             SyncAnimBuffer();
             planet.factoryModel.bpgpuiManager.animBuffer = animBuffer;
             planet.factoryModel.bpgpuiManager.SyncAllGPUBuffer();
@@ -857,6 +813,23 @@ namespace BlueprintTweaks
             bpPoolCapacity = newCapacity;
             animBuffer?.Release();
             animBuffer = new ComputeBuffer(newCapacity, 20, ComputeBufferType.Default);
+        }
+        
+        public void RemoveBuildPreview(int id)
+        {
+            if (bpPool[id] != null && bpPool[id].bpgpuiModelInstIndex >= 0)
+            {
+                animPool[id].time = 0f;
+                animPool[id].prepare_length = 0f;
+                animPool[id].working_length = 0f;
+                animPool[id].state = 0U;
+                animPool[id].power = 0f;
+                bpPool[id].ResetAll();
+                int[] array = bpRecycle;
+                int num = bpRecycleCursor;
+                bpRecycleCursor = num + 1;
+                array[num] = id;
+            }
         }
 
         public BuildPreview GetBuildPreview(int objId)

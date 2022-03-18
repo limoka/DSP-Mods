@@ -33,6 +33,9 @@ namespace BlueprintTweaks.BlueprintBrowserUIChanges
             RectTransform pasteIconTrs = (RectTransform)pasteTrs.Find("icon");
             Sprite newIcon = BlueprintTweaksPlugin.resource.bundle.LoadAsset<Sprite>("Assets/BlueprintTweaks/Icons/paste-icon.png");
             pasteIconTrs.GetComponent<Image>().sprite = newIcon;
+            UIButton uiButton = pasteTrs.GetComponent<UIButton>();
+            uiButton.tips.tipTitle = "BPBrowserPasteButtonTipTitle";
+            uiButton.tips.tipText = "BPBrowserPasteButtonTipDesc";
 
             Button pasteButton =  pasteTrs.GetComponent<Button>();
             pasteButton.onClick.RemoveAllListeners();

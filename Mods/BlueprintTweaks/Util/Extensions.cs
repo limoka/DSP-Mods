@@ -25,5 +25,33 @@ namespace BlueprintTweaks
  
             return new Vector2(cos * tx - sin * ty, sin * tx + cos * ty);
         }
+
+        public static bool IsOnEdgeOfGratBox(this BPGratBox box, Vector3 pos, int segmentCount)
+        {
+            pos.Normalize();
+            float num = pos.y;
+            if (num > 0.999999f)
+            {
+                return box.w >= 1.5707864f;
+            }
+            if (num < -0.999999f)
+            {
+                return box.y <= -1.5707864f;
+            }
+            float latitudeRad = Mathf.Asin(num);
+            float longitudeRad = Mathf.Atan2(pos.x, -pos.z);
+            return box.IsOnEdgeOfGratBox(longitudeRad, latitudeRad, segmentCount);
+        }
+        
+        public static bool IsOnEdgeOfGratBox(this BPGratBox box, float longitudeRad, float latitudeRad, int segmentCount)
+        {
+            float latPerGrid = BlueprintUtils.GetLatitudeRadPerGrid(segmentCount);
+            float longPerGrid = BlueprintUtils.GetLongitudeRadPerGrid(latitudeRad, segmentCount);
+
+            BPGratBox smallBox = new BPGratBox(box.x + longPerGrid, box.y + latPerGrid, box.z - longPerGrid, box.w - latPerGrid);
+
+            return !smallBox.InGratBox(longitudeRad, latitudeRad);
+        }
+
     }
 }

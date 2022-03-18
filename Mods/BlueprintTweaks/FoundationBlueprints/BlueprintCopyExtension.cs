@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BlueprintTweaks.FactoryUndo;
 using CommonAPI;
 using HarmonyLib;
 using UnityEngine;
@@ -90,6 +91,8 @@ namespace BlueprintTweaks
         [HarmonyPrefix]
         public static bool GenerateBlueprintData(BuildTool_BlueprintCopy __instance, ref bool __result)
         {
+            if (UndoManager.IgnoreAllEvents.Value) return true;
+            
             __instance.hasErrorInserterData = false;
             if (__instance.selectedObjIds.Count == 0 && reformSelection.Count == 0)
             {

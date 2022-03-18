@@ -6,6 +6,8 @@ using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using BlueprintTweaks.BlueprintBrowserUIChanges;
+using BlueprintTweaks.BrowserRememberFolder;
+using BlueprintTweaks.FactoryUndo;
 using CommonAPI;
 using CommonAPI.Systems;
 using HarmonyLib;
@@ -16,6 +18,7 @@ using UnityEngine;
 #pragma warning disable 618
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 #pragma warning restore 618
+
 
 namespace BlueprintTweaks
 {
@@ -31,7 +34,7 @@ namespace BlueprintTweaks
         
         public const string MOD_DISP_NAME = "Blueprint Tweaks";
         
-        public const string VERSION = "1.4.0";
+        public const string VERSION = "1.5.0";
 
         public const string FREE_FOUNDATIONS_GUID = "de.Hotte.DSP.FreeFoundations";
         public const string FREE_FOUNDATIONS_GUID_2 = "com.aekoch.mods.dsp.UnlimitedFoundations";
@@ -42,6 +45,7 @@ namespace BlueprintTweaks
         public const string DRAG_REMOVE = "DragRemove";
         public const string BLUEPRINT_FOUNDATIONS = "BlueprintFoundations";
         public const string PASTE_LOCKED = "PasteLocked";
+        public const string FACTORY_UNDO = "FactoryUndo";
 
         public static ManualLogSource logger;
         public static ResourceData resource;
@@ -58,6 +62,7 @@ namespace BlueprintTweaks
         public static ConfigEntry<bool> logisticCargoChangeEnabled;
         public static ConfigEntry<bool> beltHintsChangeEnable;
         public static ConfigEntry<bool> keepBlueprintDesc;
+        public static ConfigEntry<bool> keepBrowserPath;
 
         public static ConfigEntry<bool> forcePasteEnabled;
         public static ConfigEntry<bool> axisLockEnabled;
@@ -65,15 +70,23 @@ namespace BlueprintTweaks
         public static ConfigEntry<bool> blueprintMirroring;
         public static ConfigEntry<bool> dragRemove;
         public static ConfigEntry<bool> pasteLocked;
+        public static ConfigEntry<bool> moveWithDragNDrop;
+        public static ConfigEntry<bool> factoryUndo;
         
         public static ConfigEntry<bool> blueprintFoundations;
         
         public static ConfigEntry<bool> resetFunctionsOnMenuExit;
         public static ConfigEntry<bool> canBlueprintOnGasGiants;
+        
+        public static ConfigEntry<bool> excludeStations;
+        public static ConfigEntry<bool> useFastDismantle;
+        public static ConfigEntry<int>  undoMaxHistory;
 
         private void Awake()
         {
             logger = Logger;
+
+            #region Config
 
             cameraToggleEnabled = Config.Bind("Interface", "cameraToggle", true, "Allows toggling camera between 3rd person and god view\nAll values are applied on restart");
             addPasteButtonEnabled = Config.Bind("Interface", "addBluprintPasteButton", true, "If enabled new button will be added to Blueprint Browser. Pressing it will paste curretly selected blueprint\nAll values are applied on restart");
@@ -83,6 +96,7 @@ namespace BlueprintTweaks
             changeTierEnabled = Config.Bind("Interface", "changeTier", true, "Allows using change tier functionality\nAll values are applied on restart");
             beltHintsChangeEnable = Config.Bind("Interface", "beltHintChange", true, "Add belt hint change panel to blueprint inspectors\nAll values are applied on restart");
             keepBlueprintDesc = Config.Bind("Interface", "keepBlueprintDescription", true, "When pasting blueprint string into existing blueprint you can hold shift to keep description and icons");
+            keepBrowserPath = Config.Bind("Interface", "keepBroserPath", true, "Preserve last open Blueprint Browser directory. Also when creating new blueprints, they will be saved in the last open directory");
 
             
             
@@ -92,6 +106,8 @@ namespace BlueprintTweaks
             blueprintMirroring = Config.Bind("Features", "blueprintMirroring", true, "Allows mirroring Blueprints\nAll values are applied on restart");
             dragRemove = Config.Bind("Features", "dragRemove", true, "Allows using drag remove function\nAll values are applied on restart");
             pasteLocked = Config.Bind("Features", "PasteLockedRecipes", true, "Allow pasting assemblers with recipes which have not been unlocked yet. Assemblers with recipes that are not unlocked will not work.");
+            moveWithDragNDrop = Config.Bind("Features", "moveBPWithDragNDrop", true, "Allow moving blueprints using drag and drop");
+            factoryUndo = Config.Bind("Features", "factoryUndo", true, "Enable Factory Undo feature. Allows to undo/redo most building actions. Will force dragRemove to true");
 
             
             blueprintFoundations = Config.Bind("Features", "blueprintFoundations", true, "Allow blueprinting foundations along with buildings.\nAll values are applied on restart");
@@ -99,12 +115,22 @@ namespace BlueprintTweaks
             resetFunctionsOnMenuExit = Config.Bind("Misc", "resetOnExit", true, "If enabled when you exit build mode, some functions (Axis/Grid lock, Mirror) will reset their state");
             canBlueprintOnGasGiants = Config.Bind("Misc", "bpOnGasGiants", true, "Allow using Blueprints on Gas Giants\nAll values are applied on restart");
 
-            
-            
+            useFastDismantle = Config.Bind("Misc", "useFastDismantle", true, "When using drag remove tool or factory undo, an improved algorithm of removing entities will be used. It is about 20x faster, but might have some imperfections. If you encounter issues you can switch back to vanilla code.");
+            excludeStations = Config.Bind("Misc", "excludeStations", true, "When using drag remove tool, logistic stations (and miners Mk.II) will not get removed. This is a safeguard against errors which occur most of the time when you try to mass dismantle logistic stations.");
+
+            undoMaxHistory = Config.Bind("Misc", "undoMaxHistory", 50, "Defines undo history size. When history reaches it's capacity, old entries will get removed. When using Nebula host controls the used value");
+
             
             Config.MigrateConfig<bool>("General", "Interface", new []{"cameraToggle", "recipeChange", "changeLogisticCargo", "changeTier"});
             Config.MigrateConfig<bool>("General", "Features", new []{"forcePaste", "axisLock", "gridControl", "gridControl", "blueprintFoundations"});
             Config.MigrateConfig<bool>("General", "Misc", new []{"bpOnGasGiants"});
+
+            if (factoryUndo.Value)
+            {
+                dragRemove.Value = true;
+            }
+            
+            #endregion
             
             Config.Save();
             
@@ -188,13 +214,69 @@ namespace BlueprintTweaks
             
             ProtoRegistry.RegisterString("recipeLockedWarn", "Recipe is locked", "食谱已锁定");
             
+            ProtoRegistry.RegisterString("BPBrowserPasteButtonTipTitle", "Paste Blueprint [Double click]", "粘贴蓝图[双击]");
+            ProtoRegistry.RegisterString("BPBrowserPasteButtonTipDesc", "Start pasting current selected blueprint", "开始张贴当前选定的蓝图");
+            
+            ProtoRegistry.RegisterString("MoveBlueprintTip", "Move to", "移动到");
+            
+            ProtoRegistry.RegisterString("FileAlreadyExistsTitle", "Can't move blueprint!", "动不了蓝图！");
+            ProtoRegistry.RegisterString("FileAlreadyExistsDesc", 
+                "Blueprint with same name already exists in target location! Please rename your blueprint and try again.",
+                "同名蓝图已存在于目标位置！ 请重命名蓝图并重试。");
+
+            ProtoRegistry.RegisterString("KEYFactoryUndo", "Undo", "撤消");
+            ProtoRegistry.RegisterString("KEYFactoryRedo", "Redo", "重做");
+            
+            ProtoRegistry.RegisterString("KEYDSPTrashButton", "Select Trash", "选择垃圾");
+
+            ProtoRegistry.RegisterString("NotEnoughFoundationsMessage", 
+                "You need {0} more foundations to place this Blueprint!",
+                "你需要 {0} 更多的基础来放置这个蓝图！");
+            
+            ProtoRegistry.RegisterString("FoundCountMessage", 
+                "Will consume {0} foundations",
+                "会消耗 {0} 基础");
+            
+            
+            ProtoRegistry.RegisterString("UndoSuccessText", "Undone successfully!", "撤消成功！");
+            ProtoRegistry.RegisterString("UndoFailureText", "Failed to undo!", "未能撤消！");
+            ProtoRegistry.RegisterString("RedoSuccessText", "Redone successfully!", "重做成功！");
+            ProtoRegistry.RegisterString("RedoFailureText", "Failed to redo!", "重做失败！");
+            
+            ProtoRegistry.RegisterString("UndoClearedMessage", "Undo history cleared!", "撤消历史清除！");
+            
+            ProtoRegistry.RegisterString("UndoHistoryEmptyMessage", "Undo history is empty!", "撤消历史是空的！");
+            ProtoRegistry.RegisterString("RedoHistoryEmptyMessage", "Redo history is empty!", "重做历史是空的！");
+            
             #endregion
             
+            if (factoryUndo.Value)
+            {
+                UndoManager.Init();
+            }
             UIBlueprintInspectorPatch.Init();
             BlueprintUtilsPatch2.Init();
             RegisterKeyBinds();
 
             NebulaModAPI.RegisterPackets(Assembly.GetExecutingAssembly());
+
+            #region Patches
+
+            if (factoryUndo.Value)
+            {
+                harmony.PatchAll(FACTORY_UNDO);
+            }
+
+            if (keepBrowserPath.Value)
+            {
+                harmony.PatchAll(typeof(UIBlueprintBrowser_Patch));
+            }
+
+            if (moveWithDragNDrop.Value)
+            {
+                harmony.PatchAll(typeof(BuildTool_Copy_Patch));
+                harmony.PatchAll(typeof(DragToMoveBlueprints.UIBlueprintBrowser_Patch));
+            }
 
             if (keepBlueprintDesc.Value)
             {
@@ -245,7 +327,9 @@ namespace BlueprintTweaks
             {
                 harmony.PatchAll(typeof(BlueprintPastePatch));
             }
-
+            
+            #endregion
+            
             logger.LogInfo("Blueprint tweaks mod is initialized!");
         }
 
@@ -255,7 +339,6 @@ namespace BlueprintTweaks
             {
                 CustomKeyBindSystem.RegisterKeyBind<PressKeyBind>(new BuiltinKey
                 {
-                    id = 100,
                     key = new CombineKey((int) KeyCode.J, 0, ECombineKeyAction.OnceClick, false),
                     conflictGroup = 3071,
                     name = "ToggleBPGodModeDesc",
@@ -267,7 +350,6 @@ namespace BlueprintTweaks
             {
                 CustomKeyBindSystem.RegisterKeyBind<HoldKeyBind>(new BuiltinKey
                 {
-                    id = 101,
                     key = new CombineKey(0, 1, ECombineKeyAction.OnceClick, false),
                     conflictGroup = 2052,
                     name = "ForceBPPlace",
@@ -279,7 +361,6 @@ namespace BlueprintTweaks
             {
                 CustomKeyBindSystem.RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
                 {
-                    id = 102,
                     key = new CombineKey((int) KeyCode.G, CombineKey.CTRL_COMB, ECombineKeyAction.OnceClick, false),
                     conflictGroup = 2052,
                     name = "LockLongAxis",
@@ -288,7 +369,6 @@ namespace BlueprintTweaks
 
                 CustomKeyBindSystem.RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
                 {
-                    id = 103,
                     key = new CombineKey((int) KeyCode.T, CombineKey.CTRL_COMB, ECombineKeyAction.OnceClick, false),
                     conflictGroup = 2052,
                     name = "LockLatAxis",
@@ -300,7 +380,6 @@ namespace BlueprintTweaks
             {
                 CustomKeyBindSystem.RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
                 {
-                    id = 104,
                     key = new CombineKey((int) KeyCode.B, CombineKey.CTRL_COMB, ECombineKeyAction.OnceClick, false),
                     conflictGroup = 2052,
                     name = "SetLocalOffset",
@@ -312,7 +391,6 @@ namespace BlueprintTweaks
             {
                 CustomKeyBindSystem.RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
                 {
-                    id = 105,
                     key = new CombineKey((int) KeyCode.G, CombineKey.SHIFT_COMB, ECombineKeyAction.OnceClick, false),
                     conflictGroup = 2052,
                     name = "MirrorLongAxis",
@@ -321,10 +399,37 @@ namespace BlueprintTweaks
 
                 CustomKeyBindSystem.RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
                 {
-                    id = 106,
                     key = new CombineKey((int) KeyCode.T, CombineKey.SHIFT_COMB, ECombineKeyAction.OnceClick, false),
                     conflictGroup = 2052,
                     name = "MirrorLatAxis",
+                    canOverride = true
+                });
+                
+            }
+
+            if (factoryUndo.Value)
+            {
+                CustomKeyBindSystem.RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
+                {
+                    key = new CombineKey((int) KeyCode.Z, CombineKey.CTRL_COMB, ECombineKeyAction.OnceClick, false),
+                    conflictGroup = 2052,
+                    name = "FactoryUndo",
+                    canOverride = true
+                });
+
+                CustomKeyBindSystem.RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
+                {
+                    key = new CombineKey((int) KeyCode.Z, CombineKey.SHIFT_COMB, ECombineKeyAction.OnceClick, false),
+                    conflictGroup = 2052,
+                    name = "FactoryRedo",
+                    canOverride = true
+                });
+
+                CustomKeyBindSystem.RegisterKeyBind<PressKeyBind>(new BuiltinKey
+                {
+                    key = new CombineKey((int) KeyCode.Z, 0, ECombineKeyAction.OnceClick, false),
+                    conflictGroup = 2052,
+                    name = "DSPTrashButton",
                     canOverride = true
                 });
             }
@@ -333,8 +438,21 @@ namespace BlueprintTweaks
         private void Update()
         {
             if (!GameMain.isRunning) return;
-            if (GameMain.localPlanet == null) return;   
-        
+            if (GameMain.localPlanet == null) return;
+
+            if (factoryUndo.Value)
+            {
+                if (CustomKeyBindSystem.GetKeyBind("FactoryUndo").keyValue)
+                {
+                    UndoManager.TryUndo();
+                }
+
+                if (CustomKeyBindSystem.GetKeyBind("FactoryRedo").keyValue)
+                {
+                    UndoManager.TryRedo();
+                }
+            }
+
             if (cameraToggleEnabled.Value && CustomKeyBindSystem.GetKeyBind("ToggleBPGodModeDesc").keyValue)
             {
                 CameraFixPatch.mode = !CameraFixPatch.mode;

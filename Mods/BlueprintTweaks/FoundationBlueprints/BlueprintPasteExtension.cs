@@ -4,6 +4,7 @@ using CommonAPI;
 using HarmonyLib;
 using NebulaAPI;
 using UnityEngine;
+using static System.String;
 
 namespace BlueprintTweaks
 {
@@ -81,9 +82,20 @@ namespace BlueprintTweaks
                 tickCounter = 0;
                 Vector3 center = Vector3.zero;
                 tmpPoints.Clear();
+                
+                PlatformSystem platformSystem = __instance.factory.platformSystem;
             
                 foreach (ReformData preview in reformPreviews)
                 {
+                    ReformBPUtils.GetSegmentCount(preview.latitude, preview.longitude, out float latCount, out float longCount, out int segmentCount);
+                    longCount = Mathf.Repeat(longCount, segmentCount);
+                
+                    int reformIndex = platformSystem.GetReformIndexForSegment(latCount, longCount);
+                    if (reformIndex < 0) continue;
+                
+                    int type = platformSystem.GetReformType(reformIndex);
+                    if (platformSystem.IsTerrainReformed(type)) continue;
+                    
                     Vector3 pos = BlueprintUtils.GetDir(preview.longitude, preview.latitude);
                     pos *= GameMain.localPlanet.realRadius + 0.2f;
                     tmpPoints.Add(pos);
@@ -92,22 +104,35 @@ namespace BlueprintTweaks
 
                 lastCost = ReformBPUtils.ComputeFlattenTerrainReform(__instance.factory, tmpPoints, center);
             }
+
+            string message = "";
+            int playerFoundationCount = __instance.player.package.GetItemCount(PlatformSystem.REFORM_ID);
+
+            if (playerFoundationCount < tmpPoints.Count)
+            {
+                message = Format("NotEnoughFoundationsMessage".Translate(), tmpPoints.Count - playerFoundationCount) + "\n";
+            }
+            else
+            {
+                message = Format("FoundCountMessage".Translate(), tmpPoints.Count) + "\n";
+            }
+            
             
 
             if (__instance.cursorValid && !VFInput.onGUIOperate)
             {
                 if (lastCost > 0)
                 {
-                    __instance.actionBuild.model.cursorText = $"{"沙土消耗".Translate()} {lastCost} {"个沙土".Translate()}";
+                    __instance.actionBuild.model.cursorText = $"{message}{"沙土消耗".Translate()} {lastCost} {"个沙土".Translate()}";
                 }
                 else if (lastCost == 0)
                 {
-                    __instance.actionBuild.model.cursorText = "改造大小".Translate();
+                    __instance.actionBuild.model.cursorText = $"{message}";
                 }
                 else
                 {
                     int num2 = -lastCost;
-                    __instance.actionBuild.model.cursorText = $"{"沙土获得".Translate()} {num2} {"个沙土".Translate()}";
+                    __instance.actionBuild.model.cursorText = $"{message}{"沙土获得".Translate()} {num2} {"个沙土".Translate()}";
                 }
             }
         }
@@ -179,14 +204,25 @@ namespace BlueprintTweaks
         public static bool CalculatePositions(BuildTool_BlueprintPaste tool, List<ReformData> reforms, Color[] colors)
         {
             ReformBPUtils.currentGrid = tool.factory.planet.aux.mainGrid;
+            PlanetData planet = tool.factory.planet;
+            PlatformSystem platformSystem = tool.factory.platformSystem;
             
             Vector3 center = Vector3.zero;
             tmpPoints.Clear();
 
             foreach (ReformData preview in reforms)
             {
+                ReformBPUtils.GetSegmentCount(preview.latitude, preview.longitude, out float latCount, out float longCount, out int segmentCount);
+                longCount = Mathf.Repeat(longCount, segmentCount);
+                
+                int reformIndex = platformSystem.GetReformIndexForSegment(latCount, longCount);
+                if (reformIndex < 0) continue;
+                
+                int type = platformSystem.GetReformType(reformIndex);
+                if (platformSystem.IsTerrainReformed(type)) continue;
+                
                 Vector3 pos = BlueprintUtils.GetDir(preview.longitude, preview.latitude);
-                pos *= GameMain.localPlanet.realRadius + 0.2f;
+                pos *= planet.realRadius + 0.2f;
                 tmpPoints.Add(pos);
                 center += pos;
             }
@@ -223,7 +259,6 @@ namespace BlueprintTweaks
 
             ReformBPUtils.FlattenTerrainReform(tool.factory, tmpPoints, center);
             VFAudio.Create("reform-terrain", null, center, true, 4);
-            PlatformSystem platformSystem = tool.factory.platformSystem;
 
             foreach (ReformData preview in reforms)
             {

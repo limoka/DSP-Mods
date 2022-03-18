@@ -17,7 +17,7 @@ namespace BlueprintTweaks.PasteLocked
             }
             AssemblerComponent assemblerComponent = __instance.factorySystem.assemblerPool[__instance.assemblerId];
 
-            if (assemblerComponent.recipeIsLocked)
+            if (!assemblerComponent.recipeIsLocked)
             {
                 __instance.stateText.text = "recipeLockedWarn".Translate();
                 __instance.stateText.color = __instance.workStoppedColor;
