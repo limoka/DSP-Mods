@@ -21,7 +21,9 @@ namespace BlueprintTweaks.FactoryUndo
         {
             using (UndoManager.IgnoreAllEvents.On())
             {
+                FastRemoveHelper.excludeStationOverride = BlueprintTweaksPlugin.undoExcludeStations.Value;
                 FastRemoveHelper.SwitchDelete(factory, objectIds);
+                FastRemoveHelper.excludeStationOverride = false;
             }
 
             undoData.notifyBuildListeners.Remove(this);
@@ -35,6 +37,10 @@ namespace BlueprintTweaks.FactoryUndo
             if (dotsSnapped == null || dotsSnapped.Length == 0) return false;
 
             BuildTool_BlueprintPaste paste = actionBuild.blueprintPasteTool;
+
+            BlueprintData oldBlueprint = paste.blueprint?.Clone();
+            string oldPath = paste.blueprintPath;
+            
             paste._OnOpen();
             paste.InitTool();
 
@@ -88,6 +94,9 @@ namespace BlueprintTweaks.FactoryUndo
             }
 
             paste.ResetStates();
+            paste.blueprint = oldBlueprint;
+            paste.blueprintPath = oldPath;
+            
             return success;
         }
     }

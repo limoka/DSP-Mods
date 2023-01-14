@@ -2,10 +2,22 @@
 
 namespace BlueprintTweaks
 {
+    public struct HintData
+    {
+        public int signalId;
+        public int value;
+
+        public HintData(int signalId, int value)
+        {
+            this.signalId = signalId;
+            this.value = value;
+        }
+    }
+    
     public class UIHintsPanel : UIBlueprintPanel
     {
         public List<UIHintItem> hintsItems = new List<UIHintItem>();
-        public List<int> tmpHintList = new List<int>();
+        public List<HintData> tmpHintList = new List<HintData>();
 
         public int hintsCount;
 
@@ -32,15 +44,23 @@ namespace BlueprintTweaks
 
                 if (proto.prefabDesc.isBelt)
                 {
-                    if (blueprintBuilding.parameters != null && blueprintBuilding.parameters.Length == 1)
+                    if (blueprintBuilding.parameters != null && blueprintBuilding.parameters.Length >= 1)
                     {
-                        tmpHintList.Add(blueprintBuilding.parameters[0]);
+                        int signalId = blueprintBuilding.parameters[0];
+                        int count = 0;
+                        
+                        if (blueprintBuilding.parameters.Length >= 2)
+                        {
+                            count = blueprintBuilding.parameters[1];
+                        }
+                        
+                        tmpHintList.Add(new HintData(signalId, count));
                     }
                 }
             }
 
             int num = 0;
-            foreach (int itemId in tmpHintList)
+            foreach (HintData itemId in tmpHintList)
             {
                 SetItem(num, itemId);
                 num++;
@@ -49,7 +69,7 @@ namespace BlueprintTweaks
             ClearComponentItems(num);
         }
 
-        public void SetItem(int index, int itemId)
+        public void SetItem(int index, HintData itemId)
         {
             if (index < 0)
             {
@@ -82,9 +102,8 @@ namespace BlueprintTweaks
             hintsCount = activeCount;
         }
 
-        public void ChangeHint(int oldSignalId, int newSignal)
+        public void ChangeHint(int oldSignalId, HintData newSignal)
         {
-
             foreach (BlueprintBuilding blueprintBuilding in inspector.blueprint.buildings)
             {
                 int protoId = blueprintBuilding.itemId;
@@ -92,11 +111,19 @@ namespace BlueprintTweaks
 
                 if (!proto.prefabDesc.isBelt) continue;
                 if (blueprintBuilding.parameters == null ) continue;
-                if (blueprintBuilding.parameters.Length != 1) continue;
+                if (blueprintBuilding.parameters.Length < 1) continue;
                 
                 if (blueprintBuilding.parameters[0] == oldSignalId)
                 {
-                    blueprintBuilding.parameters[0] = newSignal;
+                    blueprintBuilding.parameters[0] = newSignal.signalId;
+                    if (blueprintBuilding.parameters.Length >= 2)
+                    {
+                        blueprintBuilding.parameters[1] = newSignal.value;
+                    }
+                    else if (newSignal.value != 0)
+                    {
+                        blueprintBuilding.parameters = new[]{newSignal.signalId, newSignal.value};
+                    }
                 }
             }
 

@@ -66,8 +66,15 @@ namespace BlueprintTweaks
                 return false;
             }
 
-            if (__instance.gameData.localPlanet?.gasItems == null || __instance.gameData.localPlanet.gasItems.Length == 0) return true;
-            
+            if (BlueprintTweaksPlugin.genesisBookIsInstalled)
+            {
+                if (__instance.gameData.localPlanet?.type != EPlanetType.Gas) return true;
+            }
+            else
+            {
+                if (__instance.gameData.localPlanet?.gasItems == null || __instance.gameData.localPlanet.gasItems.Length == 0) return true;
+            }
+
             foreach (BlueprintBuilding building in blueprint.buildings)
             {
                 ItemProto item = LDB.items.Select(building.itemId);

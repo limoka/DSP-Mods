@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Reflection.Emit;
 using CommonAPI;
 using HarmonyLib;
 using NebulaAPI;
@@ -68,6 +70,60 @@ namespace BlueprintTweaks
             }
         }
 
+
+        [HarmonyPatch(typeof(BuildTool_BlueprintPaste), "DeterminePreviewsPrestage")]
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> FixZeroComputeBuffer(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            FieldInfo bpCursor = AccessTools.Field(typeof(BuildTool_BlueprintPaste), nameof(BuildTool_BlueprintPaste.bpCursor));
+            FieldInfo bpSignBuffer = AccessTools.Field(typeof(BuildTool_BlueprintPaste), nameof(BuildTool_BlueprintPaste.bpSignBuffer));
+            
+            CodeMatcher matcher = new CodeMatcher(instructions, generator)
+                .MatchForward(false,
+                    new CodeMatch(OpCodes.Ldarg_0),
+                    new CodeMatch(OpCodes.Ldarg_0),
+                    new CodeMatch(OpCodes.Ldfld, bpCursor),
+                    new CodeMatch(OpCodes.Ldc_I4_S),
+                    new CodeMatch(OpCodes.Ldc_I4_0),
+                    new CodeMatch(OpCodes.Newobj)
+                )
+                .Advance(1)
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldnull))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Stfld, bpSignBuffer))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldarg_0))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldfld, bpCursor));
+
+            int jumpPos = matcher.Clone()
+                .MatchForward(false, new CodeMatch(OpCodes.Stfld)).Advance(1).Pos;
+            
+            matcher.InsertBranchAndAdvance(OpCodes.Brfalse, jumpPos)
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldarg_0));
+
+
+            return matcher.InstructionEnumeration();
+        }
+
+        [HarmonyPatch(typeof(BuildTool_BlueprintPaste), "ResetBuildPreviews")]
+        [HarmonyTranspiler]
+        static IEnumerable<CodeInstruction> FixZeroComputeBuffer1(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
+        {
+            FieldInfo signPool = AccessTools.Field(typeof(BuildTool_BlueprintPaste), nameof(BuildTool_BlueprintPaste.signPool));
+            FieldInfo bpSignBuffer = AccessTools.Field(typeof(BuildTool_BlueprintPaste), nameof(BuildTool_BlueprintPaste.bpSignBuffer));
+            Label? label = default;
+            
+            CodeMatcher matcher = new CodeMatcher(instructions, generator)
+                .MatchForward(true,
+                    new CodeMatch(OpCodes.Ldarg_0),
+                    new CodeMatch(OpCodes.Ldfld, signPool),
+                    new CodeMatch(x => x.Branches(out label))
+                ).Advance(1)
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldarg_0))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldfld, bpSignBuffer))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Brfalse, label));
+
+            return matcher.InstructionEnumeration();
+        }
+
         [HarmonyPatch(typeof(BuildTool_BlueprintPaste), "_OnTick")]
         [HarmonyPostfix]
         public static void OnUpdate(BuildTool_BlueprintPaste __instance)
@@ -107,10 +163,12 @@ namespace BlueprintTweaks
 
             string message = "";
             int playerFoundationCount = __instance.player.package.GetItemCount(PlatformSystem.REFORM_ID);
-
+            bool isError = false;
+            
             if (playerFoundationCount < tmpPoints.Count)
             {
                 message = Format("NotEnoughFoundationsMessage".Translate(), tmpPoints.Count - playerFoundationCount) + "\n";
+                isError = true;
             }
             else
             {
@@ -133,6 +191,11 @@ namespace BlueprintTweaks
                 {
                     int num2 = -lastCost;
                     __instance.actionBuild.model.cursorText = $"{message}{"沙土获得".Translate()} {num2} {"个沙土".Translate()}";
+                }
+
+                if (isError)
+                {
+                    __instance.actionBuild.model.cursorState = -1;
                 }
             }
         }
@@ -267,14 +330,15 @@ namespace BlueprintTweaks
                 
                 int reformIndex = platformSystem.GetReformIndexForSegment(latCount, longCount);
 
-                if (reformIndex < 0) continue;
-                
-                int reformType = platformSystem.GetReformType(reformIndex);
-                int reformColor = platformSystem.GetReformColor(reformIndex);
-                if (reformType == preview.type && reformColor == preview.color) continue;
-                
-                platformSystem.SetReformType(reformIndex, preview.type);
-                platformSystem.SetReformColor(reformIndex, preview.color);
+                if (reformIndex >= 0 && reformIndex < platformSystem.reformData.Length)
+                {
+                    int reformType = platformSystem.GetReformType(reformIndex);
+                    int reformColor = platformSystem.GetReformColor(reformIndex);
+                    if (reformType == preview.type && reformColor == preview.color) continue;
+
+                    platformSystem.SetReformType(reformIndex, preview.type);
+                    platformSystem.SetReformColor(reformIndex, preview.color);
+                }
             }
 
             return true;

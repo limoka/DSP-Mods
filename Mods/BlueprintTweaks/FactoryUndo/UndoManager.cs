@@ -17,9 +17,11 @@ namespace BlueprintTweaks.FactoryUndo
             {
                 NebulaModAPI.OnPlayerJoinedGame += OnPlayerJoined;
                 NebulaModAPI.OnPlayerLeftGame += OnPlayerLeft;
+                NebulaModAPI.OnMultiplayerGameStarted += OnGameStarted;
             }
-            
-            undos.Add(GetLocalUserId(), new PlayerUndo());
+
+            ushort localId = GetLocalUserId();
+            undos.Add(localId, new PlayerUndo(localId));
         }
 
         public static ushort GetLocalUserId()
@@ -58,12 +60,23 @@ namespace BlueprintTweaks.FactoryUndo
 
         public static void OnPlayerJoined(IPlayerData player)
         {
-            undos.Add(player.PlayerId, new PlayerUndo());
+            undos.Add(player.PlayerId, new PlayerUndo(player.PlayerId));
         }
 
         public static void OnPlayerLeft(IPlayerData player)
         {
             undos.Remove(player.PlayerId);
+        }
+
+        public static void OnGameStarted()
+        {
+            IMultiplayerSession session = NebulaModAPI.MultiplayerSession;
+            if (session.LocalPlayer.IsHost)
+            {
+                undos.Clear();
+                ushort localId = GetLocalUserId();
+                undos.Add(localId, new PlayerUndo(localId));
+            }
         }
 
         #endregion
@@ -74,13 +87,15 @@ namespace BlueprintTweaks.FactoryUndo
         {
             string message;
             bool sound;
+            PlanetFactory factory = GameMain.localPlanet.factory;
             
             if (NebulaModAPI.IsMultiplayerActive)
             {
                 IMultiplayerSession session = NebulaModAPI.MultiplayerSession;
                 if (session.LocalPlayer.IsHost)
                 {
-                    if (undos[GetLocalUserId()].TryUndo(out message, out sound))
+                   
+                    if (undos[GetLocalUserId()].TryUndo(factory, out message, out sound))
                     {
                         UIRealtimeTip.Popup(message.Translate(), sound);
                     }
@@ -92,7 +107,7 @@ namespace BlueprintTweaks.FactoryUndo
                 return;
             }
 
-            if (undos[GetLocalUserId()].TryUndo(out message, out sound))
+            if (undos[GetLocalUserId()].TryUndo(factory, out message, out sound))
             {
                 UIRealtimeTip.Popup(message.Translate(), sound);
             }
@@ -102,13 +117,14 @@ namespace BlueprintTweaks.FactoryUndo
         {
             string message;
             bool sound;
+            PlanetFactory factory = GameMain.localPlanet.factory;
             
             if (NebulaModAPI.IsMultiplayerActive)
             {
                 IMultiplayerSession session = NebulaModAPI.MultiplayerSession;
                 if (session.LocalPlayer.IsHost)
                 {
-                    if (undos[GetLocalUserId()].TryRedo(out message, out sound))
+                    if (undos[GetLocalUserId()].TryRedo(factory, out message, out sound))
                     {
                         UIRealtimeTip.Popup(message.Translate(), sound);
                     }
@@ -120,7 +136,7 @@ namespace BlueprintTweaks.FactoryUndo
                 return;
             }
 
-            if (undos[GetLocalUserId()].TryRedo(out message, out sound))
+            if (undos[GetLocalUserId()].TryRedo(factory, out message, out sound))
             {
                 UIRealtimeTip.Popup(message.Translate(), sound);
             }

@@ -60,6 +60,11 @@ namespace BlueprintTweaks.FactoryUndo
                 {
                     if (objectId != 0)
                     {
+                        PrefabDesc desc = actionBuild.noneTool.GetPrefabDesc(objectId);
+                        if (desc != null)
+                        {
+                            if (desc.isStation && BlueprintTweaksPlugin.undoExcludeStations.Value) continue;
+                        }
                         actionBuild.DoDismantleObject(objectId);
                     }
                 }
@@ -205,7 +210,10 @@ namespace BlueprintTweaks.FactoryUndo
             }
 
             click.buildPreviews.Clear();
-            click.buildPreviews.AddRange(previews);
+            click.buildPreviews.AddRange(previews.Where(preview =>
+            {
+                return !(preview.desc.isStation && BlueprintTweaksPlugin.undoExcludeStations.Value);
+            }));
 
             bool condition;
 

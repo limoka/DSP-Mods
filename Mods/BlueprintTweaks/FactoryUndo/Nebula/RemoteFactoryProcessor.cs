@@ -23,6 +23,7 @@ namespace BlueprintTweaks.FactoryUndo.Nebula
 
             PlayerAction_Build pab = GameMain.mainPlayer.controller != null ? GameMain.mainPlayer.controller.actionBuild : null;
             BuildTool_BlueprintPaste buildTool = pab.blueprintPasteTool;
+            BuildTool_None toolNone = pab.noneTool;
 
             IFactoryManager factoryManager = NebulaModAPI.MultiplayerSession.Factories;
 
@@ -43,6 +44,7 @@ namespace BlueprintTweaks.FactoryUndo.Nebula
             factoryManager.EventFactory = planet.factory;
 
             buildTool.factory = planet.factory;
+            toolNone.factory = planet.factory;
             pab.factory = planet.factory;
 
             using (factoryManager.IsIncomingRequest.On())
@@ -53,6 +55,7 @@ namespace BlueprintTweaks.FactoryUndo.Nebula
             if (loadExternalPlanetData)
             {
                 buildTool.factory = tmpFactory;
+                toolNone.factory = tmpFactory;
                 pab.factory = tmpFactory;
             }
 

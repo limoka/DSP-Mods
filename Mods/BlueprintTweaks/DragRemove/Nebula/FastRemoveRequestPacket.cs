@@ -12,15 +12,17 @@ namespace BlueprintTweaks.Nebula
         public int[] EdgeObjIds { get; set; }
         public int AuthorId { get; set; }
         public bool UseEdgeVariant { get; set; }
+        public bool ExcludeStations { get; set; }
 
         public FastRemoveRequestPacket() { }
-        public FastRemoveRequestPacket(int planetId, int[] objIds, int[] edgeObjIds, int authorId, bool variant)
+        public FastRemoveRequestPacket(int planetId, int[] objIds, int[] edgeObjIds, int authorId, bool variant, bool excludeStations)
         {
             AuthorId = authorId;
             PlanetId = planetId;
             ObjIds = objIds;
             EdgeObjIds = edgeObjIds;
             UseEdgeVariant = variant;
+            ExcludeStations = excludeStations;
         }
         
         [RegisterPacketProcessor]
@@ -28,6 +30,7 @@ namespace BlueprintTweaks.Nebula
         {
             public override void ProcessPacket(PlanetFactory factory, PlayerAction_Build actionBuild, FastRemoveRequestPacket packet, INebulaConnection conn)
             {
+                FastRemoveHelper.excludeStationOverride = packet.ExcludeStations;
                 if (packet.UseEdgeVariant)
                 {
                     FastRemoveHelper.SwitchDelete(factory, packet.ObjIds.ToList(), packet.EdgeObjIds.ToList());
@@ -36,6 +39,7 @@ namespace BlueprintTweaks.Nebula
                 {
                     FastRemoveHelper.SwitchDelete(factory, packet.ObjIds.ToList());
                 }
+                FastRemoveHelper.excludeStationOverride = false;
             }
         }
     }

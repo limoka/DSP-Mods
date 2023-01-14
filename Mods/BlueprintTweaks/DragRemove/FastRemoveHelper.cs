@@ -21,22 +21,26 @@ namespace BlueprintTweaks
         private static List<HashSet<int>> powerConRemoval = new List<HashSet<int>>();
         private static bool[] _divideline_marks;
 
+        public static bool excludeStationOverride;
+
+        public static bool ShouldExcludeStations => excludeStationOverride || BlueprintTweaksPlugin.excludeStations.Value;
+
         public static void SwitchDelete(PlanetFactory factory, List<int> targetIds, List<int> edgeIds)
         {
             if (targetIds.Count <= 0) return;
-            
+
             if (NebulaModAPI.IsMultiplayerActive)
             {
                 IMultiplayerSession session = NebulaModAPI.MultiplayerSession;
                 int planetId = session.Factories.TargetPlanet != NebulaModAPI.PLANET_NONE ? session.Factories.TargetPlanet : factory.planet?.id ?? -1;
-                
-                
+
+
                 if (session.LocalPlayer.IsHost || !session.Factories.IsIncomingRequest.Value)
                 {
                     session.Network.SendPacket(new FastRemoveRequestPacket(planetId, targetIds.ToArray(), edgeIds.ToArray(),
                         session.Factories.PacketAuthor == NebulaModAPI.AUTHOR_NONE
                             ? session.LocalPlayer.Id
-                            : session.Factories.PacketAuthor, true));
+                            : session.Factories.PacketAuthor, true, ShouldExcludeStations));
                 }
 
                 if (!session.LocalPlayer.IsHost && !session.Factories.IsIncomingRequest.Value)
@@ -90,21 +94,24 @@ namespace BlueprintTweaks
 
             try
             {
-                
                 List<int> filteredIds = targetIds.Where(objId =>
                 {
                     if (objId < 0)
                     {
                         int modelIndex = factory.prebuildPool[-objId].modelIndex;
                         ModelProto modelProto = LDB.models.Select(modelIndex);
-                        return modelProto != null;
+
+                        if (modelProto == null) return false;
+                        return !modelProto.prefabDesc.isStation || !ShouldExcludeStations;
                     }
 
                     if (objId > 0)
                     {
                         int modelIndex = factory.entityPool[objId].modelIndex;
                         ModelProto modelProto = LDB.models.Select(modelIndex);
-                        return modelProto != null;
+
+                        if (modelProto == null) return false;
+                        return !modelProto.prefabDesc.isStation || !ShouldExcludeStations;
                     }
 
                     return false;
@@ -115,7 +122,7 @@ namespace BlueprintTweaks
                 {
                     PlayerUndo data = UndoManager.GetCurrentPlayerData();
 
-                    data.AddUndoItem(new UndoDismantle(data, filteredIds, blueprint, new[] {position}, 0));
+                    data.AddUndoItem(new UndoDismantle(data, filteredIds, blueprint, new[] { position }, 0));
                 }
             }
             catch (Exception e)
@@ -132,14 +139,14 @@ namespace BlueprintTweaks
             {
                 IMultiplayerSession session = NebulaModAPI.MultiplayerSession;
                 int planetId = session.Factories.TargetPlanet != NebulaModAPI.PLANET_NONE ? session.Factories.TargetPlanet : factory.planet?.id ?? -1;
-                
-                
+
+
                 if (session.LocalPlayer.IsHost || !session.Factories.IsIncomingRequest.Value)
                 {
                     session.Network.SendPacket(new FastRemoveRequestPacket(planetId, objectIds.ToArray(), Array.Empty<int>(),
                         session.Factories.PacketAuthor == NebulaModAPI.AUTHOR_NONE
                             ? session.LocalPlayer.Id
-                            : session.Factories.PacketAuthor, false));
+                            : session.Factories.PacketAuthor, false, ShouldExcludeStations));
                 }
 
                 if (!session.LocalPlayer.IsHost && !session.Factories.IsIncomingRequest.Value)
@@ -224,12 +231,12 @@ namespace BlueprintTweaks
                     float longitudeRad = Mathf.Atan2(position.x, -position.z);
 
                     int longitudeSegmentCount = BlueprintUtils.GetLongitudeSegmentCount(latitudeRad, segment);
-                    int latGrid = Mathf.CeilToInt((Mathf.CeilToInt((float) segment / longitudeSegmentCount) - 1) * 0.5f);
-                    int longGrid = (int) Math.Round((longitudeRad + Mathf.PI) / divisor);
+                    int latGrid = Mathf.CeilToInt((Mathf.CeilToInt((float)segment / longitudeSegmentCount) - 1) * 0.5f);
+                    int longGrid = (int)Math.Round((longitudeRad + Mathf.PI) / divisor);
 
                     for (int i = -latGrid; i <= latGrid; i++)
                     {
-                        int index = (int) Mathf.Repeat(longGrid + i, 1000f);
+                        int index = (int)Mathf.Repeat(longGrid + i, 1000f);
                         _divideline_marks[index] = true;
                     }
                 }
@@ -269,11 +276,11 @@ namespace BlueprintTweaks
             if (gridPos1 > gridPos2)
             {
                 int gridPos = gridy1 + gridPos1 / 2;
-                return Mathf.Repeat((float) (gridPos * divisor), 2 * Mathf.PI) - Mathf.PI;
+                return Mathf.Repeat((float)(gridPos * divisor), 2 * Mathf.PI) - Mathf.PI;
             }
 
             gridPos2 = grixy2 + gridPos2 / 2;
-            return (float) (gridPos2 * divisor - Mathf.PI);
+            return (float)(gridPos2 * divisor - Mathf.PI);
         }
 
         public static void RegularDeleteEntities(PlanetFactory factory, List<int> targetIds)
@@ -289,13 +296,13 @@ namespace BlueprintTweaks
 
             foreach (int objId in targetIds)
             {
-                if (factory.entityPool[objId].stationId > 0 && BlueprintTweaksPlugin.excludeStations.Value)
-                {
-                    continue;
-                }
-
                 try
                 {
+                    if (actionBuild.noneTool.GetPrefabDesc(objId).isStation && ShouldExcludeStations)
+                    {
+                        continue;
+                    }
+
                     DoDismantleObject(actionBuild, objId);
                 }
                 catch (Exception e)
@@ -307,7 +314,7 @@ namespace BlueprintTweaks
             var durationInS = stopwatch.duration;
             BlueprintTweaksPlugin.logger.LogDebug($"Took {durationInS} s to delete entities");
         }
-        
+
         [HarmonyPatch(typeof(PlayerAction_Build), nameof(PlayerAction_Build.DoDismantleObject))]
         [HarmonyReversePatch]
         public static bool DoDismantleObject(PlayerAction_Build instance, int objId)
@@ -526,10 +533,10 @@ namespace BlueprintTweaks
                     factory.factorySystem.TakeBackItems_Assembler(player, assemblerId);
                 }
 
-                int fractionateId = factory.entityPool[objId].fractionateId;
+                int fractionateId = factory.entityPool[objId].fractionatorId;
                 if (fractionateId > 0)
                 {
-                    factory.factorySystem.TakeBackItems_Fractionate(player, fractionateId);
+                    factory.factorySystem.TakeBackItems_Fractionator(player, fractionateId);
                 }
 
                 int ejectorId = factory.entityPool[objId].ejectorId;
@@ -585,7 +592,7 @@ namespace BlueprintTweaks
                     if (powerGeneratorComponent.gamma)
                     {
                         int productId = powerGeneratorComponent.productId;
-                        int num = (int) powerGeneratorComponent.productCount;
+                        int num = (int)powerGeneratorComponent.productCount;
                         if (productId != 0 && num > 0)
                         {
                             int upCount2 = player.TryAddItemToPackage(productId, num, 0, true, objId);
@@ -650,7 +657,7 @@ namespace BlueprintTweaks
                 if (entityId > 0)
                 {
                     if (factory.entityPool[entityId].id != entityId) continue;
-                    if (factory.entityPool[entityId].stationId > 0 && BlueprintTweaksPlugin.excludeStations.Value)
+                    if (factory.entityPool[entityId].stationId > 0 && ShouldExcludeStations)
                     {
                         continue;
                     }
@@ -716,8 +723,8 @@ namespace BlueprintTweaks
                     {
                         BlueprintTweaksPlugin.logger.LogWarning($"Error sending return items to player ID: {session.Factories.PacketAuthor}!");
                     }
-                    
-                    
+
+
                     durationInS = stopwatch.duration;
                     BlueprintTweaksPlugin.logger.LogDebug($"Took {durationInS} s to fast delete");
                     return;

@@ -13,9 +13,9 @@ namespace BlueprintTweaks.FactoryUndo
     public static class BuildTools_Patch
     {
         
-        [HarmonyPatch(typeof(BuildTool_PathAddon), nameof(BuildTool_PathAddon.CreatePrebuilds))]
+        [HarmonyPatch(typeof(BuildTool_Addon), nameof(BuildTool_Addon.CreatePrebuilds))]
         [HarmonyPostfix]
-        public static void OnPathAddonBuilt(BuildTool_PathAddon __instance)
+        public static void OnPathAddonBuilt(BuildTool_Addon __instance)
         {
             if (UndoManager.IgnoreAllEvents.Value) return;
             if (NebulaModAPI.IsMultiplayerActive)
@@ -24,7 +24,7 @@ namespace BlueprintTweaks.FactoryUndo
             }
 
             PlayerUndo data = UndoManager.GetCurrentPlayerData();
-            data.AddUndoItem(new UndoPathAddon(data, __instance.handbp.objId));
+            data.AddUndoItem(new UndoAddon(data, __instance.handbp.objId));
         }
         
         [HarmonyPatch(typeof(BuildTool_Click), nameof(BuildTool_Click.CreatePrebuilds))]
@@ -65,8 +65,8 @@ namespace BlueprintTweaks.FactoryUndo
             Array.Copy(__instance.dotsSnapped, dots, __instance.dotsCursor);
 
             PlayerUndo data = UndoManager.GetCurrentPlayerData();
+            
             UndoBlueprint undo = new UndoBlueprint(data, objectIds, __instance.blueprint, dots, __instance.yaw);
-
             data.AddUndoItem(undo);
         }
 

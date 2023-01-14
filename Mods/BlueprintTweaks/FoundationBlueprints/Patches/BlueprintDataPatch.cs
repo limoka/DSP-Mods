@@ -85,10 +85,12 @@ namespace BlueprintTweaks
         [HarmonyPostfix]
         public static void Export(BlueprintData __instance, BinaryWriter w)
         {
+            w.Write((byte) 3);
+            
             bool hasData = __instance.reforms != null && __instance.reforms.Length > 0;
             if (hasData)
             {
-                w.Write((byte) 2);
+                w.Write((byte) 1);
                 w.Write(__instance.reforms.Length);
                 foreach (ReformData data in __instance.reforms)
                 {
@@ -97,20 +99,24 @@ namespace BlueprintTweaks
 
                 bool hasColors = __instance.customColors != null && __instance.customColors.Length > 0;
                 w.Write(hasColors);
-                if (!hasColors) return;
-
-                for (int i = 0; i < 16; i++)
+                if (hasColors)
                 {
-                    w.Write(__instance.customColors[i].r);
-                    w.Write(__instance.customColors[i].g);
-                    w.Write(__instance.customColors[i].b);
-                    w.Write(__instance.customColors[i].a);
+
+                    for (int i = 0; i < 16; i++)
+                    {
+                        w.Write(__instance.customColors[i].r);
+                        w.Write(__instance.customColors[i].g);
+                        w.Write(__instance.customColors[i].b);
+                        w.Write(__instance.customColors[i].a);
+                    }
                 }
-
-                return;
             }
-
-            w.Write((byte) 0);
+            else
+            {
+                w.Write((byte)0);
+            }
+            
+            w.Write((byte)__instance.anchorType);
         }
 
         [HarmonyPatch(typeof(BlueprintData), "Import")]
@@ -120,29 +126,48 @@ namespace BlueprintTweaks
             if (r.BaseStream.Position != r.BaseStream.Length)
             {
                 byte version = r.ReadByte();
-                if (version >= 1)
+                
+                bool hasData;
+                if (version >= 3)
                 {
-                    int len = r.ReadInt32();
-                    __instance.reforms = new ReformData[len];
-                    for (int i = 0; i < len; i++)
+                    hasData = r.ReadByte() == 1;
+                }
+                else
+                {
+                    hasData = version >= 1;
+                }
+
+                if (hasData)
+                {
+                    if (version >= 1)
                     {
-                        __instance.reforms[i] = new ReformData();
-                        ReformData data = __instance.reforms[i];
-                        data.Import(r);
+                        int len = r.ReadInt32();
+                        __instance.reforms = new ReformData[len];
+                        for (int i = 0; i < len; i++)
+                        {
+                            __instance.reforms[i] = new ReformData();
+                            ReformData data = __instance.reforms[i];
+                            data.Import(r);
+                        }
+                    }
+
+                    if (version >= 2 && r.ReadBoolean())
+                    {
+                        __instance.customColors = new Color[16];
+                        for (int i = 0; i < 16; i++)
+                        {
+                            __instance.customColors[i] = new Color(
+                                r.ReadSingle(),
+                                r.ReadSingle(),
+                                r.ReadSingle(),
+                                r.ReadSingle());
+                        }
                     }
                 }
 
-                if (version >= 2 && r.ReadBoolean())
+                if (version >= 3)
                 {
-                    __instance.customColors = new Color[16];
-                    for (int i = 0; i < 16; i++)
-                    {
-                        __instance.customColors[i] = new Color(
-                            r.ReadSingle(),
-                            r.ReadSingle(),
-                            r.ReadSingle(),
-                            r.ReadSingle());
-                    }
+                    __instance.anchorType = r.ReadByte();
                 }
             }
         }

@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Security;
 using System.Security.Permissions;
@@ -8,6 +11,8 @@ using BepInEx.Logging;
 using BlueprintTweaks.BlueprintBrowserUIChanges;
 using BlueprintTweaks.BrowserRememberFolder;
 using BlueprintTweaks.FactoryUndo;
+using BlueprintTweaks.GlobalPatch;
+using BlueprintTweaks.Patches;
 using CommonAPI;
 using CommonAPI.Systems;
 using HarmonyLib;
@@ -34,8 +39,9 @@ namespace BlueprintTweaks
         
         public const string MOD_DISP_NAME = "Blueprint Tweaks";
         
-        public const string VERSION = "1.5.0";
+        public const string VERSION = "1.5.8";
 
+        public const string GENESIS_BOOK_MODGUID = "org.LoShin.GenesisBook";
         public const string FREE_FOUNDATIONS_GUID = "de.Hotte.DSP.FreeFoundations";
         public const string FREE_FOUNDATIONS_GUID_2 = "com.aekoch.mods.dsp.UnlimitedFoundations";
         
@@ -52,7 +58,9 @@ namespace BlueprintTweaks
 
         public static DragRemoveBuildTool tool;
 
+        public static bool gotPluginInfo;
         public static bool freeFoundationsIsInstalled;
+        public static bool genesisBookIsInstalled;
 
         public static ConfigEntry<bool> cameraToggleEnabled;
         public static ConfigEntry<bool> addPasteButtonEnabled;
@@ -79,6 +87,7 @@ namespace BlueprintTweaks
         public static ConfigEntry<bool> canBlueprintOnGasGiants;
         
         public static ConfigEntry<bool> excludeStations;
+        public static ConfigEntry<bool> undoExcludeStations;
         public static ConfigEntry<bool> useFastDismantle;
         public static ConfigEntry<int>  undoMaxHistory;
 
@@ -100,7 +109,7 @@ namespace BlueprintTweaks
 
             
             
-            forcePasteEnabled = Config.Bind("Features", "forcePaste", true, "Allows using key to force blueprint placement\nAll values are applied on restart");
+            forcePasteEnabled = Config.Bind("Features", "forcePaste", true, "Allow to force paste using Shift+Click");
             axisLockEnabled = Config.Bind("Features", "axisLock", true, "Allows using Latitude/Longtitude axis locks\nAll values are applied on restart");
             gridControlFeature = Config.Bind("Features", "gridControl", true, "Allows changing grid size and its offset\nAll values are applied on restart");
             blueprintMirroring = Config.Bind("Features", "blueprintMirroring", true, "Allows mirroring Blueprints\nAll values are applied on restart");
@@ -119,6 +128,7 @@ namespace BlueprintTweaks
             excludeStations = Config.Bind("Misc", "excludeStations", true, "When using drag remove tool, logistic stations (and miners Mk.II) will not get removed. This is a safeguard against errors which occur most of the time when you try to mass dismantle logistic stations.");
 
             undoMaxHistory = Config.Bind("Misc", "undoMaxHistory", 50, "Defines undo history size. When history reaches it's capacity, old entries will get removed. When using Nebula host controls the used value");
+            undoExcludeStations = Config.Bind("Misc", "undoExcludeStations", true, "When enabled factory undo will not undo/redo actions with logistic stations.");
 
             
             Config.MigrateConfig<bool>("General", "Interface", new []{"cameraToggle", "recipeChange", "changeLogisticCargo", "changeTier"});
@@ -133,16 +143,7 @@ namespace BlueprintTweaks
             #endregion
             
             Config.Save();
-            
-            if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(FREE_FOUNDATIONS_GUID))
-            {
-                freeFoundationsIsInstalled = true;
-            }
-            if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(FREE_FOUNDATIONS_GUID_2))
-            {
-                freeFoundationsIsInstalled = true;
-            }
-            
+
             string pluginfolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
 
             resource = new ResourceData(MODNAME, "blueprinttweaks", pluginfolder);
@@ -167,7 +168,7 @@ namespace BlueprintTweaks
             ProtoRegistry.RegisterString("KEYLockLatAxis", "Lock Latitude axis", "纬度锁定");
             ProtoRegistry.RegisterString("KEYSetLocalOffset", "Set grid snapping offset", "设定网格捕捉偏移");
             
-            ProtoRegistry.RegisterString("GridSizeLabel", "Blueprint Size", "蓝图尺寸");
+            ProtoRegistry.RegisterString("GridSizeLabel", "Blueprint Size and Anchor", "蓝图大小和锚点");
             ProtoRegistry.RegisterString("GridLongSize", "Width", "宽度");
             ProtoRegistry.RegisterString("GridLatSize", "Height", "高度");
             
@@ -248,6 +249,12 @@ namespace BlueprintTweaks
             ProtoRegistry.RegisterString("UndoHistoryEmptyMessage", "Undo history is empty!", "撤消历史是空的！");
             ProtoRegistry.RegisterString("RedoHistoryEmptyMessage", "Redo history is empty!", "重做历史是空的！");
             
+            ProtoRegistry.RegisterString("AnchorSetLabel", "Anchors", "锚赂");
+            ProtoRegistry.RegisterString("AnchorTipTitle", "Set your anchor position", "设置锚点位置");
+            ProtoRegistry.RegisterString("AnchorTipText", 
+                "Use buttons below to set your anchor position as you like. This change will take effect after saving.",
+                "使用下面的按钮来设置你喜欢的锚点位置. 此更改将在保存后生效。");
+            
             #endregion
             
             if (factoryUndo.Value)
@@ -318,7 +325,11 @@ namespace BlueprintTweaks
             }
 
             if (axisLockEnabled.Value || gridControlFeature.Value)
+            {
                 harmony.PatchAll(typeof(GridSnappingPatches));
+                harmony.PatchAll(typeof(BuildTool_BlueprintPaste_Patch));
+            }
+
             if (cameraToggleEnabled.Value)
                 harmony.PatchAll(typeof(CameraFixPatch));
             if (recipeChangeEnabled.Value || gridControlFeature.Value)
@@ -327,6 +338,8 @@ namespace BlueprintTweaks
             {
                 harmony.PatchAll(typeof(BlueprintPastePatch));
             }
+            
+            harmony.PatchAll(typeof(BuildTool_BlueprintPaste_Patch_3));
             
             #endregion
             
@@ -359,7 +372,7 @@ namespace BlueprintTweaks
 
             if (axisLockEnabled.Value)
             {
-                CustomKeyBindSystem.RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
+                CustomKeyBindSystem.RegisterKeyBind<PressKeyBind>(new BuiltinKey
                 {
                     key = new CombineKey((int) KeyCode.G, CombineKey.CTRL_COMB, ECombineKeyAction.OnceClick, false),
                     conflictGroup = 2052,
@@ -367,7 +380,7 @@ namespace BlueprintTweaks
                     canOverride = true
                 });
 
-                CustomKeyBindSystem.RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
+                CustomKeyBindSystem.RegisterKeyBind<PressKeyBind>(new BuiltinKey
                 {
                     key = new CombineKey((int) KeyCode.T, CombineKey.CTRL_COMB, ECombineKeyAction.OnceClick, false),
                     conflictGroup = 2052,
@@ -378,7 +391,7 @@ namespace BlueprintTweaks
 
             if (gridControlFeature.Value)
             {
-                CustomKeyBindSystem.RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
+                CustomKeyBindSystem.RegisterKeyBind<PressKeyBind>(new BuiltinKey
                 {
                     key = new CombineKey((int) KeyCode.B, CombineKey.CTRL_COMB, ECombineKeyAction.OnceClick, false),
                     conflictGroup = 2052,
@@ -389,7 +402,7 @@ namespace BlueprintTweaks
             
             if (blueprintMirroring.Value)
             {
-                CustomKeyBindSystem.RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
+                CustomKeyBindSystem.RegisterKeyBind<PressKeyBind>(new BuiltinKey
                 {
                     key = new CombineKey((int) KeyCode.G, CombineKey.SHIFT_COMB, ECombineKeyAction.OnceClick, false),
                     conflictGroup = 2052,
@@ -397,7 +410,7 @@ namespace BlueprintTweaks
                     canOverride = true
                 });
 
-                CustomKeyBindSystem.RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
+                CustomKeyBindSystem.RegisterKeyBind<PressKeyBind>(new BuiltinKey
                 {
                     key = new CombineKey((int) KeyCode.T, CombineKey.SHIFT_COMB, ECombineKeyAction.OnceClick, false),
                     conflictGroup = 2052,
@@ -409,7 +422,7 @@ namespace BlueprintTweaks
 
             if (factoryUndo.Value)
             {
-                CustomKeyBindSystem.RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
+                CustomKeyBindSystem.RegisterKeyBind<PressKeyBind>(new BuiltinKey
                 {
                     key = new CombineKey((int) KeyCode.Z, CombineKey.CTRL_COMB, ECombineKeyAction.OnceClick, false),
                     conflictGroup = 2052,
@@ -417,7 +430,7 @@ namespace BlueprintTweaks
                     canOverride = true
                 });
 
-                CustomKeyBindSystem.RegisterKeyBind<ReleaseKeyBind>(new BuiltinKey
+                CustomKeyBindSystem.RegisterKeyBind<PressKeyBind>(new BuiltinKey
                 {
                     key = new CombineKey((int) KeyCode.Z, CombineKey.SHIFT_COMB, ECombineKeyAction.OnceClick, false),
                     conflictGroup = 2052,
@@ -437,6 +450,25 @@ namespace BlueprintTweaks
 
         private void Update()
         {
+            if (!gotPluginInfo)
+            {
+                if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(FREE_FOUNDATIONS_GUID))
+                {
+                    freeFoundationsIsInstalled = true;
+                }
+                if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(FREE_FOUNDATIONS_GUID_2))
+                {
+                    freeFoundationsIsInstalled = true;
+                }
+            
+                if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(GENESIS_BOOK_MODGUID))
+                {
+                    genesisBookIsInstalled = true;
+                }
+
+                gotPluginInfo = true;
+            }
+            
             if (!GameMain.isRunning) return;
             if (GameMain.localPlanet == null) return;
 
@@ -444,11 +476,13 @@ namespace BlueprintTweaks
             {
                 if (CustomKeyBindSystem.GetKeyBind("FactoryUndo").keyValue)
                 {
+                   // PrintKeyDebugInfo();
                     UndoManager.TryUndo();
                 }
 
                 if (CustomKeyBindSystem.GetKeyBind("FactoryRedo").keyValue)
                 {
+                   // PrintKeyDebugInfo();
                     UndoManager.TryRedo();
                 }
             }
@@ -490,6 +524,34 @@ namespace BlueprintTweaks
                 BlueprintUtilsPatch2.UpdateBlueprintDisplay();
             }
             
+        }
+
+        private void PrintKeyDebugInfo()
+        {
+           HashSet<KeyCode> keysToCheck = new HashSet<KeyCode>((KeyCode[])Enum.GetValues(typeof(KeyCode)));
+           string keysDown = keysToCheck.Select(code =>
+           {
+               bool isPressed = Input.GetKeyDown(code);
+               if (isPressed)
+               {
+                   return code.ToString();
+               }
+
+               return "";
+           }).Where(s => !string.IsNullOrEmpty(s)).Join(null, " ");
+           
+           string keysHeld = keysToCheck.Select(code =>
+           {
+               bool isPressed = Input.GetKey(code);
+               if (isPressed)
+               {
+                   return code.ToString();
+               }
+
+               return "";
+           }).Where(s => !string.IsNullOrEmpty(s)).Join(null, " ");
+           
+           logger.LogInfo($"Key Debug Info: down: {keysDown}, pressed: {keysHeld}");
         }
 
         public bool CheckVersion(string hostVersion, string clientVersion)

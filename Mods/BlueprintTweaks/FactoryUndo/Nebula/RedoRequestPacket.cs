@@ -21,7 +21,7 @@ namespace BlueprintTweaks.FactoryUndo.Nebula
             public override void ProcessPacket(PlanetFactory factory, PlayerAction_Build actionBuild, RedoRequestPacket packet, INebulaConnection conn)
             {
                 INebulaPlayer player = NebulaModAPI.MultiplayerSession.Network.PlayerManager.GetPlayer(conn);
-                if (UndoManager.undos[player.Id].TryRedo(out string message, out bool sound))
+                if (UndoManager.undos[player.Id].TryRedo(factory, out string message, out bool sound))
                 {
                     conn.SendPacket(new ActionResultPacket(message, sound));
                 }

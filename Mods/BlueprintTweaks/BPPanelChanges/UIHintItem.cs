@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using CommonAPI.Systems;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace BlueprintTweaks
@@ -19,8 +20,9 @@ namespace BlueprintTweaks
         public UIButton button;
 
         public Image iconImage;
+        public Text countText;
 
-        private int signalId;
+        private HintData currentHint;
 
         private const int kMargin = 0;
 
@@ -41,11 +43,12 @@ namespace BlueprintTweaks
         public void Free()
         {
             button.onClick -= OnClick;
-            signalId = 0;
+            currentHint = default;
             button.tips.itemId = 0;
             button.data = 0;
             iconImage.sprite = null;
             iconImage.color = Color.clear;
+            countText.text = "";
         }
         
         public void Open()
@@ -58,23 +61,23 @@ namespace BlueprintTweaks
         {
             button.tips.itemId = 0;
             button.data = 0;
-            signalId = 0;
+            currentHint = default;
             gameObject.SetActive(false);
         }
 
 
-        public int SetDisplay(int newIndex, int signalId)
+        public int SetDisplay(int newIndex, HintData newHint)
         {
             position = newIndex;
-            if (this.signalId != signalId)
+            if (!Equals(currentHint, newHint))
             {
-                this.signalId = signalId;
-                button.data = this.signalId;
-                Sprite sprite = LDB.signals.IconSprite(signalId);
+                currentHint = newHint;
+                button.data = currentHint.signalId;
+                Sprite sprite = LDB.signals.IconSprite(currentHint.signalId);
 
                 if (sprite != null)
                 {
-                    button.tips.itemId = signalId;
+                    button.tips.itemId = currentHint.signalId;
                     iconImage.sprite = sprite;
                     iconImage.color = Color.white;
                 }
@@ -83,6 +86,8 @@ namespace BlueprintTweaks
                     iconImage.sprite = null;
                     iconImage.color = Color.clear;
                 }
+
+                countText.text = newHint.value != 0 ? newHint.value.ToString() : "";
             }
 
             return (newIndex / 8 + 1) * 46;
@@ -94,12 +99,15 @@ namespace BlueprintTweaks
             VFAudio.Create("ui-click-0", null, Vector3.zero, true, 1);
 
             Vector2 pos =  new Vector2(-300, 238);
-            
+
             UISignalPicker.Close();
-            UISignalPicker.Popup(pos, newSignal =>
+            UINumberPickerExtension.Popup(pos, (signalId, value) =>
             {
-                panel.ChangeHint(signalId, newSignal);
-            });
+                if (value < 0) value = 0;
+                
+                panel.ChangeHint(currentHint.signalId, new HintData(signalId, value));
+            }, currentHint.value, currentHint.signalId);
+            
         }
     }
 }

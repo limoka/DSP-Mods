@@ -8,6 +8,8 @@ namespace BlueprintTweaks.FactoryUndo
 {
     public class PlayerUndo
     {
+        public readonly ushort playerId;
+        
         public FixedSizeStack<IUndoAction> undoStack;
         public FixedSizeStack<IUndoAction> redoStack;
 
@@ -15,10 +17,11 @@ namespace BlueprintTweaks.FactoryUndo
         public List<IUndoAction> notifyDismantleListeners = new List<IUndoAction>();
         
 
-        public PlayerUndo()
+        public PlayerUndo(ushort playerId)
         {
             undoStack = new FixedSizeStack<IUndoAction>(BlueprintTweaksPlugin.undoMaxHistory.Value);
             redoStack = new FixedSizeStack<IUndoAction>(BlueprintTweaksPlugin.undoMaxHistory.Value);
+            this.playerId = playerId;
         }
 
         internal void ResetUndo()
@@ -51,7 +54,7 @@ namespace BlueprintTweaks.FactoryUndo
             redoStack.Clear();
         }
 
-        internal bool TryUndo(out string message, out bool sound)
+        internal bool TryUndo(PlanetFactory factory, out string message, out bool sound)
         {
             sound = false;
             message = "";
@@ -64,7 +67,6 @@ namespace BlueprintTweaks.FactoryUndo
             if (GameMain.localPlanet?.factory == null) return false;
             if (GameMain.mainPlayer?.controller == null) return false;
             
-            PlanetFactory factory = GameMain.localPlanet.factory;
             PlayerAction_Build actionBuild = GameMain.mainPlayer.controller.actionBuild;
 
             IUndoAction action = undoStack.Pop();
@@ -79,7 +81,7 @@ namespace BlueprintTweaks.FactoryUndo
             {
                 BlueprintTweaksPlugin.logger.LogWarning($"Failed to undo, message: {e.Message}, stacktrace:\n{e.StackTrace}");
             }
-            
+
             if (success)
             {
                 message = "UndoSuccessText";
@@ -96,7 +98,7 @@ namespace BlueprintTweaks.FactoryUndo
             return true;
         }
 
-        internal bool TryRedo(out string message, out bool sound)
+        internal bool TryRedo(PlanetFactory factory, out string message, out bool sound)
         {
             sound = false;
             message = "";
@@ -109,11 +111,10 @@ namespace BlueprintTweaks.FactoryUndo
             if (GameMain.localPlanet?.factory == null) return false;
             if (GameMain.mainPlayer?.controller == null) return false;
             
-            PlanetFactory factory = GameMain.localPlanet.factory;
             PlayerAction_Build actionBuild = GameMain.mainPlayer.controller.actionBuild;
 
             IUndoAction action = redoStack.Pop();
-            
+
             bool success = false;
 
             try
