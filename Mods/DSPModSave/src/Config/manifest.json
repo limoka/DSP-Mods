@@ -1,0 +1,9 @@
+{
+  "name": "DSPModSave",
+  "description": "Library that allows to store mod save data separately from vanilla saves",
+  "version_number": "1.1.4",
+  "dependencies": [
+    "xiaoye97-BepInEx-5.4.11"
+  ],
+  "website_url": "https://github.com/kremnev8/DSP-Mods/tree/master/Mods/DSPModSave"
+}

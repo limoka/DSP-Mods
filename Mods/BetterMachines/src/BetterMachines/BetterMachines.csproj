@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>FasterMachines</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="RebindBuildBar, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" Private="false" SpecificVersion="false">
+      <HintPath>..\..\RebindBuildBar\RebindBuildBar\obj\Release\RebindBuildBar.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,22 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdvancedMiner", "AdvancedMiner\AdvancedMiner.csproj", "{A4A8CBD6-5ADC-4369-96BF-D90967CAEE19}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinerPreloader", "MinerPreloader\MinerPreloader.csproj", "{A01A64E3-8BC2-4A4C-A605-6F215E805E0A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A4A8CBD6-5ADC-4369-96BF-D90967CAEE19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4A8CBD6-5ADC-4369-96BF-D90967CAEE19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4A8CBD6-5ADC-4369-96BF-D90967CAEE19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4A8CBD6-5ADC-4369-96BF-D90967CAEE19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A01A64E3-8BC2-4A4C-A605-6F215E805E0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A01A64E3-8BC2-4A4C-A605-6F215E805E0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A01A64E3-8BC2-4A4C-A605-6F215E805E0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A01A64E3-8BC2-4A4C-A605-6F215E805E0A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

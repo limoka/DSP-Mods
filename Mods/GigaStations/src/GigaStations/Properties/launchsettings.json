@@ -1,0 +1,23 @@
+{
+  "profiles": {
+    "Launch Dyson Sphere Program": {
+      "commandName": "Executable",
+      "executablePath": "$(DSPGameDir)DSPGAME.exe",
+      "environmentVariables": {
+        "SteamAppId": "1366540"
+      }
+    },
+	"Build Artifact": {
+      "commandName": "Executable",
+      "executablePath": "node",
+      "commandLineArgs": ".\\release.js build GigaStations\\ GigaStationsPlugin.cs",
+      "workingDirectory": "$(ProjectDir)"
+    },
+    "Release": {
+      "commandName": "Executable",
+      "executablePath": "node",
+      "commandLineArgs": ".\\release.js release GigaStations\\ GigaStationsPlugin.cs",
+      "workingDirectory": "$(ProjectDir)"
+    }
+  }
+}

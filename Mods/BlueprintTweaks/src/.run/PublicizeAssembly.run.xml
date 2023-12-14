@@ -1,0 +1,10 @@
+﻿<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="PublicizeAssembly" type="RunNativeExe" factoryName="Native Executable">
+    <option name="EXE_PATH" value="$PROJECT_DIR$/AssemblyPublicizer.exe" />
+    <option name="PROGRAM_PARAMETERS" value="Assembly-CSharp.dll &quot;$PROJECT_DIR$/Libs/Assembly-CSharp.dll&quot;" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../../../../../SteamLibrary/steamapps/common/Dyson Sphere Program/BepInEx/DumpedAssemblies/DSPGAME/" />
+    <option name="PASS_PARENT_ENVS" value="1" />
+    <option name="USE_EXTERNAL_CONSOLE" value="0" />
+    <method v="2" />
+  </configuration>
+</component>

@@ -1,0 +1,35 @@
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "kremnev8"
+name = "BetterMachines"
+description = "Adds new faster and improved machines, bigger storage and faster belts."
+versionNumber = "1.1.4"
+websiteUrl = "https://github.com/kremnev8/DSP-Mods/tree/master/Mods/BetterMachines"
+containsNsfwContent = false
+
+  [package.dependencies]
+  xiaoye97-BepInEx = "5.4.17"
+  CommonAPI-CommonAPI = "1.5.3"
+  kremnev8-RebindBuildBar = "1.0.3"
+
+[build]
+icon = "./icon.png"
+readme = "./README.md"
+outdir = "./../Build"
+
+  [[build.copy]]
+  source = "./../Staging"
+  target = "./"
+
+[publish]
+repository = "https://dsp.thunderstore.io"
+communities = [ "dyson-sphere-program" ]
+categories = [
+  "storage",
+  "nebula-compatible",
+  "game-breaking",
+  "belts-and-sorters",
+  "assembling-machines"
+]

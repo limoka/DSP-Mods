@@ -1,5 +1,7 @@
 # LDBTool
 
+Source code can be found [here](https://github.com/xiaoye97/DSP_LDBTool)
+
 Library that allows mods to add and edit Proto data. Also allows you to see Proto data, config ID's of mod Protos and change localized strings
 
 # List of features

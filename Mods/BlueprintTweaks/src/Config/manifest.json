@@ -1,0 +1,12 @@
+{
+  "name": "BlueprintTweaks",
+  "description": "Improves Blueprint system with QoL changes, new features like force pasting, foundation blueprints and more",
+  "version_number": "1.5.10",
+  "dependencies": [
+    "xiaoye97-LDBTool-2.0.6",
+    "xiaoye97-BepInEx-5.4.17",
+    "nebula-NebulaMultiplayerModApi-1.3.0",
+    "CommonAPI-CommonAPI-1.5.4"
+  ],
+  "website_url": "https://github.com/kremnev8/DSP-Mods/tree/master/Mods/BlueprintTweaks"
+}

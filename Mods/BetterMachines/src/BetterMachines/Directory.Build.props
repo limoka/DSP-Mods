@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <DevEnvLoc>$(MSBuildThisFileDirectory)/../DevEnv.targets</DevEnvLoc>
+  </PropertyGroup>
+
+  <!-- This sets $(DSPGameDir) -->
+  <Import Project="$(DevEnvLoc)" Condition="Exists('$(DevEnvLoc)')" /> 
+
+  <PropertyGroup Label="Game Install Properties">
+    <DSPGameDir Condition="!Exists('$(DevEnvLoc)')">C:\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\</DSPGameDir>
+    <DSPGameDir>$([MSBuild]::EnsureTrailingSlash('$(DSPGameDir)'))</DSPGameDir>
+    <SteamDir>$([MSBuild]::EnsureTrailingSlash('$(SteamDir)'))</SteamDir>
+    <BepInExDir>$(DSPGameDir)BepInEx\core\</BepInExDir>
+    <DSPAssemblyDir>$(DSPGameDir)DSPGAME_Data\Managed\</DSPAssemblyDir>
+    <PluginOutputDirectory>$(DSPGameDir)BepInEx\plugins\BetterMachines\</PluginOutputDirectory>
+	<DumpedAssembliesDir>$(DSPGameDir)BepInEx\DumpedAssemblies\</DumpedAssembliesDir>
+    <ProjectDir>$(MSBuildThisFileDirectory)\</ProjectDir>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Common Properties">
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+
+    <OutputPath Condition="Exists('$(DSPGameDir)')">$(PluginOutputDirectory)</OutputPath>
+    <OutDir>$(OutputPath)</OutDir>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <DefaultItemExcludes>$(DefaultItemExcludes);*.binlog</DefaultItemExcludes>
+
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  
+  <!-- Shared Items -->
+  <ItemGroup Label="Plugins">
+    <PackageReference Include="DysonSphereProgram.Modding.CommonAPI" Version="1.*" IncludeAssets="compile" />
+  </ItemGroup>
+
+  <ItemGroup Label="Dyson Sphere Program">
+    <Reference Include="$(MSBuildThisFileDirectory)/../Libs/Assembly-CSharp.dll" Private="false" SpecificVersion="true" />
+
+    <PackageReference Include="BepInEx.Core" Version="5.*" PrivateAssets="all" />
+    <PackageReference Include="UnityEngine.Modules" Version="2018.4.12" IncludeAssets="compile" PrivateAssets="all" />
+    <Reference Include="$(DSPAssemblyDir)UnityEngine.UI.dll" Private="false" SpecificVersion="true" />
+  </ItemGroup>
+
+</Project>

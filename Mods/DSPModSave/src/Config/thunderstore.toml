@@ -1,0 +1,27 @@
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "CommonAPI"
+name = "DSPModSave"
+description = "Library that allows to store mod save data separately from vanilla saves"
+versionNumber = "1.1.4"
+websiteUrl = "https://github.com/kremnev8/DSP-Mods/tree/master/Mods/DSPModSave"
+containsNsfwContent = false
+
+  [package.dependencies]
+  xiaoye97-BepInEx = "5.4.11"
+
+[build]
+icon = "./icon.png"
+readme = "./README.md"
+outdir = "./../Build"
+
+  [[build.copy]]
+  source = "./../Staging"
+  target = "./"
+
+[publish]
+repository = "https://dsp.thunderstore.io"
+communities = [ "dyson-sphere-program" ]
+categories = [ "libraries" ]

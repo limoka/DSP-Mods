@@ -1,0 +1,28 @@
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "kremnev8"
+name = "RebindBuildBar"
+description = "Regain control of your Build Bar! This mod allows to rebind any Build bar items as you desire."
+versionNumber = "1.0.3"
+websiteUrl = "https://github.com/kremnev8/DSP-Mods/tree/master/Mods/RebindBuildBar"
+containsNsfwContent = false
+
+  [package.dependencies]
+  xiaoye97-BepInEx = "5.4.11"
+  CommonAPI-CommonAPI = "1.1.0"
+
+[build]
+icon = "./icon.png"
+readme = "./README.md"
+outdir = "./../Build"
+
+  [[build.copy]]
+  source = "./../Staging"
+  target = "./"
+
+[publish]
+repository = "https://dsp.thunderstore.io"
+communities = [ "dyson-sphere-program" ]
+categories = [ "quality-of-life", "nebula-compatible" ]

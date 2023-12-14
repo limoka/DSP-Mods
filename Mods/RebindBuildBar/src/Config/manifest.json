@@ -1,0 +1,10 @@
+{
+  "name": "RebindBuildBar",
+  "description": "Regain control of your Build Bar! This mod allows to rebind any Build bar items as you desire.",
+  "version_number": "1.0.3",
+  "dependencies": [
+    "xiaoye97-BepInEx-5.4.11",
+    "CommonAPI-CommonAPI-1.1.0"
+  ],
+  "website_url": "https://github.com/kremnev8/DSP-Mods/tree/master/Mods/RebindBuildBar"
+}

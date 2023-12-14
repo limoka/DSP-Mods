@@ -1,0 +1,29 @@
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "kremnev8"
+name = "GigaStationsUpdated"
+description = "Adds 3 new Items! Up to 12 Item-Slots for Giga Stations, more Storage, more Vessels/Drones Carry Capacity, more Warps, more Charging-Power. For Collectors you can set speed & storage. Checkout the config and the README!"
+versionNumber = "2.3.3"
+websiteUrl = "https://github.com/kremnev8/DSP-Mods/tree/master/Mods/GigaStations"
+containsNsfwContent = false
+
+  [package.dependencies]
+  xiaoye97-LDBTool = "2.0.6"
+  xiaoye97-BepInEx = "5.4.17"
+  CommonAPI-CommonAPI = "1.5.3"
+
+[build]
+icon = "./icon.png"
+readme = "./README.md"
+outdir = "./../Build"
+
+  [[build.copy]]
+  source = "./../Staging"
+  target = "./"
+
+[publish]
+repository = "https://dsp.thunderstore.io"
+communities = [ "dyson-sphere-program" ]
+categories = [ ]

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <DevEnvLoc>$(MSBuildThisFileDirectory)/../DevEnv.targets</DevEnvLoc>
+  </PropertyGroup>
+
+  <!-- This sets $(DSPGameDir) -->
+  <Import Project="$(DevEnvLoc)" Condition="Exists('$(DevEnvLoc)')" />
+
+  <PropertyGroup Label="Game Install Properties">
+    <DSPGameDir Condition="!Exists('$(DevEnvLoc)')">C:\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\</DSPGameDir>
+    <DSPGameDir>$([MSBuild]::EnsureTrailingSlash('$(DSPGameDir)'))</DSPGameDir>
+    <SteamDir>$([MSBuild]::EnsureTrailingSlash('$(SteamDir)'))</SteamDir>
+    <BepInExDir>$(DSPGameDir)BepInEx\core\</BepInExDir>
+    <DSPAssemblyDir>$(DSPGameDir)DSPGAME_Data\Managed\</DSPAssemblyDir>
+    <PluginOutputDirectory>$(DSPGameDir)BepInEx\patchers\BlueprintTweaks\</PluginOutputDirectory> 
+  </PropertyGroup>
+
+  <PropertyGroup Label="Common Properties">
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+
+    <OutputPath Condition="Exists('$(DSPGameDir)')">$(PluginOutputDirectory)</OutputPath>
+    <OutDir>$(OutputPath)</OutDir>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>8.0</LangVersion>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <DefaultItemExcludes>$(DefaultItemExcludes);*.binlog</DefaultItemExcludes>
+
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup> 
+  
+  <!-- Shared Items -->
+  <ItemGroup Label="BepInEx">
+    <Reference Include="$(BepInExDir)0Harmony.dll" Private="false" SpecificVersion="false" />
+    <Reference Include="$(BepInExDir)BepInEx.dll" Private="false" SpecificVersion="false" />
+    <Reference Include="$(BepInExDir)BepInEx.Harmony.dll" Private="false" SpecificVersion="false" />
+	
+	<Reference Include="$(BepInExDir)Mono.Cecil.dll" Private="false" SpecificVersion="false" />
+	<Reference Include="$(BepInExDir)Mono.Cecil.Mdb.dll" Private="false" SpecificVersion="false" />
+	<Reference Include="$(BepInExDir)Mono.Cecil.Pdb.dll" Private="false" SpecificVersion="false" />
+	<Reference Include="$(BepInExDir)Mono.Cecil.Rocks.dll" Private="false" SpecificVersion="false" />
+  </ItemGroup>
+
+</Project>
