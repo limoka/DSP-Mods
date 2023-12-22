@@ -1,6 +1,6 @@
 {
   "name": "GigaStationsUpdated",
-  "version_number": "2.3.3",
+  "version_number": "2.3.4",
   "website_url": "https://github.com/kremnev8/DSP-Mods/tree/master/Mods/GigaStations",
   "description": "Adds 3 new Items! Up to 12 Item-Slots for Giga Stations, more Storage, more Vessels/Drones Carry Capacity, more Warps, more Charging-Power. For Collectors you can set speed & storage. Checkout the config and the README!",
   "dependencies": [

@@ -5,7 +5,7 @@ schemaVersion = "0.0.1"
 namespace = "kremnev8"
 name = "GigaStationsUpdated"
 description = "Adds 3 new Items! Up to 12 Item-Slots for Giga Stations, more Storage, more Vessels/Drones Carry Capacity, more Warps, more Charging-Power. For Collectors you can set speed & storage. Checkout the config and the README!"
-versionNumber = "2.3.3"
+versionNumber = "2.3.4"
 websiteUrl = "https://github.com/kremnev8/DSP-Mods/tree/master/Mods/GigaStations"
 containsNsfwContent = false
 
@@ -21,6 +21,10 @@ outdir = "./../Build"
 
   [[build.copy]]
   source = "./../Staging"
+  target = "./"
+
+  [[build.copy]]
+  source = "./CHANGELOG.md"
   target = "./"
 
 [publish]

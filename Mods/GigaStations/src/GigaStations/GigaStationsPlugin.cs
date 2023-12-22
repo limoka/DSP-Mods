@@ -8,6 +8,7 @@ using BepInEx.Configuration;
 using BepInEx.Logging;
 using CommonAPI;
 using CommonAPI.Systems;
+using CommonAPI.Systems.ModLocalization;
 using HarmonyLib;
 using UnityEngine;
 
@@ -22,13 +23,13 @@ namespace GigaStations
     [BepInDependency(CommonAPIPlugin.GUID)]
     [BepInPlugin(MODGUID, MODNAME, VERSION)]
     
-    [CommonAPISubmoduleDependency(nameof(ProtoRegistry), nameof(UtilSystem))]
+    [CommonAPISubmoduleDependency(nameof(ProtoRegistry), nameof(UtilSystem), nameof(LocalizationModule))]
     public class GigaStationsPlugin : BaseUnityPlugin
     {
 
         public const string MODGUID = "org.kremnev8.plugin.GigaStationsUpdated";
         public const string MODNAME = "GigaStationsUpdated";
-        public const string VERSION = "2.3.3";
+        public const string VERSION = "2.3.4";
         
         public const string LDB_TOOL_GUID = "me.xiaoye97.plugin.Dyson.LDBTool";
         public const string WARPERS_MOD_GUID = "ShadowAngel.DSP.DistributeSpaceWarper";
@@ -117,16 +118,16 @@ namespace GigaStations
             //DroneCapacity
             droneCapacityMultiplier = Config.Bind("-|5|- Drone", "-| 1 Max. Capacity", 3, "Drone Capacity Multiplier\n1 == 100 Drone Capacity at max Level").Value;
 
-            ProtoRegistry.RegisterString("PLS_Name" , "Planetary Giga Station");
-            ProtoRegistry.RegisterString("PLS_Desc" , "Has more Slots, Capacity, etc. than a usual PLS.");
-            ProtoRegistry.RegisterString("ILS_Name" , "Interstellar Giga Station");
-            ProtoRegistry.RegisterString("ILS_Desc" , "Has more Slots, Capacity, etc. than a usual ILS.");
-            ProtoRegistry.RegisterString("Collector_Name" , "Orbital Giga Collector");
-            ProtoRegistry.RegisterString("Collector_Desc" , $"Has more Capacity and collects {colSpeedMultiplier}x faster than a usual Collector.");
+            LocalizationModule.RegisterTranslation("PLS_Name" , "Planetary Giga Station");
+            LocalizationModule.RegisterTranslation("PLS_Desc" , "Has more Slots, Capacity, etc. than a usual PLS.");
+            LocalizationModule.RegisterTranslation("ILS_Name" , "Interstellar Giga Station");
+            LocalizationModule.RegisterTranslation("ILS_Desc" , "Has more Slots, Capacity, etc. than a usual ILS.");
+            LocalizationModule.RegisterTranslation("Collector_Name" , "Orbital Giga Collector");
+            LocalizationModule.RegisterTranslation("Collector_Desc" , $"Has more Capacity and collects {colSpeedMultiplier}x faster than a usual Collector.");
             
-            ProtoRegistry.RegisterString("ModificationWarn" , "  - [GigaStationsUpdated] Replaced {0} buildings");
+            LocalizationModule.RegisterTranslation("ModificationWarn" , "  - [GigaStationsUpdated] Replaced {0} buildings");
             
-            ProtoRegistry.RegisterString("CantDowngradeWarn" , "Downgrading logistic station is not possible!");
+            LocalizationModule.RegisterTranslation("CantDowngradeWarn" , "Downgrading logistic station is not possible!");
             
             
             pls = ProtoRegistry.RegisterItem(2110, "PLS_Name", "PLS_Desc", "assets/gigastations/texture2d/icon_pls", 2701);
@@ -158,7 +159,7 @@ namespace GigaStations
             harmony.PatchAll(typeof(UIStationWindowPatch));
             harmony.PatchAll(typeof(BlueprintBuilding_Patch));
             harmony.PatchAll(typeof(UIEntityBriefInfo_Patch));
-            
+
             foreach (var pluginInfo in BepInEx.Bootstrap.Chainloader.PluginInfos)
             {
                 if (pluginInfo.Value.Metadata.GUID != WARPERS_MOD_GUID) continue;
@@ -176,6 +177,9 @@ namespace GigaStations
         
         void AddGigaPLS()
         {
+            ColliderData[] buildColliders = plsModel.prefabDesc.buildColliders;
+            logger.LogInfo($"PLS build collider is null: {buildColliders == null}, length: {buildColliders?.Length ?? 0}");
+            
             plsModel.prefabDesc.workEnergyPerTick = 3333334;
 
             plsModel.prefabDesc.stationMaxItemCount = plsMaxStorage;
@@ -193,6 +197,8 @@ namespace GigaStations
 
         void AddGigaILS()
         {
+            ColliderData[] buildColliders = ilsModel.prefabDesc.buildColliders;
+            logger.LogInfo($"ILS build collider is null: {buildColliders == null}, length: {buildColliders?.Length ?? 0}");
             
             ilsModel.prefabDesc.workEnergyPerTick = 3333334;
 

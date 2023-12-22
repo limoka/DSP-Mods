@@ -65,14 +65,14 @@ function main() {
 }
 
 function checkReadme(pluginInfo){
-	const readmePath = path.join(CONFIG_FOLDER, 'README.md');
+	const readmePath = path.join(CONFIG_FOLDER, 'CHANGELOG.md');
 	let readme = fs.readFileSync(readmePath);
 	
 	if (readme.includes("v"+pluginInfo.version)){		
-		console.log("Readme ok");
+		console.log("CHANGELOG ok");
 		return true
 	}else{
-		console.log("Readme missing latest version changelog!");
+		console.log("CHANGELOG missing latest version changelog!");
 		return false
 	}
 	

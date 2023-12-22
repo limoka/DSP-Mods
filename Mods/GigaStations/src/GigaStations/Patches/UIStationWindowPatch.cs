@@ -69,14 +69,19 @@ namespace GigaStations
             }
 
             if (!__instance.active) return;
+
+            string name = __instance.factory.ReadExtraInfoOnEntity(stationComponent.entityId);
             
-            string text = (!string.IsNullOrEmpty(stationComponent.name))
-                ? stationComponent.name
-                : ((!stationComponent.isStellar)
-                    ? ("Planetary Giga Station #" + stationComponent.id)
-                    : ((stationComponent.isCollector)
-                        ? ("Orbital Giga Collector #" + stationComponent.gid)
-                        : ("Interstellar Giga Station #" + stationComponent.gid)));
+            string text;
+            if (!string.IsNullOrEmpty(name))
+                text = name;
+            else if (!stationComponent.isStellar)
+                text = "Planetary Giga Station #" + stationComponent.id;
+            else if (stationComponent.isCollector)
+                text = "Orbital Giga Collector #" + stationComponent.gid;
+            else
+                text = "Interstellar Giga Station #" + stationComponent.gid;
+            
             __state = text;
         }
 
@@ -95,6 +100,7 @@ namespace GigaStations
             int storageCount = ((stationComponent.isCollector || stationComponent.isVeinCollector) ? stationComponent.collectionIds.Length : stationComponent.storage.Length);
 
             int baseYSize = stationComponent.isStellar ? 376 : 316;
+            
             if (stationComponent.isCollector)
             {
                 baseYSize = 136;
@@ -108,6 +114,7 @@ namespace GigaStations
             int yPos = stationComponent.isVeinCollector ? -190 : -90;
             scrollTrs.anchoredPosition = new Vector2(scrollTrs.anchoredPosition.x, yPos);
             
+            __instance.panelDownTrans.anchoredPosition = new Vector2(__instance.panelDownTrans.anchoredPosition.x, __instance.panelDownTrans.anchoredPosition.y - 10f);
 
             if (itemProto.ID != GigaStationsPlugin.pls.ID && itemProto.ID != GigaStationsPlugin.ils.ID && itemProto.ID != GigaStationsPlugin.collector.ID)
             {
