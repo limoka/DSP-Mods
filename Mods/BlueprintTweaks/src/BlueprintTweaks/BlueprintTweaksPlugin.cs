@@ -15,6 +15,7 @@ using BlueprintTweaks.GlobalPatch;
 using BlueprintTweaks.Patches;
 using CommonAPI;
 using CommonAPI.Systems;
+using CommonAPI.Systems.ModLocalization;
 using HarmonyLib;
 using NebulaAPI;
 using UnityEngine;
@@ -30,7 +31,12 @@ namespace BlueprintTweaks
     [BepInPlugin(MODGUID, MOD_DISP_NAME, VERSION)]
     [BepInDependency(NebulaModAPI.API_GUID)]
     [BepInDependency(CommonAPIPlugin.GUID)]
-    [CommonAPISubmoduleDependency(nameof(ProtoRegistry), nameof(CustomKeyBindSystem), nameof(PickerExtensionsSystem))]
+    [CommonAPISubmoduleDependency(
+        nameof(ProtoRegistry), 
+        nameof(CustomKeyBindSystem), 
+        nameof(PickerExtensionsSystem),
+        nameof(LocalizationModule)
+    )]
     public class BlueprintTweaksPlugin : BaseUnityPlugin, IMultiplayerMod
     {
         public const string MODNAME = "BlueprintTweaks";
@@ -149,114 +155,12 @@ namespace BlueprintTweaks
             resource = new ResourceData(MODNAME, "blueprinttweaks", pluginfolder);
             resource.LoadAssetBundle("blueprinttweaks");
             ProtoRegistry.AddResource(resource);
+
+            string localePath = Path.Combine(pluginfolder, "Locale");
+            LocalizationModule.LoadTranslationsFromFolder(localePath);
             
             Harmony harmony = new Harmony(MODGUID);
 
-            #region Strings
-
-            ProtoRegistry.RegisterString("KEYToggleBPGodModeDesc", "Toggle Blueprint God Mode", "切换上帝模式浏览蓝图");
-            ProtoRegistry.RegisterString("RecipesLabel", "Recipes", "配方");
-            ProtoRegistry.RegisterString("ChangeTipText", "Left-click to change recipe", "左键点击更改配方");
-            
-            ProtoRegistry.RegisterString("ChangeTipTitle", "Change Recipe", "更改配方");
-            ProtoRegistry.RegisterString("ChangeTipDesc", 
-                "Left-click to change recipe. When you click, picker menu will open, where a new recipe can be selected. All machines that used the old recipe will now use selected recipe. This change will take effect after saving.", 
-                "左键点击更改配方。点击将打开选择菜单，可在其中选择新配方。所有使用旧配方的机器将更新到选定的新配方。此更改将在保存后生效。");
-            ProtoRegistry.RegisterString("KEYForceBPPlace", "Force Blueprint placement", "强制蓝图放置");
-            
-            ProtoRegistry.RegisterString("KEYLockLongAxis", "Lock Longitude axis", "经度锁定");
-            ProtoRegistry.RegisterString("KEYLockLatAxis", "Lock Latitude axis", "纬度锁定");
-            ProtoRegistry.RegisterString("KEYSetLocalOffset", "Set grid snapping offset", "设定网格捕捉偏移");
-            
-            ProtoRegistry.RegisterString("GridSizeLabel", "Blueprint Size and Anchor", "蓝图大小和锚点");
-            ProtoRegistry.RegisterString("GridLongSize", "Width", "宽度");
-            ProtoRegistry.RegisterString("GridLatSize", "Height", "高度");
-            
-            ProtoRegistry.RegisterString("CantPasteThisInGasGiantWarn", 
-                "This Blueprint can't be pasted on a Gas Giant.", 
-                "此蓝图无法放置在气态/冰巨星上。");
-            
-            ProtoRegistry.RegisterString("FoundationsLabel", "Foundations", "地基");
-            ProtoRegistry.RegisterString("foundationsBPCountLabel", "recorded", "块地基");
-            ProtoRegistry.RegisterString("foundationBPEnabledLabel", "Blueprint foundations", "蓝图包含地基");
-            
-            ProtoRegistry.RegisterString("TransportLabel", "Logistics", "物流");
-            ProtoRegistry.RegisterString("ChangeTipText2", "Left-click to change requested item", "左键点击更改物流清单物品");
-            ProtoRegistry.RegisterString("ChangeTip2Title", "Change requested items", "更改物流清单物品");
-            ProtoRegistry.RegisterString("ChangeTip2Desc", 
-                "Left-click to change requested item. When you click, picker menu will open, where a new item can be selected. Logistic station that used the old item will now use selected item. This change will take effect after saving.", 
-                "左键点击更改物流清单物品。点击将打开选择菜单，可在其中选择新的物流清单物品。使用旧物流清单物品的物流塔将更新到选定的新物流清单物品。此更改将在保存后生效。");
-
-            
-            ProtoRegistry.RegisterString("copyColorsLabel", "Copy Custom foundation colors", "附带自定义调色板");
-            ProtoRegistry.RegisterString("copyColorsTip", "Copy Custom foundation colors", "附带自定义调色板");
-            ProtoRegistry.RegisterString("copyColorsTipDesc", 
-                "When enabled, Custom foundation colors will be saved with Blueprint Data. When such Blueprint will be pasted, current planet's Custom colors will be replaced with colors stored in the Blueprint",
-                "启用后，地基的自定义调色板将与蓝图数据一同保存。粘贴此类蓝图时，当前行星的地基自定义调色板将被蓝图中的调色板替代。");
-            
-            ProtoRegistry.RegisterString("hasColorsLabel", "Contains Color data", "含有颜色数据");
-            
-            ProtoRegistry.RegisterString("foundationsBlueprintTip", "Blueprint Foundations", "蓝图包含地基");
-            ProtoRegistry.RegisterString("foundationsBlueprintTipDesc", 
-                "When enabled, all Foundations (Including their colors and types) in your selection will be saved to the Blueprint. If there are buildings that lack support, but blueprint has foundations under them they will successfully be pasted",
-                "启用后，您选中的所有地基（包括它们的颜色和类型）都将保存到蓝图中。另外只要蓝图中的建筑下方包含地基，即便施工场地缺乏地基支撑，蓝图也能成功粘贴");
-
-            ProtoRegistry.RegisterString("KEYMirrorLongAxis", "Mirror Blueprint in Longitude axis", "经向镜像");
-            ProtoRegistry.RegisterString("KEYMirrorLatAxis", "Mirror Blueprint in Latitude axis", "纬向镜像");
-            
-            
-            ProtoRegistry.RegisterString("BeltHintsLabel", "Belt Hints", "腰带提示");
-            ProtoRegistry.RegisterString("HintsChangeTipText", "Left-click to change belt hints", "左键单击更改腰带提示");
-            
-            ProtoRegistry.RegisterString("ChangeHintsTipTitle", "You can change belt hints", "您可以更改腰带提示");
-            ProtoRegistry.RegisterString("ChangeHintsTipDesc", 
-                "Left-click to change hints on belts. When you click, picker menu will open, where a new icon can be selected. All belts that used the old icon will now use selected icon. This change will take effect after saving.", 
-                "左键点击更改腰带提示。点击将打开选择菜单，可在其中选择新腰带提示。所有使用旧腰带提示的输送带将更新到选定的新腰带提示。此更改将在保存后生效。");
-            
-            ProtoRegistry.RegisterString("recipeLockedWarn", "Recipe is locked", "食谱已锁定");
-            
-            ProtoRegistry.RegisterString("BPBrowserPasteButtonTipTitle", "Paste Blueprint [Double click]", "粘贴蓝图[双击]");
-            ProtoRegistry.RegisterString("BPBrowserPasteButtonTipDesc", "Start pasting current selected blueprint", "开始张贴当前选定的蓝图");
-            
-            ProtoRegistry.RegisterString("MoveBlueprintTip", "Move to", "移动到");
-            
-            ProtoRegistry.RegisterString("FileAlreadyExistsTitle", "Can't move blueprint!", "动不了蓝图！");
-            ProtoRegistry.RegisterString("FileAlreadyExistsDesc", 
-                "Blueprint with same name already exists in target location! Please rename your blueprint and try again.",
-                "同名蓝图已存在于目标位置！ 请重命名蓝图并重试。");
-
-            ProtoRegistry.RegisterString("KEYFactoryUndo", "Undo", "撤消");
-            ProtoRegistry.RegisterString("KEYFactoryRedo", "Redo", "重做");
-            
-            ProtoRegistry.RegisterString("KEYDSPTrashButton", "Select Trash", "选择垃圾");
-
-            ProtoRegistry.RegisterString("NotEnoughFoundationsMessage", 
-                "You need {0} more foundations to place this Blueprint!",
-                "你需要 {0} 更多的基础来放置这个蓝图！");
-            
-            ProtoRegistry.RegisterString("FoundCountMessage", 
-                "Will consume {0} foundations",
-                "会消耗 {0} 基础");
-            
-            
-            ProtoRegistry.RegisterString("UndoSuccessText", "Undone successfully!", "撤消成功！");
-            ProtoRegistry.RegisterString("UndoFailureText", "Failed to undo!", "未能撤消！");
-            ProtoRegistry.RegisterString("RedoSuccessText", "Redone successfully!", "重做成功！");
-            ProtoRegistry.RegisterString("RedoFailureText", "Failed to redo!", "重做失败！");
-            
-            ProtoRegistry.RegisterString("UndoClearedMessage", "Undo history cleared!", "撤消历史清除！");
-            
-            ProtoRegistry.RegisterString("UndoHistoryEmptyMessage", "Undo history is empty!", "撤消历史是空的！");
-            ProtoRegistry.RegisterString("RedoHistoryEmptyMessage", "Redo history is empty!", "重做历史是空的！");
-            
-            ProtoRegistry.RegisterString("AnchorSetLabel", "Anchors", "锚赂");
-            ProtoRegistry.RegisterString("AnchorTipTitle", "Set your anchor position", "设置锚点位置");
-            ProtoRegistry.RegisterString("AnchorTipText", 
-                "Use buttons below to set your anchor position as you like. This change will take effect after saving.",
-                "使用下面的按钮来设置你喜欢的锚点位置. 此更改将在保存后生效。");
-            
-            #endregion
-            
             if (factoryUndo.Value)
             {
                 UndoManager.Init();
@@ -435,14 +339,6 @@ namespace BlueprintTweaks
                     key = new CombineKey((int) KeyCode.Z, CombineKey.SHIFT_COMB, ECombineKeyAction.OnceClick, false),
                     conflictGroup = 2052,
                     name = "FactoryRedo",
-                    canOverride = true
-                });
-
-                CustomKeyBindSystem.RegisterKeyBind<PressKeyBind>(new BuiltinKey
-                {
-                    key = new CombineKey((int) KeyCode.Z, 0, ECombineKeyAction.OnceClick, false),
-                    conflictGroup = 2052,
-                    name = "DSPTrashButton",
                     canOverride = true
                 });
             }

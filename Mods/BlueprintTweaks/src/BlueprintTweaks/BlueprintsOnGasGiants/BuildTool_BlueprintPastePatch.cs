@@ -28,7 +28,7 @@ namespace BlueprintTweaks
 
             matcher.Advance(1);
 
-            while (matcher.Opcode != OpCodes.Stloc_S)
+            while (!matcher.Instruction.IsStloc())
             {
                 matcher.RemoveInstruction();
             }

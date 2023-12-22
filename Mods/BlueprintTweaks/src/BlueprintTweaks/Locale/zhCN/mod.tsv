@@ -1,0 +1,53 @@
+﻿KEYToggleBPGodModeDesc		1	切换上帝模式浏览蓝图
+RecipesLabel		1	配方
+ChangeTipText		1	左键点击更改配方
+ChangeTipTitle		1	更改配方
+ChangeTipDesc		1	左键点击更改配方。点击将打开选择菜单，可在其中选择新配方。所有使用旧配方的机器将更新到选定的新配方。此更改将在保存后生效。
+KEYForceBPPlace		1	强制蓝图放置
+KEYLockLongAxis		1	经度锁定
+KEYLockLatAxis		1	纬度锁定
+KEYSetLocalOffset		1	设定网格捕捉偏移
+GridSizeLabel		1	蓝图大小和锚点
+GridLongSize		1	宽度
+GridLatSize		1	高度
+CantPasteThisInGasGiantWarn		1	此蓝图无法放置在气态/冰巨星上。
+FoundationsLabel		1	地基
+foundationsBPCountLabel		1	块地基
+foundationBPEnabledLabel		1	蓝图包含地基
+TransportLabel		1	物流
+ChangeTipText2		1	左键点击更改物流清单物品
+ChangeTip2Title		1	更改物流清单物品
+ChangeTip2Desc		1	左键点击更改物流清单物品。点击将打开选择菜单，可在其中选择新的物流清单物品。使用旧物流清单物品的物流塔将更新到选定的新物流清单物品。此更改将在保存后生效。
+copyColorsLabel		1	附带自定义调色板
+copyColorsTip		1	附带自定义调色板
+copyColorsTipDesc		1	启用后，地基的自定义调色板将与蓝图数据一同保存。粘贴此类蓝图时，当前行星的地基自定义调色板将被蓝图中的调色板替代。
+hasColorsLabel		1	含有颜色数据
+foundationsBlueprintTip		1	蓝图包含地基
+foundationsBlueprintTipDesc		1	启用后，您选中的所有地基（包括它们的颜色和类型）都将保存到蓝图中。另外只要蓝图中的建筑下方包含地基，即便施工场地缺乏地基支撑，蓝图也能成功粘贴
+KEYMirrorLongAxis		1	经向镜像
+KEYMirrorLatAxis		1	纬向镜像
+BeltHintsLabel		1	腰带提示
+HintsChangeTipText		1	左键单击更改腰带提示
+ChangeHintsTipTitle		1	您可以更改腰带提示
+ChangeHintsTipDesc		1	左键点击更改腰带提示。点击将打开选择菜单，可在其中选择新腰带提示。所有使用旧腰带提示的输送带将更新到选定的新腰带提示。此更改将在保存后生效。
+recipeLockedWarn		1	食谱已锁定
+BPBrowserPasteButtonTipTitle		1	粘贴蓝图[双击]
+BPBrowserPasteButtonTipDesc		1	开始张贴当前选定的蓝图
+MoveBlueprintTip		1	移动到
+FileAlreadyExistsTitle		1	动不了蓝图！
+FileAlreadyExistsDesc		1	同名蓝图已存在于目标位置！ 请重命名蓝图并重试。
+KEYFactoryUndo		1	撤消
+KEYFactoryRedo		1	重做
+KEYDSPTrashButton		1	选择垃圾
+NotEnoughFoundationsMessage		1	你需要 {0} 更多的基础来放置这个蓝图！
+FoundCountMessage		1	会消耗 {0} 基础
+UndoSuccessText		1	撤消成功！
+UndoFailureText		1	未能撤消！
+RedoSuccessText		1	重做成功！
+RedoFailureText		1	重做失败！
+UndoClearedMessage		1	撤消历史清除！
+UndoHistoryEmptyMessage		1	撤消历史是空的！
+RedoHistoryEmptyMessage		1	重做历史是空的！
+AnchorSetLabel		1	锚赂
+AnchorTipTitle		1	设置锚点位置
+AnchorTipText		1	使用下面的按钮来设置你喜欢的锚点位置. 此更改将在保存后生效。

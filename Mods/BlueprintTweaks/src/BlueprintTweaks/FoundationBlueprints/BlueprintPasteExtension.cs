@@ -350,7 +350,7 @@ namespace BlueprintTweaks
             
             if (tool.player.package.GetItemCount(PlatformSystem.REFORM_ID) < reformCount) return false;
 
-            int result = tool.player.sandCount - cost;
+            long result = tool.player.sandCount - cost;
             if (result <= 0) return false;
 
             tool.player.package.TakeItem(PlatformSystem.REFORM_ID, reformCount, out int _);

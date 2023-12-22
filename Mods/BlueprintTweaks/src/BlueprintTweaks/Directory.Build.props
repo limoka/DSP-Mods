@@ -41,14 +41,13 @@
     <PackageVersion>$(AssemblyVersion)</PackageVersion>
   </PropertyGroup>
 
-
   <!-- Shared Items -->
   <ItemGroup Label="Plugins">
     <PackageReference Include="DysonSphereProgram.Modding.NebulaMultiplayerModApi" Version="1.3.*" IncludeAssets="compile"/>
     <PackageReference Include="DysonSphereProgram.Modding.DSPModSave" Version="1.*" IncludeAssets="compile"/>
     <PackageReference Include="DysonSphereProgram.Modding.LDBTool" Version="2.*" IncludeAssets="compile" />
     <!--<PackageReference Include="DysonSphereProgram.Modding.CommonAPI" Version="1.*" IncludeAssets="compile" />-->
-    <Reference Include="$(MSBuildThisFileDirectory)/../../CommonAPI/CommonAPI/obj/Release/CommonAPI.dll" Private="false" SpecificVersion="true" />
+    <Reference Include="$(MSBuildThisFileDirectory)/..\..\..\..\..\CommonAPI\CommonAPI\obj\Release\CommonAPI.dll" Private="false" SpecificVersion="true" />
   </ItemGroup>
 
   <ItemGroup Label="Dyson Sphere Program">

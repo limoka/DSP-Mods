@@ -23,8 +23,10 @@ namespace BlueprintTweaks.FactoryUndo
                 if (NebulaModAPI.MultiplayerSession.LocalPlayer.IsClient) return;
             }
 
+            IEnumerable<int> objectIds = __instance.buildPreviews.Select(preview => preview.objId);
+            
             PlayerUndo data = UndoManager.GetCurrentPlayerData();
-            data.AddUndoItem(new UndoAddon(data, __instance.handbp.objId));
+            data.AddUndoItem(new UndoAddon(data, objectIds));
         }
         
         [HarmonyPatch(typeof(BuildTool_Click), nameof(BuildTool_Click.CreatePrebuilds))]

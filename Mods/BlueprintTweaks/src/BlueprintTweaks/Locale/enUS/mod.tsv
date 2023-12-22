@@ -1,0 +1,53 @@
+﻿KEYToggleBPGodModeDesc		1	Toggle Blueprint God Mode
+RecipesLabel		1	Recipes
+ChangeTipText		1	Left-click to change recipe
+ChangeTipTitle		1	Change Recipe
+ChangeTipDesc		1	Left-click to change recipe. When you click, picker menu will open, where a new recipe can be selected. All machines that used the old recipe will now use selected recipe. This change will take effect after saving.
+KEYForceBPPlace		1	Force Blueprint placement
+KEYLockLongAxis		1	Lock Longitude axis
+KEYLockLatAxis		1	Lock Latitude axis
+KEYSetLocalOffset		1	Set grid snapping offset
+GridSizeLabel		1	Blueprint Size and Anchor
+GridLongSize		1	Width
+GridLatSize		1	Height
+CantPasteThisInGasGiantWarn		1	This Blueprint can't be pasted on a Gas Giant.
+FoundationsLabel		1	Foundations
+foundationsBPCountLabel		1	recorded
+foundationBPEnabledLabel		1	Blueprint foundations
+TransportLabel		1	Logistics
+ChangeTipText2		1	Left-click to change requested item
+ChangeTip2Title		1	Change requested items
+ChangeTip2Desc		1	Left-click to change requested item. When you click, picker menu will open, where a new item can be selected. Logistic station that used the old item will now use selected item. This change will take effect after saving.
+copyColorsLabel		1	Copy Custom foundation colors
+copyColorsTip		1	Copy Custom foundation colors
+copyColorsTipDesc		1	When enabled, Custom foundation colors will be saved with Blueprint Data. When such Blueprint will be pasted, current planet's Custom colors will be replaced with colors stored in the Blueprint
+hasColorsLabel		1	Contains Color data
+foundationsBlueprintTip		1	Blueprint Foundations
+foundationsBlueprintTipDesc		1	When enabled, all Foundations (Including their colors and types) in your selection will be saved to the Blueprint. If there are buildings that lack support, but blueprint has foundations under them they will successfully be pasted
+KEYMirrorLongAxis		1	Mirror Blueprint in Longitude axis
+KEYMirrorLatAxis		1	Mirror Blueprint in Latitude axis
+BeltHintsLabel		1	Belt Hints
+HintsChangeTipText		1	Left-click to change belt hints
+ChangeHintsTipTitle		1	You can change belt hints
+ChangeHintsTipDesc		1	Left-click to change hints on belts. When you click, picker menu will open, where a new icon can be selected. All belts that used the old icon will now use selected icon. This change will take effect after saving.
+recipeLockedWarn		1	Recipe is locked
+BPBrowserPasteButtonTipTitle		1	Paste Blueprint [Double click]
+BPBrowserPasteButtonTipDesc		1	Start pasting current selected blueprint
+MoveBlueprintTip		1	Move to
+FileAlreadyExistsTitle		1	Can't move blueprint!
+FileAlreadyExistsDesc		1	Blueprint with same name already exists in target location! Please rename your blueprint and try again.
+KEYFactoryUndo		1	Undo
+KEYFactoryRedo		1	Redo
+KEYDSPTrashButton		1	Select Trash
+NotEnoughFoundationsMessage		1	You need {0} more foundations to place this Blueprint!
+FoundCountMessage		1	Will consume {0} foundations
+UndoSuccessText		1	Undone successfully!
+UndoFailureText		1	Failed to undo!
+RedoSuccessText		1	Redone successfully!
+RedoFailureText		1	Failed to redo!
+UndoClearedMessage		1	Undo history cleared!
+UndoHistoryEmptyMessage		1	Undo history is empty!
+RedoHistoryEmptyMessage		1	Redo history is empty!
+AnchorSetLabel		1	Anchors
+AnchorTipTitle		1	Set your anchor position
+AnchorTipText		1	Use buttons below to set your anchor position as you like. This change will take effect after saving.

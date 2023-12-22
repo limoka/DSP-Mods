@@ -435,7 +435,7 @@ namespace BlueprintTweaks
                         if (beltId > 0)
                         {
                             ReturnBuildingItems(edgeId);
-                            factory.RemoveEntityWithComponents(edgeId);
+                            factory.RemoveEntityWithComponents(edgeId, false);
                             targetIds.Remove(edgeId);
                         }
                     }
@@ -675,7 +675,7 @@ namespace BlueprintTweaks
                     try
                     {
                         TakeBackOptimizedGeneral(entityId);
-                        factory.RemoveEntityWithComponents(entityId);
+                        factory.RemoveEntityWithComponents(entityId, false);
                     }
                     catch (Exception e)
                     {
