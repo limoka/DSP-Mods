@@ -45,7 +45,7 @@ namespace BlueprintTweaks
         
         public const string MOD_DISP_NAME = "Blueprint Tweaks";
         
-        public const string VERSION = "1.5.10";
+        public const string VERSION = "1.5.11";
 
         public const string GENESIS_BOOK_MODGUID = "org.LoShin.GenesisBook";
         public const string FREE_FOUNDATIONS_GUID = "de.Hotte.DSP.FreeFoundations";
@@ -96,58 +96,13 @@ namespace BlueprintTweaks
         public static ConfigEntry<bool> undoExcludeStations;
         public static ConfigEntry<bool> useFastDismantle;
         public static ConfigEntry<int>  undoMaxHistory;
+        public static ConfigEntry<bool> showUndoClearedMessage;
 
         private void Awake()
         {
             logger = Logger;
 
-            #region Config
-
-            cameraToggleEnabled = Config.Bind("Interface", "cameraToggle", true, "Allows toggling camera between 3rd person and god view\nAll values are applied on restart");
-            addPasteButtonEnabled = Config.Bind("Interface", "addBluprintPasteButton", true, "If enabled new button will be added to Blueprint Browser. Pressing it will paste curretly selected blueprint\nAll values are applied on restart");
-            
-            recipeChangeEnabled = Config.Bind("Interface", "recipeChange", true, "Add recipe change panel to blueprint inspectors\nAll values are applied on restart");
-            logisticCargoChangeEnabled = Config.Bind("Interface", "changeLogisticCargo", true, "Allows changing cargo requested/provided by logistic stations");
-            changeTierEnabled = Config.Bind("Interface", "changeTier", true, "Allows using change tier functionality\nAll values are applied on restart");
-            beltHintsChangeEnable = Config.Bind("Interface", "beltHintChange", true, "Add belt hint change panel to blueprint inspectors\nAll values are applied on restart");
-            keepBlueprintDesc = Config.Bind("Interface", "keepBlueprintDescription", true, "When pasting blueprint string into existing blueprint you can hold shift to keep description and icons");
-            keepBrowserPath = Config.Bind("Interface", "keepBroserPath", true, "Preserve last open Blueprint Browser directory. Also when creating new blueprints, they will be saved in the last open directory");
-
-            
-            
-            forcePasteEnabled = Config.Bind("Features", "forcePaste", true, "Allow to force paste using Shift+Click");
-            axisLockEnabled = Config.Bind("Features", "axisLock", true, "Allows using Latitude/Longtitude axis locks\nAll values are applied on restart");
-            gridControlFeature = Config.Bind("Features", "gridControl", true, "Allows changing grid size and its offset\nAll values are applied on restart");
-            blueprintMirroring = Config.Bind("Features", "blueprintMirroring", true, "Allows mirroring Blueprints\nAll values are applied on restart");
-            dragRemove = Config.Bind("Features", "dragRemove", true, "Allows using drag remove function\nAll values are applied on restart");
-            pasteLocked = Config.Bind("Features", "PasteLockedRecipes", true, "Allow pasting assemblers with recipes which have not been unlocked yet. Assemblers with recipes that are not unlocked will not work.");
-            moveWithDragNDrop = Config.Bind("Features", "moveBPWithDragNDrop", true, "Allow moving blueprints using drag and drop");
-            factoryUndo = Config.Bind("Features", "factoryUndo", true, "Enable Factory Undo feature. Allows to undo/redo most building actions. Will force dragRemove to true");
-
-            
-            blueprintFoundations = Config.Bind("Features", "blueprintFoundations", true, "Allow blueprinting foundations along with buildings.\nAll values are applied on restart");
-            
-            resetFunctionsOnMenuExit = Config.Bind("Misc", "resetOnExit", true, "If enabled when you exit build mode, some functions (Axis/Grid lock, Mirror) will reset their state");
-            canBlueprintOnGasGiants = Config.Bind("Misc", "bpOnGasGiants", true, "Allow using Blueprints on Gas Giants\nAll values are applied on restart");
-
-            useFastDismantle = Config.Bind("Misc", "useFastDismantle", true, "When using drag remove tool or factory undo, an improved algorithm of removing entities will be used. It is about 20x faster, but might have some imperfections. If you encounter issues you can switch back to vanilla code.");
-            excludeStations = Config.Bind("Misc", "excludeStations", true, "When using drag remove tool, logistic stations (and miners Mk.II) will not get removed. This is a safeguard against errors which occur most of the time when you try to mass dismantle logistic stations.");
-
-            undoMaxHistory = Config.Bind("Misc", "undoMaxHistory", 50, "Defines undo history size. When history reaches it's capacity, old entries will get removed. When using Nebula host controls the used value");
-            undoExcludeStations = Config.Bind("Misc", "undoExcludeStations", true, "When enabled factory undo will not undo/redo actions with logistic stations.");
-
-            
-            Config.MigrateConfig<bool>("General", "Interface", new []{"cameraToggle", "recipeChange", "changeLogisticCargo", "changeTier"});
-            Config.MigrateConfig<bool>("General", "Features", new []{"forcePaste", "axisLock", "gridControl", "gridControl", "blueprintFoundations"});
-            Config.MigrateConfig<bool>("General", "Misc", new []{"bpOnGasGiants"});
-
-            if (factoryUndo.Value)
-            {
-                dragRemove.Value = true;
-            }
-            
-            #endregion
-            
+            LoadConfigs();
             Config.Save();
 
             string pluginfolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -248,6 +203,64 @@ namespace BlueprintTweaks
             #endregion
             
             logger.LogInfo("Blueprint tweaks mod is initialized!");
+        }
+
+        private void LoadConfigs()
+        {
+            cameraToggleEnabled = Config.Bind("Interface", "cameraToggle", true,
+                "Allows toggling camera between 3rd person and god view\nAll values are applied on restart");
+            addPasteButtonEnabled = Config.Bind("Interface", "addBluprintPasteButton", true,
+                "If enabled new button will be added to Blueprint Browser. Pressing it will paste curretly selected blueprint\nAll values are applied on restart");
+
+            recipeChangeEnabled = Config.Bind("Interface", "recipeChange", true, "Add recipe change panel to blueprint inspectors\nAll values are applied on restart");
+            logisticCargoChangeEnabled = Config.Bind("Interface", "changeLogisticCargo", true, "Allows changing cargo requested/provided by logistic stations");
+            changeTierEnabled = Config.Bind("Interface", "changeTier", true, "Allows using change tier functionality\nAll values are applied on restart");
+            beltHintsChangeEnable = Config.Bind("Interface", "beltHintChange", true,
+                "Add belt hint change panel to blueprint inspectors\nAll values are applied on restart");
+            keepBlueprintDesc = Config.Bind("Interface", "keepBlueprintDescription", true,
+                "When pasting blueprint string into existing blueprint you can hold shift to keep description and icons");
+            keepBrowserPath = Config.Bind("Interface", "keepBroserPath", true,
+                "Preserve last open Blueprint Browser directory. Also when creating new blueprints, they will be saved in the last open directory");
+
+
+            forcePasteEnabled = Config.Bind("Features", "forcePaste", true, "Allow to force paste using Shift+Click");
+            axisLockEnabled = Config.Bind("Features", "axisLock", true, "Allows using Latitude/Longtitude axis locks\nAll values are applied on restart");
+            gridControlFeature = Config.Bind("Features", "gridControl", true, "Allows changing grid size and its offset\nAll values are applied on restart");
+            blueprintMirroring = Config.Bind("Features", "blueprintMirroring", true, "Allows mirroring Blueprints\nAll values are applied on restart");
+            dragRemove = Config.Bind("Features", "dragRemove", true, "Allows using drag remove function\nAll values are applied on restart");
+            pasteLocked = Config.Bind("Features", "PasteLockedRecipes", true,
+                "Allow pasting assemblers with recipes which have not been unlocked yet. Assemblers with recipes that are not unlocked will not work.");
+            moveWithDragNDrop = Config.Bind("Features", "moveBPWithDragNDrop", true, "Allow moving blueprints using drag and drop");
+            factoryUndo = Config.Bind("Features", "factoryUndo", true,
+                "Enable Factory Undo feature. Allows to undo/redo most building actions. Will force dragRemove to true");
+
+
+            blueprintFoundations = Config.Bind("Features", "blueprintFoundations", true,
+                "Allow blueprinting foundations along with buildings.\nAll values are applied on restart");
+
+            resetFunctionsOnMenuExit = Config.Bind("Misc", "resetOnExit", true,
+                "If enabled when you exit build mode, some functions (Axis/Grid lock, Mirror) will reset their state");
+            canBlueprintOnGasGiants = Config.Bind("Misc", "bpOnGasGiants", true, "Allow using Blueprints on Gas Giants\nAll values are applied on restart");
+
+            useFastDismantle = Config.Bind("Misc", "useFastDismantle", true,
+                "When using drag remove tool or factory undo, an improved algorithm of removing entities will be used. It is about 20x faster, but might have some imperfections. If you encounter issues you can switch back to vanilla code.");
+            excludeStations = Config.Bind("Misc", "excludeStations", true,
+                "When using drag remove tool, logistic stations (and miners Mk.II) will not get removed. This is a safeguard against errors which occur most of the time when you try to mass dismantle logistic stations.");
+
+            undoMaxHistory = Config.Bind("Misc", "undoMaxHistory", 50,
+                "Defines undo history size. When history reaches it's capacity, old entries will get removed. When using Nebula host controls the used value");
+            undoExcludeStations = Config.Bind("Misc", "undoExcludeStations", true, "When enabled factory undo will not undo/redo actions with logistic stations.");
+
+            showUndoClearedMessage = Config.Bind("Misc", "showUndoClearedMessage", true, "Should a message informing you that undo history has been cleared be shown whenever you leave a planet?");
+
+            Config.MigrateConfig<bool>("General", "Interface", new[] { "cameraToggle", "recipeChange", "changeLogisticCargo", "changeTier" });
+            Config.MigrateConfig<bool>("General", "Features", new[] { "forcePaste", "axisLock", "gridControl", "gridControl", "blueprintFoundations" });
+            Config.MigrateConfig<bool>("General", "Misc", new[] { "bpOnGasGiants" });
+
+            if (factoryUndo.Value)
+            {
+                dragRemove.Value = true;
+            }
         }
 
         private static void RegisterKeyBinds()

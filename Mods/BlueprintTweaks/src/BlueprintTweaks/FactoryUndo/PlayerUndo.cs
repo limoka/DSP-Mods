@@ -35,9 +35,12 @@ namespace BlueprintTweaks.FactoryUndo
             {
                 if (NebulaModAPI.MultiplayerSession.Factories.IsIncomingRequest.Value) return;
             }
-            
-            UIRealtimeTip.Popup("UndoClearedMessage".Translate(), false);
-            VFAudio.Create("cancel-0", null, Vector3.zero, true, 4);
+
+            if (BlueprintTweaksPlugin.showUndoClearedMessage.Value)
+            {
+                UIRealtimeTip.Popup("UndoClearedMessage".Translate(), false);
+                VFAudio.Create("cancel-0", null, Vector3.zero, true, 4);
+            }
         }
 
         internal void AddUndoItem(IUndoAction action)

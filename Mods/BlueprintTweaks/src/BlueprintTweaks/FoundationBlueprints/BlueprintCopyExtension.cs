@@ -75,8 +75,8 @@ namespace BlueprintTweaks
             {
                 float longitudeRadPerGrid = BlueprintUtils.GetLongitudeRadPerGrid(gratbox.startLatitudeRad, __instance.segment);
                 float latitudeRadPerGrid = BlueprintUtils.GetLatitudeRadPerGrid(__instance.segment);
-                float extend_lng_grid = Math.Max(3f - Mathf.RoundToInt(gratbox.width / longitudeRadPerGrid) / 2, 1f);
-                float extend_lat_grid = Math.Max(3f - Mathf.RoundToInt(gratbox.height / latitudeRadPerGrid) / 2, 1f);
+                float extend_lng_grid = Math.Max(3f - Mathf.RoundToInt(gratbox.width / longitudeRadPerGrid) / 2f, 1f);
+                float extend_lat_grid = Math.Max(3f - Mathf.RoundToInt(gratbox.height / latitudeRadPerGrid) / 2f, 1f);
                 gratbox = BlueprintUtils.GetExtendedGratBox(gratbox, extend_lng_grid, extend_lat_grid);
                 __instance.curActiveAreaGratBoxCursor = BlueprintUtils.SplitGratBoxInTropicAreas(gratbox, __instance.tropicGratBoxRadRangeArr, __instance.displayGratBoxArr, __instance.segment);
 

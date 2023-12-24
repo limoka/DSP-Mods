@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk" InitialTargets="CopyLocale">
+<Project Sdk="Microsoft.NET.Sdk" InitialTargets="CopyLocale;CopyLocaleIntoStaging">
   <PropertyGroup>
     <Configurations>Release</Configurations>
     <Platforms>AnyCPU</Platforms>
@@ -11,6 +11,10 @@
 
   <Target Name="CopyLocale">
     <Copy SourceFiles="@(LocaleFolder)" DestinationFolder="$(OutputPath)Locale\%(RecursiveDir)" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" Retries="3" RetryDelayMilliseconds="300" />
+  </Target>
+
+  <Target Name="CopyLocaleIntoStaging">
+    <Copy SourceFiles="@(LocaleFolder)" DestinationFolder="$(MSBuildThisFileDirectory)\..\Staging\plugins\Locale\%(RecursiveDir)" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" Retries="3" RetryDelayMilliseconds="300" />
   </Target>
 </Project>
 

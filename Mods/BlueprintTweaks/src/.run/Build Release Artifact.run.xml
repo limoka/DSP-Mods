@@ -1,8 +1,8 @@
 ﻿<component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Build Release Artifact" type="RunNativeExe" factoryName="Native Executable">
-    <option name="EXE_PATH" value="$PROJECT_DIR$/../../../../../Program Files/nodejs/node.exe" />
+    <option name="EXE_PATH" value="$PROJECT_DIR$/../../../../../../../../Program Files/nodejs/node.exe" />
     <option name="PROGRAM_PARAMETERS" value=".\release.js build BlueprintTweaks\ BlueprintTweaksPlugin.cs" />
-    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/" />
     <option name="PASS_PARENT_ENVS" value="1" />
     <option name="USE_EXTERNAL_CONSOLE" value="0" />
     <method v="2">

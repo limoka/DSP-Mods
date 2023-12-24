@@ -1,6 +1,6 @@
 ﻿<component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Release" type="RunNativeExe" factoryName="Native Executable">
-    <option name="EXE_PATH" value="$PROJECT_DIR$/../../../../../Program Files/nodejs/node.exe" />
+    <option name="EXE_PATH" value="$PROJECT_DIR$/../../../../../../../../Program Files/nodejs/node.exe" />
     <option name="PROGRAM_PARAMETERS" value=".\release.js release BlueprintTweaks\ BlueprintTweaksPlugin.cs" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
     <option name="PASS_PARENT_ENVS" value="1" />

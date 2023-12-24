@@ -5,15 +5,15 @@ schemaVersion = "0.0.1"
 namespace = "kremnev8"
 name = "BlueprintTweaks"
 description = "Improves Blueprint system with QoL changes, new features like force pasting, foundation blueprints and more"
-versionNumber = "1.5.10"
+versionNumber = "1.5.11"
 websiteUrl = "https://github.com/kremnev8/DSP-Mods/tree/master/Mods/BlueprintTweaks"
 containsNsfwContent = false
 
   [package.dependencies]
-  xiaoye97-LDBTool = "2.0.6"
+  xiaoye97-LDBTool = "3.0.1"
   xiaoye97-BepInEx = "5.4.17"
   nebula-NebulaMultiplayerModApi = "1.3.0"
-  CommonAPI-CommonAPI = "1.5.4"
+  CommonAPI-CommonAPI = "1.6.2"
 
 [build]
 icon = "./icon.png"
@@ -22,6 +22,10 @@ outdir = "./../Build"
 
   [[build.copy]]
   source = "./../Staging"
+  target = "./"
+
+  [[build.copy]]
+  source = "./CHANGELOG.md"
   target = "./"
 
 [publish]

@@ -15,7 +15,7 @@ namespace BlueprintTweaks
     [HarmonyPatch]
     public static class BlueprintUtilsPatch2
     {
-        public delegate void RefAction(ref Vector4 area, float longAxis, float latAxis);
+        public delegate void RefAction(ref Vector4 area, float longAxis, float latAxis, float yaw);
 
         public static bool mirrorLat;
         public static bool mirrorLong;
@@ -83,16 +83,32 @@ namespace BlueprintTweaks
             return yaw;
         }
 
-        public static void MirrorArea(ref Vector4 area, float longAxis, float latAxis)
+        public static void MirrorArea(ref Vector4 area, float longAxis, float latAxis, float yaw)
         {
+            int yawCount = Mathf.FloorToInt(yaw / 90f);
+            
             if (mirrorLat)
             {
-                longAxis *= -1;
+                if (yawCount == 1 || yawCount == 3)
+                {
+                    latAxis *= -1;
+                }
+                else
+                {
+                    longAxis *= -1;
+                }
             }
 
             if (mirrorLong)
             {
-                latAxis *= -1;
+                if (yawCount == 1 || yawCount == 3)
+                {
+                    longAxis *= -1;
+                }
+                else
+                {
+                    latAxis *= -1;
+                }
             }
 
             area.x = longAxis < 0f ? area.z : area.x;
@@ -112,6 +128,18 @@ namespace BlueprintTweaks
 
                 return MirrorRotation(yaw);
             }
+            
+            // STEP 1
+            
+            // turns
+            // Vector4 vector4 = array[l + blueprintBuilding.areaIndex];
+            // vector4.x = ((num2 < 0f) ? vector4.z : vector4.x);
+            // vector4.y = ((num3 < 0f) ? vector4.w : vector4.y);
+            
+            // into
+            
+            // Vector4 vector4 = array[l + blueprintBuilding.areaIndex];
+            // MirrorArea(ref vector4, num2, num3, _yaw);
 
             CodeMatcher matcher = new CodeMatcher(instructions, generator)
                 .MatchForward(true,
@@ -140,8 +168,17 @@ namespace BlueprintTweaks
             matcher.RemoveInstruction()
                 .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, longAxisVar))
                 .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, latAxisVar))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldarg_S, 6)) //yaw
                 .InsertAndAdvance(Transpilers.EmitDelegate<RefAction>(MirrorArea));
 
+            // STEP 2
+            
+            // turns
+            // Vector2 vector5 = BlueprintUtils.TransitionWidthAndHeight(_yaw, blueprintBuilding.localOffset_x, blueprintBuilding.localOffset_y);
+            
+            // into
+            // Vector2 vector5 = @delegate(_yaw, blueprintBuilding);
+            
             matcher.MatchForward(false,
                     new CodeMatch(OpCodes.Call, AccessTools.Method(typeof(BlueprintUtils), nameof(BlueprintUtils.TransitionWidthAndHeight))))
                 .Advance(-3)
@@ -166,18 +203,39 @@ namespace BlueprintTweaks
                     return BlueprintUtils.TransitionWidthAndHeight(yaw, x, y);
                 }));
 
+            // STEP 3
+            
+            // turns
+            // Quaternion quaternion = Maths.SphericalRotation(dir, blueprintBuilding.yaw - (float)num * 90f);
+            
+            // into
+            // Quaternion quaternion = Maths.SphericalRotation(dir, MirrorBuildingRotation(blueprintBuilding.yaw, blueprintBuilding) - (float)num * 90f);
+            
             matcher.MatchForward(false,
                     new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(BlueprintBuilding), nameof(BlueprintBuilding.yaw)))
                 ).Advance(1)
-                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, 30))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, 30)) //TODO this is unsafe
                 .InsertAndAdvance(Transpilers.EmitDelegate<Func<float, BlueprintBuilding, float>>(MirrorBuildingRotation)).Advance(2);
 
+            // STEP 4
+            
+            // turns
+            // Quaternion quaternion2 = Maths.SphericalRotation(dir2, blueprintBuilding.yaw2 - (float)num * 90f);
+            
+            // into
+            // Quaternion quaternion2 = Maths.SphericalRotation(dir2, MirrorBuildingRotation(blueprintBuilding.yaw2, blueprintBuilding) - (float)num * 90f);
+            
             matcher.MatchForward(false,
                     new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(BlueprintBuilding), nameof(BlueprintBuilding.yaw2)))
                 ).Advance(1)
-                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, 30))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, 30)) //TODO this is unsafe
                 .InsertAndAdvance(Transpilers.EmitDelegate<Func<float, BlueprintBuilding, float>>(MirrorBuildingRotation));
 
+            // STEP 5
+            
+            // inserts delegate approx after
+            // if (buildPreview2.desc.isInserter)
+            
             matcher.MatchForward(true,
                     new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(BuildPreview), nameof(BuildPreview.desc))),
                     new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(PrefabDesc), nameof(PrefabDesc.isInserter))))

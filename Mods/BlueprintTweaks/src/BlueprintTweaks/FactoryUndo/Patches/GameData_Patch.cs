@@ -19,8 +19,13 @@ namespace BlueprintTweaks.FactoryUndo
                 if (session.LocalPlayer.IsClient)
                 {
                     session.Network.SendPacket(new ClearUndoRequestPacket(session.LocalPlayer.Id));
-                    UIRealtimeTip.Popup("UndoClearedMessage".Translate(), false);
-                    VFAudio.Create("cancel-0", null, Vector3.zero, true, 4);
+
+                    if (BlueprintTweaksPlugin.showUndoClearedMessage.Value)
+                    {
+                        UIRealtimeTip.Popup("UndoClearedMessage".Translate(), false);
+                        VFAudio.Create("cancel-0", null, Vector3.zero, true, 4);
+                    }
+
                     return;
                 }
             }

@@ -28,12 +28,13 @@ namespace BlueprintTweaks
                     new CodeMatch(OpCodes.Ldc_I4_0)
                 ).Advance(3);
 
-            Label contLabel = (Label) matcher.Operand;
+            Label contLabel = (Label)matcher.Operand;
 
             //allow generation when there is no buildings
             matcher.Advance(-3)
                 .SetAndAdvance(OpCodes.Pop, null)
-                .InsertAndAdvance(Transpilers.EmitDelegate<Func<bool>>(() => BlueprintCopyExtension.isEnabled && BlueprintCopyExtension.reformSelection.Count > 0))
+                .InsertAndAdvance(Transpilers.EmitDelegate<Func<bool>>(() =>
+                    BlueprintCopyExtension.isEnabled && BlueprintCopyExtension.reformSelection.Count > 0))
                 .InsertAndAdvance(new CodeInstruction(OpCodes.Brtrue, contLabel))
                 .InsertAndAdvance(new CodeInstruction(OpCodes.Ldarg_S, 4))
                 .InsertAndAdvance(new CodeInstruction(OpCodes.Ldc_I4_0));
@@ -71,7 +72,7 @@ namespace BlueprintTweaks
                     }
                     else
                     {
-                        data.reforms = new ReformData[0];
+                        data.reforms = Array.Empty<ReformData>();
                     }
                 }))
                 .InsertAndAdvance(new CodeInstruction(OpCodes.Ldarg_0));
@@ -79,12 +80,12 @@ namespace BlueprintTweaks
             //Just to anchor
             matcher.MatchForward(true,
                 new CodeMatch(OpCodes.Call,
-                    AccessTools.Method(typeof(BlueprintUtils), nameof(BlueprintUtils.GetLongitudeSegmentCount), new[] {typeof(Vector3), typeof(int)})),
+                    AccessTools.Method(typeof(BlueprintUtils), nameof(BlueprintUtils.GetLongitudeSegmentCount), new[] { typeof(Vector3), typeof(int) })),
                 new CodeMatch(OpCodes.Stloc_S),
                 new CodeMatch(OpCodes.Ldloc_S),
                 new CodeMatch(OpCodes.Ldloc_S),
                 new CodeMatch(OpCodes.Call,
-                    AccessTools.Method(typeof(BlueprintUtils), nameof(BlueprintUtils.GetLongitudeRadPerGrid), new[] {typeof(int), typeof(int)})));
+                    AccessTools.Method(typeof(BlueprintUtils), nameof(BlueprintUtils.GetLongitudeRadPerGrid), new[] { typeof(int), typeof(int) })));
 
             // add my code
             matcher.MatchForward(false,
@@ -103,7 +104,7 @@ namespace BlueprintTweaks
                     {
                         if (!BlueprintCopyExtension.isEnabled) return;
                         if (UndoManager.IgnoreAllEvents.Value) return;
-                        
+
                         for (int j = 0; j < BlueprintCopyExtension.reformSelection.Count; j++)
                         {
                             if (blueprint.reforms[j].areaIndex >= 0) continue;
@@ -119,6 +120,11 @@ namespace BlueprintTweaks
                             if (blueprint.reforms[j].localLongitude < -0.5001f)
                             {
                                 blueprint.reforms[j].localLongitude += longitudeSegmentCount * 5;
+                            }
+
+                            if (blueprint.reforms[j].localLongitude > -0.5001f + longitudeSegmentCount * 5)
+                            {
+                                blueprint.reforms[j].localLongitude -= longitudeSegmentCount * 5;
                             }
                         }
                     }));
@@ -186,11 +192,11 @@ namespace BlueprintTweaks
                     ReformData reformPreview = reforms[reformsLength * j + i];
                     Vector4 areaData = array[j + reformData.areaIndex];
 
-                    BlueprintUtilsPatch2.MirrorArea(ref areaData, yawX, yawY);
+                    BlueprintUtilsPatch2.MirrorArea(ref areaData, yawX, yawY, _yaw);
 
-                    float radPerGrid = BlueprintUtils.GetLongitudeRadPerGrid(areaData.y, _segmentCnt);
+                    float longitudeRadPerGrid = BlueprintUtils.GetLongitudeRadPerGrid(areaData.y, _segmentCnt);
                     Vector2 vector4 = BlueprintUtils.TransitionWidthAndHeight(_yaw, reformData.localLongitude - 0.5f, reformData.localLatitude - 0.5f);
-                    float longitudeRad = areaData.x + vector4.x * radPerGrid * yawX;
+                    float longitudeRad = areaData.x + vector4.x * longitudeRadPerGrid * yawX;
                     float finalLatitude = areaData.y + vector4.y * latitudeRadPerGrid * yawY;
                     finalLatitude = Math.Abs(finalLatitude) > 1.5707964f ? 1.5707964f * Math.Sign(finalLatitude) : finalLatitude;
 

@@ -1,8 +1,17 @@
-### v1.5.9
-- Fixed duplicate belt hints from showing. Also now invalid belt hints are ignored
+### v1.5.11
+- Added option to disable "undo cleared" message in the config
+- Fixed blueprints not centered when mirrored and rotated at the same time
+- Fixed foundation blueprints disappearing with some rotations
+- Fixed foundation blueprints being offset in latitude axis in some sections of the planet. This particular bug affects previously saved blueprints, so you will need to recreate the blueprint if you encountered this bug.
+
+### v1.5.10
+- Updated to work with game version 0.10.28.20729 or higher
 
 <details>
 <summary>All changes</summary>
+
+### v1.5.9
+- Fixed duplicate belt hints from showing. Also now invalid belt hints are ignored
 
 ### v1.5.8
 - Fix compatibility issues with Genesis Book mod

@@ -31,9 +31,7 @@ namespace BlueprintTweaks
         {
             if (a > b)
             {
-                float temp = a;
-                a = b;
-                b = temp;
+                (a, b) = (b, a);
             }
      
             if (b - a > Mathf.PI) 
