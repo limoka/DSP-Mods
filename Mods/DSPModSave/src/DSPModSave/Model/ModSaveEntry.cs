@@ -1,12 +1,12 @@
 ﻿namespace crecheng.DSPModSave
 {
-    public class ModSaveData
+    internal class ModSaveEntry
     {
         public string name;
         public long begin;
         public long end;
 
-        public ModSaveData(string name, long begin, long end)
+        public ModSaveEntry(string name, long begin, long end)
         {
             this.name = name;
             this.begin = begin;

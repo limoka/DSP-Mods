@@ -9,7 +9,7 @@
         <Authors>crecheng</Authors>
         <PackageOutputDir>$(MSBuildThisFileDirectory)/Nuget/</PackageOutputDir>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-        <PackageVersion>1.1.3</PackageVersion>
+        <PackageVersion>1.2.0</PackageVersion>
     </PropertyGroup>
 </Project>
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
-         InitialTargets="TestDSPGameFolder;TestDumpedAssembly;PublicizeAssembly">	 
+         InitialTargets="TestDSPGameFolder">	 
 
   <PropertyGroup>
     <DevEnvLoc>$(MSBuildThisFileDirectory)/DevEnv.targets</DevEnvLoc>
@@ -35,14 +35,5 @@
   <Target Name="TestDSPGameFolder"
           DependsOnTargets="MaybeCopyDevEnv;DevEnvInvalid"
           Condition="!Exists('$(DSPGameDir)')" />
-		  
-  <Target Name="TestDumpedAssembly"
-          Condition="!Exists('$(DumpedAssembliesDir)Assembly-CSharp.dll')" >	   
-    <Error Text="Can't find dumped Assembly-CSharp.dll! Please run game with preloader patch installed." />
-  </Target> 
-		  
-  <Target Name="PublicizeAssembly" Condition="Exists('$(DumpedAssembliesDir)Assembly-CSharp.dll') And !Exists('$(ProjectDir)Libs\Assembly-CSharp.dll')" > 
-    <Exec WorkingDirectory="$(DumpedAssembliesDir)" Command="$(ProjectDir)AssemblyPublicizer.exe Assembly-CSharp.dll $(ProjectDir)Libs\Assembly-CSharp.dll"/>  
-	
-  </Target> 
+  
 </Project>
