@@ -245,10 +245,40 @@ namespace GigaStations
             return false;
         }
 
+        [HarmonyTranspiler]
+        [HarmonyPatch(typeof(StationComponent), nameof(StationComponent.UpdateInputSlots))]
+        public static IEnumerable<CodeInstruction> UpdateInputSlotsTranspiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var codeMatcher = new CodeMatcher(instructions)
+                .MatchForward(true,
+                    new CodeMatch(OpCodes.Ldarg_0),
+                    new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(StationComponent), nameof(StationComponent.needs))),
+                    new CodeMatch(OpCodes.Ldc_I4_5),
+                    new CodeMatch(OpCodes.Ldelem_I4),
+                    new CodeMatch(OpCodes.Add),
+                    new CodeMatch(OpCodes.Stloc_S));
+
+            codeMatcher
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldarg_0))
+                .InsertAndAdvance(Transpilers.EmitDelegate<Func<StationComponent, int>>(component =>
+                {
+                    int sum = 0;
+                    for (int i = 6; i < component.needs.Length; i++)
+                    {
+                        sum += component.needs[i];
+                    }
+
+                    return sum;
+                }))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Add));
+
+            return codeMatcher.InstructionEnumeration();
+        }
+
 
         // Fixing Belt cannot input for item-slots 7-12
         [HarmonyPrefix]
-        [HarmonyPatch(typeof(CargoPath), "TryPickItemAtRear", new[] { typeof(int[]), typeof(int), typeof(byte), typeof(byte) }, new[] { ArgumentType.Normal, ArgumentType.Out, ArgumentType.Out, ArgumentType.Out })]
+        [HarmonyPatch(typeof(CargoPath), nameof(CargoPath.TryPickItemAtRear), new[] { typeof(int[]), typeof(int), typeof(byte), typeof(byte) }, new[] { ArgumentType.Normal, ArgumentType.Out, ArgumentType.Out, ArgumentType.Out })]
         // ReSharper disable once RedundantAssignment
         public static bool TryPickItemAtRear(CargoPath __instance, int[] needs, out int needIdx, out byte stack, out byte inc, ref int __result)
         {

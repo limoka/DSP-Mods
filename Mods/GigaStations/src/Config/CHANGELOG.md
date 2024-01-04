@@ -1,3 +1,6 @@
+### v2.3.5
+- Fixed issue where slots 7-12 would not accept items if slots 1-6 were filled.
+
 ### v2.3.4
 - Updated to work with game version 0.10.28.20729 or higher
 
