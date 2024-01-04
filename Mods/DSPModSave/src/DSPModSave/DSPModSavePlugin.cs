@@ -326,7 +326,7 @@ namespace crecheng.DSPModSave
                 if (!saveEntries.ContainsKey(pair.Key))
                 {
                     pair.Value.mod.IntoOtherSave();
-                    return;
+                    continue;
                 }
 
                 ModSaveEntry e = saveEntries[pair.Key];
