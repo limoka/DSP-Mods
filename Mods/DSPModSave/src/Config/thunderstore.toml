@@ -5,7 +5,7 @@ schemaVersion = "0.0.1"
 namespace = "CommonAPI"
 name = "DSPModSave"
 description = "Library that allows to store mod save data separately from vanilla saves"
-versionNumber = "1.1.4"
+versionNumber = "1.2.1"
 websiteUrl = "https://github.com/kremnev8/DSP-Mods/tree/master/Mods/DSPModSave"
 containsNsfwContent = false
 
@@ -19,6 +19,10 @@ outdir = "./../Build"
 
   [[build.copy]]
   source = "./../Staging"
+  target = "./"
+
+  [[build.copy]]
+  source = "./CHANGELOG.md"
   target = "./"
 
 [publish]

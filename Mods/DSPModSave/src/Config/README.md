@@ -52,17 +52,3 @@ Originally released by crecheng [here](https://dsp.thunderstore.io/package/crech
 
 ## Feedback and Bug Report
 Feel free to contact me via Discord (Kremnev8#3756) for any feedback, bug-reports or suggestions.
-
-## Changelog
-### v1.1.4
-- Now whenever a mod has errors saving/loading save data, a popup notifying the user will appear.
-### v1.1.3
-- Added plugin catergories on Thunderstore page.
-### v1.1.1-2
-- Added ability to manually request to be added to mod save list. Useful for testing with ScriptEngine.
-### v1.1.0
-- Reuploaded under CommonAPI name
-- Fixed that `IntoOtherSave` was called too early
-- Fixed that `IntoOtherSave` was not called if mod had no saved data in savefile
-### v1.0.0-1.0.2
-- Initial Release

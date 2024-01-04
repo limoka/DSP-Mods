@@ -21,7 +21,7 @@ namespace crecheng.DSPModSave
         public const string MODGUID = "crecheng.DSPModSave";
         public const string MODNAME = "DSP Mod Save";
         public const string MODID = "DSPModSave";
-        public const string VERSION = "1.2.0";
+        public const string VERSION = "1.2.1";
 
         public static ManualLogSource logger;
 
