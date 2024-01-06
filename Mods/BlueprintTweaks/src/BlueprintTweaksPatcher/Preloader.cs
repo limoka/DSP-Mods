@@ -98,6 +98,8 @@ namespace BlueprintTweaks
                 blueprintData.Fields.Add(new FieldDefinition("customColors", FieldAttributes.Public, color.MakeArrayType()));
 
                 blueprintData.Fields.Add(new FieldDefinition("anchorType", FieldAttributes.Public, gameModule.ImportReference(typeof(int))));
+                
+                blueprintData.Fields.Add(new FieldDefinition("autoReformMode", FieldAttributes.Public, gameModule.ImportReference(typeof(int))));
 
                 assemblerComponent.Fields.Add(new FieldDefinition("recipeIsLocked", FieldAttributes.Public, gameModule.ImportReference(typeof(bool))));
                 labComponent.Fields.Add(new FieldDefinition("recipeIsLocked", FieldAttributes.Public, gameModule.ImportReference(typeof(bool))));

@@ -9,6 +9,11 @@
     <LocaleFolder Include="$(MSBuildThisFileDirectory)\Locale\**\*.*" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="BPPanelChanges\UIBlueprintPanel.cs" />
+    <Compile Remove="BPPanelChanges\UIBlueprintRecipeItem.cs" />
+  </ItemGroup>
+
   <Target Name="CopyLocale">
     <Copy SourceFiles="@(LocaleFolder)" DestinationFolder="$(OutputPath)Locale\%(RecursiveDir)" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" Retries="3" RetryDelayMilliseconds="300" />
   </Target>

@@ -8,13 +8,6 @@ using Object = UnityEngine.Object;
 
 namespace BlueprintTweaks
 {
-    public class CustomWindowData
-    {
-        public UIBlueprintPanel[] panels;
-
-        public RectTransform mainPane;
-    }
-
     [HarmonyPatch]
     public static class UIBlueprintInspectorPatch
     {
@@ -25,23 +18,25 @@ namespace BlueprintTweaks
         public static void Init()
         {
             if (BlueprintTweaksPlugin.gridControlFeature.Value) 
-                panelPrefabs.Add("assets/blueprinttweaks/ui/grid-size-panel.prefab");
+                panelPrefabs.Add("assets/blueprinttweaks/ui/panels/grid-size-panel.prefab");
             
             if (BlueprintTweaksPlugin.blueprintFoundations.Value)
-                panelPrefabs.Add("assets/blueprinttweaks/ui/bp-foundations-panel.prefab");
+                panelPrefabs.Add("assets/blueprinttweaks/ui/panels/bp-foundations-panel.prefab");
             
-            panelPrefabs.Add("assets/blueprinttweaks/ui/component-panel.prefab");
+            panelPrefabs.Add("assets/blueprinttweaks/ui/panels/component-panel.prefab");
             
             if (BlueprintTweaksPlugin.recipeChangeEnabled.Value) 
-                panelPrefabs.Add("assets/blueprinttweaks/ui/recipe-panel.prefab");
+                panelPrefabs.Add("assets/blueprinttweaks/ui/panels/recipe-panel.prefab");
             
             if (BlueprintTweaksPlugin.logisticCargoChangeEnabled.Value)
-                panelPrefabs.Add("Assets/BlueprintTweaks/UI/transport-panel.prefab");
+                panelPrefabs.Add("Assets/BlueprintTweaks/UI/panels/transport-panel.prefab");
             
             if (BlueprintTweaksPlugin.beltHintsChangeEnable.Value)
-                panelPrefabs.Add("Assets/BlueprintTweaks/UI/hints-group.prefab");
+                panelPrefabs.Add("Assets/BlueprintTweaks/UI/panels/hints-group.prefab");
             
-            panelPrefabs.Add("assets/blueprinttweaks/ui/string-copy-panel.prefab");
+            panelPrefabs.Add("assets/blueprinttweaks/ui/panels/string-copy-panel.prefab");
+            
+            panelPrefabs.Add("Assets/BlueprintTweaks/UI/panels/keybind-hints-panel.prefab");
         }
         
         

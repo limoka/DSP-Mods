@@ -175,21 +175,29 @@ namespace BlueprintTweaks
             if (!BlueprintCopyExtension.isEnabled) return;
             if (UndoManager.IgnoreAllEvents.Value) return;
 
+            UpdatePositions(_dotsCursor, _yaw, _segmentCnt, array);
+        }
+
+        private static void UpdatePositions(
+            int _dotsCursor, 
+            float _yaw, 
+            int _segmentCnt, 
+            Vector4[] array)
+        {
             int yawCount = Mathf.FloorToInt(_yaw / 90f);
             float yawX = yawCount == 1 || yawCount == 2 ? -1f : 1f;
             float yawY = yawCount == 2 || yawCount == 3 ? -1f : 1f;
             float latitudeRadPerGrid = BlueprintUtils.GetLatitudeRadPerGrid(_segmentCnt);
-
-            List<ReformData> reforms = BlueprintPasteExtension.reformPreviews;
-            int reformsLength = _blueprintData.reforms.Length;
-
+            
+            int reformsLength = BlueprintPasteExtension.runtimeReforms.Count;
+            
             for (int i = 0; i < reformsLength; i++)
             {
-                ReformData reformData = _blueprintData.reforms[i];
+                ReformData reformData = BlueprintPasteExtension.runtimeReforms[i];
+                
                 for (int j = 0; j < _dotsCursor; j++)
                 {
-
-                    ReformData reformPreview = reforms[reformsLength * j + i];
+                    ReformData reformPreview = BlueprintPasteExtension.reformPreviews[reformsLength * j + i];
                     Vector4 areaData = array[j + reformData.areaIndex];
 
                     BlueprintUtilsPatch2.MirrorArea(ref areaData, yawX, yawY, _yaw);

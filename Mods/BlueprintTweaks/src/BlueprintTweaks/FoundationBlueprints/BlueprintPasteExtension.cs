@@ -14,55 +14,235 @@ namespace BlueprintTweaks
     public static class BlueprintPasteExtension
     {
         public static List<ReformData> reformPreviews = new List<ReformData>();
-        public static List<Vector3> tmpPoints = new List<Vector3>();
-
-        public static int tickCounter;
-        public static int lastCost;
+        public static List<ReformData> runtimeReforms = new List<ReformData>();
         
-        public static void InitPreviews(BlueprintData _blueprintData, int _dotsCursor)
-        {
-            int num = _blueprintData.reforms.Length;
-            int num2 = (_blueprintData.areas.Length > 1) ? num : (num * _dotsCursor);
+        private static int lastAutoEstimate;
+        private static AutoReformMode lastReformMode = AutoReformMode.None;
 
-            if (reformPreviews.Capacity < num2)
+        private static List<Vector3> tmpPoints = new List<Vector3>();
+        private static HashSet<Vector3Int> occupied = new HashSet<Vector3Int>();
+
+        private static int tickCounter;
+        private static int lastCost;
+
+        public static void InitPreviews(BlueprintData blueprint, int _dotsCursor)
+        {
+            int reformCount = runtimeReforms.Count;
+            int totalCount = (blueprint.areas.Length > 1) ? reformCount : (reformCount * _dotsCursor);
+
+            if (reformPreviews.Capacity < totalCount)
             {
-                reformPreviews.Capacity = num2;
+                reformPreviews.Capacity = totalCount;
             }
 
-            for (int i = 0; i < num2; i++)
+            for (int i = 0; i < totalCount; i++)
             {
+                int subIndex = i % reformCount;
+                ReformData subReform = runtimeReforms[subIndex];
+
                 if (i >= reformPreviews.Count)
                 {
                     reformPreviews.Add(new ReformData());
                 }
-
-                int num4 = i % num;
-                reformPreviews[i].areaIndex = _blueprintData.reforms[num4].areaIndex;
-                reformPreviews[i].localLatitude = _blueprintData.reforms[num4].localLatitude;
-                reformPreviews[i].localLongitude = _blueprintData.reforms[num4].localLongitude;
-                reformPreviews[i].type = _blueprintData.reforms[num4].type;
-                reformPreviews[i].color = _blueprintData.reforms[num4].color;
+                
+                reformPreviews[i].areaIndex = subReform.areaIndex;
+                reformPreviews[i].localLatitude = subReform.localLatitude;
+                reformPreviews[i].localLongitude = subReform.localLongitude;
+                reformPreviews[i].type = subReform.type;
+                reformPreviews[i].color = subReform.color;
             }
 
-            for (int i = reformPreviews.Count - 1; i >= num2; i--)
+            for (int i = reformPreviews.Count - 1; i >= totalCount; i--)
             {
                 reformPreviews.RemoveAt(i);
             }
         }
 
 
+        private static Vector2 ToVector2(this Vector3 vec)
+        {
+            return new Vector2(vec.x, vec.z);
+        }
+
+        private static Vector2Int Floor(this Vector2 vec)
+        {
+            return new Vector2Int(Mathf.FloorToInt(vec.x), Mathf.FloorToInt(vec.y));
+        }
+
+        private static Vector2Int Ceil(this Vector2 vec)
+        {
+            return new Vector2Int(Mathf.CeilToInt(vec.x), Mathf.CeilToInt(vec.y));
+        }
+
+        public static void RefreshAutomaticReforms(BlueprintData blueprint, AutoReformMode autoReformMode)
+        {
+            if (autoReformMode == AutoReformMode.None)
+            {
+                runtimeReforms.Clear();
+                runtimeReforms.AddRange(blueprint.reforms);
+                return;
+            }
+
+            int estimatedCount = blueprint.reforms.Length + blueprint.buildings.Length;
+
+            if (runtimeReforms.Capacity < estimatedCount)
+            {
+                runtimeReforms.Capacity = estimatedCount;
+            }
+
+            int length = 0;
+
+            switch (autoReformMode)
+            {
+                case AutoReformMode.Sparse:
+                case AutoReformMode.UnderBuildings:
+
+                    length = DetermineCoverFoundations(blueprint, autoReformMode);
+                    break;
+                case AutoReformMode.Filled:
+                    
+                    length = DetermineAreaCoverFoundations(blueprint);
+                    break;
+            }
+
+            for (int i = runtimeReforms.Count - 1; i >= length; i--)
+            {
+                runtimeReforms.RemoveAt(i);
+            }
+        }
+
+        private static int DetermineCoverFoundations(BlueprintData blueprint, AutoReformMode autoReformMode)
+        {
+            int index = 0;
+            occupied.Clear();
+
+            foreach (ReformData reform in blueprint.reforms)
+            {
+                if (index >= runtimeReforms.Count)
+                {
+                    runtimeReforms.Add(new ReformData());
+                }
+
+                runtimeReforms[index].areaIndex = reform.areaIndex;
+                runtimeReforms[index].localLongitude = reform.localLongitude;
+                runtimeReforms[index].localLatitude = reform.localLatitude;
+                runtimeReforms[index].type = reform.type;
+                runtimeReforms[index].color = reform.color;
+
+                occupied.Add(new Vector3Int(reform.areaIndex, Mathf.RoundToInt(reform.localLongitude), Mathf.RoundToInt(reform.localLatitude)));
+                index++;
+            }
+
+            int burshType = GameMain.data.preferences.reformBrushType;
+            int brushColor = GameMain.data.preferences.reformBrushColor;
+
+            foreach (BlueprintBuilding building in blueprint.buildings)
+            {
+                if (building.localOffset_z > 0.5f) continue;
+
+                var item = LDB.items.Select(building.itemId);
+                if (item?.prefabDesc == null) continue;
+                
+                if (item.prefabDesc.landPoints.Length == 0 && 
+                    autoReformMode == AutoReformMode.Sparse) continue;
+
+                var buildCollider = item.prefabDesc.buildCollider;
+
+                Vector2 extent = buildCollider.ext.ToVector2();
+                Vector2 rotatedExtent = BlueprintUtils.TransitionWidthAndHeight(building.yaw, extent.x, extent.y);
+
+                Vector2 min = buildCollider.pos.ToVector2() - rotatedExtent;
+                Vector2 max = buildCollider.pos.ToVector2() + rotatedExtent;
+
+                Vector2Int minInt = min.Floor();
+                Vector2Int maxInt = max.Ceil();
+
+                for (int x = minInt.x; x < maxInt.x; x++)
+                {
+                    for (int y = minInt.y; y < maxInt.y; y++)
+                    {
+                        float reformX = building.localOffset_x + x + 1;
+                        float reformY = building.localOffset_y + y + 1;
+
+                        var posKey = new Vector3Int(building.areaIndex, Mathf.RoundToInt(reformX), Mathf.RoundToInt(reformY));
+                        if (occupied.Contains(posKey)) continue;
+
+                        if (index >= runtimeReforms.Count)
+                        {
+                            runtimeReforms.Add(new ReformData());
+                        }
+
+                        runtimeReforms[index].areaIndex = building.areaIndex;
+                        runtimeReforms[index].localLongitude = reformX;
+                        runtimeReforms[index].localLatitude = reformY;
+                        runtimeReforms[index].type = burshType;
+                        runtimeReforms[index].color = brushColor;
+
+                        occupied.Add(posKey);
+                        index++;
+                    }
+                }
+            }
+
+            return index;
+        }
+
+        private static int DetermineAreaCoverFoundations(BlueprintData blueprint)
+        {
+            int index = 0;
+            
+            int burshType = GameMain.data.preferences.reformBrushType;
+            int brushColor = GameMain.data.preferences.reformBrushColor;
+
+            foreach (BlueprintArea area in blueprint.areas)
+            {
+                for (int x = 0; x <= area.width; x++)
+                {
+                    for (int y = 0; y <= area.height; y++)
+                    {
+                        if (index >= runtimeReforms.Count)
+                        {
+                            runtimeReforms.Add(new ReformData());
+                        }
+
+                        runtimeReforms[index].areaIndex = area.index;
+                        runtimeReforms[index].localLongitude = x;
+                        runtimeReforms[index].localLatitude = y;
+                        runtimeReforms[index].type = burshType;
+                        runtimeReforms[index].color = brushColor;
+                        index++;
+                        
+                    }
+                }
+            }
+
+            return index;
+        }
+        
         [HarmonyPatch(typeof(BuildTool_BlueprintPaste), "ResetBuildPreviews")]
         [HarmonyPrefix]
         public static void ResetBuildPreviews(BuildTool_BlueprintPaste __instance)
         {
             reformPreviews.Clear();
+            runtimeReforms.Clear();
+            lastAutoEstimate = 0;
+            lastReformMode = AutoReformMode.None;
         }
 
         [HarmonyPatch(typeof(BuildTool_BlueprintPaste), "DeterminePreviewsPrestage")]
         [HarmonyPrefix]
         public static void DeterminePrestage(BuildTool_BlueprintPaste __instance, bool _forceRefreshBP = false)
         {
-            int reformsLength = __instance.blueprint.reforms.Length;
+            int buildingsLength = __instance.blueprint.buildings.Length;
+            AutoReformMode autoReformMode = (AutoReformMode)__instance.blueprint.autoReformMode;
+            if (lastReformMode != autoReformMode || lastAutoEstimate != buildingsLength || _forceRefreshBP)
+            {
+                RefreshAutomaticReforms(__instance.blueprint, autoReformMode);
+                lastAutoEstimate = buildingsLength;
+                lastReformMode = autoReformMode;
+            }
+            
+            int reformsLength = __instance.blueprint.reforms.Length + runtimeReforms.Count;
             int totalNeeded = (__instance.blueprint.areas.Length > 1) ? reformsLength : (reformsLength * __instance.dotsCursor);
             if (__instance.bpPool == null || reformPreviews.Count != totalNeeded || __instance.drag_box_size_changed || _forceRefreshBP)
             {
@@ -77,7 +257,7 @@ namespace BlueprintTweaks
         {
             FieldInfo bpCursor = AccessTools.Field(typeof(BuildTool_BlueprintPaste), nameof(BuildTool_BlueprintPaste.bpCursor));
             FieldInfo bpSignBuffer = AccessTools.Field(typeof(BuildTool_BlueprintPaste), nameof(BuildTool_BlueprintPaste.bpSignBuffer));
-            
+
             CodeMatcher matcher = new CodeMatcher(instructions, generator)
                 .MatchForward(false,
                     new CodeMatch(OpCodes.Ldarg_0),
@@ -95,7 +275,7 @@ namespace BlueprintTweaks
 
             int jumpPos = matcher.Clone()
                 .MatchForward(false, new CodeMatch(OpCodes.Stfld)).Advance(1).Pos;
-            
+
             matcher.InsertBranchAndAdvance(OpCodes.Brfalse, jumpPos)
                 .InsertAndAdvance(new CodeInstruction(OpCodes.Ldarg_0));
 
@@ -110,7 +290,7 @@ namespace BlueprintTweaks
             FieldInfo signPool = AccessTools.Field(typeof(BuildTool_BlueprintPaste), nameof(BuildTool_BlueprintPaste.signPool));
             FieldInfo bpSignBuffer = AccessTools.Field(typeof(BuildTool_BlueprintPaste), nameof(BuildTool_BlueprintPaste.bpSignBuffer));
             Label? label = default;
-            
+
             CodeMatcher matcher = new CodeMatcher(instructions, generator)
                 .MatchForward(true,
                     new CodeMatch(OpCodes.Ldarg_0),
@@ -138,20 +318,20 @@ namespace BlueprintTweaks
                 tickCounter = 0;
                 Vector3 center = Vector3.zero;
                 tmpPoints.Clear();
-                
+
                 PlatformSystem platformSystem = __instance.factory.platformSystem;
-            
+
                 foreach (ReformData preview in reformPreviews)
                 {
                     ReformBPUtils.GetSegmentCount(preview.latitude, preview.longitude, out float latCount, out float longCount, out int segmentCount);
                     longCount = Mathf.Repeat(longCount, segmentCount);
-                
+
                     int reformIndex = platformSystem.GetReformIndexForSegment(latCount, longCount);
                     if (reformIndex < 0) continue;
-                
+
                     int type = platformSystem.GetReformType(reformIndex);
                     if (platformSystem.IsTerrainReformed(type)) continue;
-                    
+
                     Vector3 pos = BlueprintUtils.GetDir(preview.longitude, preview.latitude);
                     pos *= GameMain.localPlanet.realRadius + 0.2f;
                     tmpPoints.Add(pos);
@@ -164,7 +344,7 @@ namespace BlueprintTweaks
             string message = "";
             int playerFoundationCount = __instance.player.package.GetItemCount(PlatformSystem.REFORM_ID);
             bool isError = false;
-            
+
             if (playerFoundationCount < tmpPoints.Count)
             {
                 message = Format("NotEnoughFoundationsMessage".Translate(), tmpPoints.Count - playerFoundationCount) + "\n";
@@ -174,8 +354,7 @@ namespace BlueprintTweaks
             {
                 message = Format("FoundCountMessage".Translate(), tmpPoints.Count) + "\n";
             }
-            
-            
+
 
             if (__instance.cursorValid && !VFInput.onGUIOperate)
             {
@@ -199,7 +378,7 @@ namespace BlueprintTweaks
                 }
             }
         }
-        
+
 
         [HarmonyPatch(typeof(BuildTool_BlueprintPaste), "CheckBuildConditions")]
         [HarmonyPrefix]
@@ -210,12 +389,12 @@ namespace BlueprintTweaks
             if (NebulaModAPI.IsMultiplayerActive && NebulaModAPI.MultiplayerSession.Factories.IsIncomingRequest.Value) return;
 
             Color[] colors = null;
-            
+
             if (BlueprintCopyExtension.copyColors && __instance.blueprint.customColors != null && __instance.blueprint.customColors.Length > 0)
             {
                 colors = __instance.blueprint.customColors;
             }
-            
+
             __state = CalculatePositions(__instance, reformPreviews, colors);
         }
 
@@ -227,12 +406,14 @@ namespace BlueprintTweaks
             if (__result) return;
             if (!BlueprintCopyExtension.isEnabled || !__state) return;
             if (!__instance.cannotBuild || reformPreviews.Count <= 0) return;
-            
+
             if (NebulaModAPI.IsMultiplayerActive && NebulaModAPI.MultiplayerSession.Factories.IsIncomingRequest.Value) return;
 
-            BPGratBox box = ReformBPUtils.GetBoundingRange(__instance.planet, __instance.actionBuild.planetAux, new int[0], 0, reformPreviews, reformPreviews[0].longitude);
+            BPGratBox box = ReformBPUtils.GetBoundingRange(__instance.planet, __instance.actionBuild.planetAux, Array.Empty<int>(), 0, reformPreviews,
+                reformPreviews[0].longitude);
 
-            bool allOk = true; 
+            bool allOk = true;
+            bool allGroundOk = true;
 
             for (int i = 0; i < __instance.bpCursor; i++)
             {
@@ -246,8 +427,14 @@ namespace BlueprintTweaks
                         preview.condition = EBuildCondition.Ok;
                     }
                 }
-                
+
+                if (preview.condition == EBuildCondition.NeedGround) allGroundOk = false;
                 if (preview.condition != EBuildCondition.Ok && preview.condition != EBuildCondition.NotEnoughItem) allOk = false;
+            }
+            
+            if (allGroundOk)
+            {
+                __instance._tmp_error_types.Remove(EBuildCondition.NeedGround);
             }
 
             if (allOk)
@@ -262,14 +449,14 @@ namespace BlueprintTweaks
             Array.Copy(colors, system.reformCustomColors, 16);
             system.RefreshColorsTexture();
         }
-        
+
 
         public static bool CalculatePositions(BuildTool_BlueprintPaste tool, List<ReformData> reforms, Color[] colors)
         {
             ReformBPUtils.currentGrid = tool.factory.planet.aux.mainGrid;
             PlanetData planet = tool.factory.planet;
             PlatformSystem platformSystem = tool.factory.platformSystem;
-            
+
             Vector3 center = Vector3.zero;
             tmpPoints.Clear();
 
@@ -277,19 +464,19 @@ namespace BlueprintTweaks
             {
                 ReformBPUtils.GetSegmentCount(preview.latitude, preview.longitude, out float latCount, out float longCount, out int segmentCount);
                 longCount = Mathf.Repeat(longCount, segmentCount);
-                
+
                 int reformIndex = platformSystem.GetReformIndexForSegment(latCount, longCount);
                 if (reformIndex < 0) continue;
-                
+
                 int type = platformSystem.GetReformType(reformIndex);
                 if (platformSystem.IsTerrainReformed(type)) continue;
-                
+
                 Vector3 pos = BlueprintUtils.GetDir(preview.longitude, preview.latitude);
                 pos *= planet.realRadius + 0.2f;
                 tmpPoints.Add(pos);
                 center += pos;
             }
-            
+
             int cost = ReformBPUtils.ComputeFlattenTerrainReform(tool.factory, tmpPoints, center);
 
             if (NebulaModAPI.IsMultiplayerActive)
@@ -300,19 +487,27 @@ namespace BlueprintTweaks
                 if (session.LocalPlayer.IsHost)
                 {
                     int planetId = session.Factories.EventFactory?.planetId ?? GameMain.localPlanet?.id ?? -1;
-                    session.Network.SendPacketToStar(new ReformPasteEventPacket(planetId, reforms, colors, session.Factories.PacketAuthor == NebulaModAPI.AUTHOR_NONE ? session.LocalPlayer.Id : session.Factories.PacketAuthor), GameMain.galaxy.PlanetById(planetId).star.id);
+                    session.Network.SendPacketToStar(
+                        new ReformPasteEventPacket(planetId, reforms, colors,
+                            session.Factories.PacketAuthor == NebulaModAPI.AUTHOR_NONE ? session.LocalPlayer.Id : session.Factories.PacketAuthor),
+                        GameMain.galaxy.PlanetById(planetId).star.id);
                 }
 
                 //If client builds, he need to first send request to the host and wait for reply
                 if (!session.LocalPlayer.IsHost && !session.Factories.IsIncomingRequest.Value)
                 {
-                    session.Network.SendPacket(new ReformPasteEventPacket(GameMain.localPlanet?.id ?? -1, reforms, colors, session.Factories.PacketAuthor == NebulaModAPI.AUTHOR_NONE ? session.LocalPlayer.Id : session.Factories.PacketAuthor));
+                    session.Network.SendPacket(new ReformPasteEventPacket(GameMain.localPlanet?.id ?? -1, reforms, colors,
+                        session.Factories.PacketAuthor == NebulaModAPI.AUTHOR_NONE ? session.LocalPlayer.Id : session.Factories.PacketAuthor));
                     return true;
                 }
             }
             else
             {
-                if (!CheckItems(tool, cost, tmpPoints.Count)) return false;
+                if (!CheckItems(tool, cost, tmpPoints.Count))
+                {
+                    UIRealtimeTip.Popup("沙土不足".Translate());
+                    return false;
+                }
             }
 
             if (colors != null && colors.Length > 0)
@@ -327,7 +522,7 @@ namespace BlueprintTweaks
             {
                 ReformBPUtils.GetSegmentCount(preview.latitude, preview.longitude, out float latCount, out float longCount, out int segmentCount);
                 longCount = Mathf.Repeat(longCount, segmentCount);
-                
+
                 int reformIndex = platformSystem.GetReformIndexForSegment(latCount, longCount);
 
                 if (reformIndex >= 0 && reformIndex < platformSystem.reformData.Length)
@@ -347,6 +542,7 @@ namespace BlueprintTweaks
         public static bool CheckItems(BuildTool_BlueprintPaste tool, int cost, int reformCount)
         {
             if (BlueprintTweaksPlugin.freeFoundationsIsInstalled) return true;
+            if (GameMain.data.history.HasFeatureKey(1100001) && GameMain.sandboxToolsEnabled) return true;
             
             if (tool.player.package.GetItemCount(PlatformSystem.REFORM_ID) < reformCount) return false;
 

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace BlueprintTweaks
@@ -10,21 +11,41 @@ namespace BlueprintTweaks
         public Toggle copyColorsToggle;
 
         public Text colorDataLabel;
+        public UIButton[] autoReformModesButtons;
         
         private static bool ignoreEvent;
 
-        public override int verticalSize => 75;
+        public override int verticalSize => 145;
+
+        private void Awake()
+        {
+            foreach (UIButton button in autoReformModesButtons)
+            {
+                button.onClick += SetAutoReformsMode;
+            }
+        }
 
         public override void OnOpen()
         {
             ignoreEvent = true;
             enableToggle.isOn = BlueprintCopyExtension.isEnabled;
             copyColorsToggle.isOn = BlueprintCopyExtension.copyColors;
+            
+            foreach (UIButton button in autoReformModesButtons)
+            {
+                button.highlighted = button.data == inspector.blueprint.autoReformMode;
+            }
+            
             ignoreEvent = false;
         }
 
         public override void OnUpdate()
         {
+            foreach (UIButton button in autoReformModesButtons)
+            {
+                button.highlighted = button.data == inspector.blueprint.autoReformMode;
+            }
+            
             if (!enableToggle.isOn) return;
 
             int reformsCount = inspector.blueprint.reforms.Length;
@@ -57,6 +78,14 @@ namespace BlueprintTweaks
         {
             if (ignoreEvent) return;
             BlueprintCopyExtension.copyColors = value;
+        }
+
+        public void SetAutoReformsMode(int mode)
+        {
+            if (ignoreEvent) return;
+            inspector.blueprint.autoReformMode = mode;
+            
+            inspector.Refresh(true, true, true);
         }
     }
 }

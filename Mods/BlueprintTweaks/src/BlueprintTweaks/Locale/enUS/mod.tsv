@@ -51,3 +51,26 @@ RedoHistoryEmptyMessage		1	Redo history is empty!
 AnchorSetLabel		1	Anchors
 AnchorTipTitle		1	Set your anchor position
 AnchorTipText		1	Use buttons below to set your anchor position as you like. This change will take effect after saving.
+KeyHintsCollapseText		1	Key Bind Hints
+KeyHintsPress		1	Press {0} to {1}
+SelectEmptyRecipeTitle		1	Replace unset {0} recipes
+SelectEmptyRecipeText		1	You can replace unset {0} recipe by clicking this icon
+SmeltRecipeKind		1	Smelter
+ChemicalRecipeKind		1	Chemical Plant
+RefineRecipeKind		1	Refinery
+AssembleRecipeKind		1	Assembling Machine
+ParticleRecipeKind		1	Miniature Particle Collider
+ExchangeRecipeKind		1	Energy Exchanger
+PhotonStoreRecipeKind		1	Ray Receiver
+FractionateRecipeKind		1	Fractionator
+ResearchRecipeKind		1	Matrix Lab
+CustomRecipeKind		1	Modded Recipe (Unsupported)
+AutoReformModeLabel		1	Automatic Foundations:
+AutoReformButtonTitle0		1	None
+AutoReformButtonTitle1		1	Sparse
+AutoReformButtonTitle2		1	Cover
+AutoReformButtonTitle3		1	Fill
+AutoReformButtonText0		1	Only foundations directly recorded in the blueprint will be placed
+AutoReformButtonText1		1	Foundations required to place the blueprint will be added to manually specified foundations
+AutoReformButtonText2		1	Foundations located under all buildings in the blueprint will be added to manually specified foundations
+AutoReformButtonText3		1	Foundations covering all areas of the blueprint will be placed

@@ -1,3 +1,17 @@
+### v1.6.0
+- Added feature that allows foundations to be auto generated for any of your blueprints. The feature has a few modes that allow customization of the foundation patterns.
+- Added ability to reassign recipes of machines that didn't have any.
+- Added a hint section to blueprint browser that contains key combinations relevant to Blueprint Tweaks
+- Added ability for other mods to include custom serialized data within blueprints. Use `BlueprintTweaksPlugin.RegisterCustomBlueprintDataSerializer()` API method if your mod needs this functionality.
+- Fixed issue where user would not be notified that they don't have enough soil pile to place blueprint with foundations
+- Fixed issue that sandbox mode "infinite soil pile" button was not respected by Blueprint Tweaks.
+
+<details>
+<summary>Full changelog</summary>
+
+<details>
+<summary>v1.5</summary>
+
 ### v1.5.11
 - Added option to disable "undo cleared" message in the config
 - Fixed blueprints not centered when mirrored and rotated at the same time
@@ -7,14 +21,11 @@
 ### v1.5.10
 - Updated to work with game version 0.10.28.20729 or higher
 
-<details>
-<summary>All changes</summary>
-
 ### v1.5.9
 - Fixed duplicate belt hints from showing. Also now invalid belt hints are ignored
 
 ### v1.5.8
-- Fix compatibility issues with Genesis Book mod
+- Fixed compatibility issues with Genesis Book mod
 
 ### v1.5.7
 - Updated to work with game version 0.9.27.14546 or higher
@@ -42,18 +53,24 @@
 - Drag remove now won't remove Logistic stations by default, to help with errors.
 - Foundation blueprints now will take only items actually used. Also amount of items consumed will now be displayed.
 - Fixed checkbox for enable foundation blueprints visially appearing checked, when it's not.
+
+</details>
+
+<details>
+<summary>v1.4</summary>
+
 ### v1.4.8
 - Fixed Index out of range error when dismantling prebuilds with drag tool
 ### v1.4.7
 - Fixed NRE when some items have null Upgrade list
 ### v1.4.5-6
-- Fix mod archive containing old mod version
+- Fixed mod archive containing old mod version
 ### v1.4.4
-- Fix working machies having locked recipe message despite recipe being unlocked.
+- Fixed working machies having locked recipe message despite recipe being unlocked.
 ### v1.4.3
-- Fix inability to disable new features
+- Fixed inability to disable new features
 ### v1.4.2
-- Fix machines with locked recipes working after loading save.
+- Fixed machines with locked recipes working after loading save.
 - Internal refactor of `Axis lock` and `Grid snapping` to improve compatibility with other mods
 - Added preserve open path feature
 - Added move blueprints using drag and drop feature
@@ -65,6 +82,12 @@
 - Added ability to keep icons and description of a blueprint when pasting string into it.
 - Now assemblers with recipes that are not unlocked will keep their recipe setting, but will not work until recipe is unlocked.
 - Fixed missing connections when force pasting inserters with belts onto belts 
+
+</details>
+
+<details>
+<summary>v1.3</summary>
+
 ### v1.3.4
 - Added plugin catergories on Thunderstore page.
 ### v1.3.3
@@ -80,6 +103,12 @@
 **Important Note: Installation HAS changed. If you are installing manually, make sure to read installation instructions again!**
 - Migrated to CommonAPI
 - Updated to work with game version 0.8.23.9832 or higher
+
+</details>
+
+<details>
+<summary>v1.2</summary>
+
 ### v1.2.4
 - Updated to work with game version 0.8.22.9331 or higher
 ### v1.2.3
@@ -98,9 +127,15 @@
 - Fixed numerous issues with foundation blueprints selection (Especially on poles)
 - Fixed issues that some foundations that are in the blueprint did not paste. **Note that blueprints created before this version might still have these issues**
 - Fixed compatability issues with `Galactic Scale 2` when using foundation blueprints
+
+</details>
+
+<details>
+<summary>v1.1</summary>
+
 ### v1.1.2
-- Allow copying Custom foundation colors with blueprints
-- Fix issues when opening Blueprint windows on new planets
+- Allowed copying Custom foundation colors with blueprints
+- Fixed issues when opening Blueprint windows on new planets
 - Minor improvements to UI look
 ### v1.1.1
 **Important Note: Nebula Multiplayer mod itself is `NOT` required. I only need its API plugin, which is separate.**
@@ -111,6 +146,12 @@
 - Added foundation blueprints feature
 - Added logistic cargo change feature
 - Improved compatibility with `Nebula Multiplayer mod`
+
+</details>
+
+<details>
+<summary>v1.0</summary>
+
 ### v1.0.8
 - Fixed errors if axis lock or grid lock buttons were pressed outside blueprint mode.
 - Fixed again inability to force build overlapping `Power poles`.
@@ -139,7 +180,9 @@
 ### v1.0.2
 - Added recipe change feature
 ### v1.0.1
-- Fix error in readme
+- Fixed error in readme
 ### v1.0.0
 - Initial Release
+
+</details>
 </details>

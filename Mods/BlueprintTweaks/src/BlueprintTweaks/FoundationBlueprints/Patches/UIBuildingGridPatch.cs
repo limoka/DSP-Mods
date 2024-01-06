@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using CommonAPI;
 using HarmonyLib;
 using UnityEngine;
@@ -159,20 +160,10 @@ namespace BlueprintTweaks
                 
                 __instance.material.SetColor(cursorColor, displayColor);
                 __instance.gridRnd.enabled = true;
-                PlatformSystem platformSystem = __instance.reformMapPlanet.factory.platformSystem;
+
                 if (BlueprintPasteExtension.reformPreviews.Count > 0)
                 {
-                    foreach (ReformData reformPreview in BlueprintPasteExtension.reformPreviews)
-                    {
-                        ReformBPUtils.GetSegmentCount(reformPreview.latitude, reformPreview.longitude, out float latCount, out float longCount, out int segmentCount);
-                        longCount = Mathf.Repeat(longCount, segmentCount);
-
-                        int index = platformSystem.GetReformIndexForSegment(latCount, longCount);
-                        if (index >= 0 && index < maxLen)
-                        {
-                            __instance.reformCursorMap[index] = 1;
-                        }
-                    }
+                    SetReformDataFrom(BlueprintPasteExtension.reformPreviews, __instance, maxLen, 1);
                     
                     __instance.material.SetColor(tintColor, Color.clear);
                     __instance.material.SetFloat(reformMode, 1f);
@@ -180,17 +171,23 @@ namespace BlueprintTweaks
                     __instance.reformCursorBuffer.SetData(__instance.reformCursorMap);
                     __instance.material.SetBuffer(cursorBuffer, __instance.reformCursorBuffer);
 
-                    foreach (ReformData reformPreview in BlueprintPasteExtension.reformPreviews)
-                    {
-                        ReformBPUtils.GetSegmentCount(reformPreview.latitude, reformPreview.longitude, out float latCount, out float longCount, out int segmentCount);
-                        longCount = Mathf.Repeat(longCount, segmentCount);
-                        
-                        int index = platformSystem.GetReformIndexForSegment(latCount, longCount);
-                        if (index >= 0 && index < maxLen)
-                        {
-                            __instance.reformCursorMap[index] = 0;
-                        }
-                    }
+                    SetReformDataFrom(BlueprintPasteExtension.reformPreviews, __instance, maxLen, 0);
+                }
+            }
+        }
+
+        private static void SetReformDataFrom(List<ReformData> reforms, UIBuildingGrid __instance, int maxLen, byte value)
+        {
+            PlatformSystem platformSystem = __instance.reformMapPlanet.factory.platformSystem;
+            foreach (ReformData reformPreview in reforms)
+            {
+                ReformBPUtils.GetSegmentCount(reformPreview.latitude, reformPreview.longitude, out float latCount, out float longCount, out int segmentCount);
+                longCount = Mathf.Repeat(longCount, segmentCount);
+
+                int index = platformSystem.GetReformIndexForSegment(latCount, longCount);
+                if (index >= 0 && index < maxLen)
+                {
+                    __instance.reformCursorMap[index] = value;
                 }
             }
         }

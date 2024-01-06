@@ -74,11 +74,27 @@ namespace BlueprintTweaks
                 button.data = recipeId;
                 RecipeProto proto = LDB.recipes.Select(recipeID);
                 
+                button.tips.itemId = 0;
+                button.tips.tipTitle = "";
+                button.tips.tipText = "";
+                
                 if (proto != null)
                 {
                     button.tips.itemId = proto.Results[0];
+
                     recipeFilter = proto.Type;
                     iconImage.sprite = proto.iconSprite;
+                    iconImage.color = Color.white;
+                }
+                else if (recipeID < 0)
+                {
+                    recipeFilter = (ERecipeType)(-recipeID);
+
+                    string recipeDesc = $"{recipeFilter}RecipeKind".Translate();
+                    button.tips.tipTitle = string.Format("SelectEmptyRecipeTitle".Translate(), recipeDesc);
+                    button.tips.tipText = string.Format("SelectEmptyRecipeText".Translate(), recipeDesc);
+                    
+                    iconImage.sprite = UIRecipesPanel.noRecipeIcon;
                     iconImage.color = Color.white;
                 }
                 else
@@ -86,6 +102,7 @@ namespace BlueprintTweaks
                     iconImage.sprite = null;
                     iconImage.color = Color.clear;
                 }
+                
             }
 
             return (newIndex / 8 + 1) * 46;

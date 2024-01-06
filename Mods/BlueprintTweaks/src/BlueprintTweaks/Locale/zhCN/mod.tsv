@@ -51,3 +51,26 @@ RedoHistoryEmptyMessage		1	重做历史是空的！
 AnchorSetLabel		1	锚赂
 AnchorTipTitle		1	设置锚点位置
 AnchorTipText		1	使用下面的按钮来设置你喜欢的锚点位置. 此更改将在保存后生效。
+KeyHintsCollapseText		1	键绑定提示
+KeyHintsPress		1	按 {0} 到 {1}
+SelectEmptyRecipeTitle		1	替换未设置的 {0} 菜谱
+SelectEmptyRecipeText		1	您可以通过单击此图标替换未设置 {0} 配方
+SmeltRecipeKind		1	冶炼厂
+ChemicalRecipeKind		1	化工厂
+RefineRecipeKind		1	炼油厂
+AssembleRecipeKind		1	装配机
+ParticleRecipeKind		1	微型粒子对撞机
+ExchangeRecipeKind		1	能量交换器
+PhotonStoreRecipeKind		1	射线接收器
+FractionateRecipeKind		1	分馏塔
+ResearchRecipeKind		1	矩阵实验室
+CustomRecipeKind		1	Modded配方（不支持）
+AutoReformModeLabel		1	自动地基:
+AutoReformButtonTitle0		1	无
+AutoReformButtonTitle1		1	稀疏
+AutoReformButtonTitle2		1	封面
+AutoReformButtonTitle3		1	填充
+AutoReformButtonText0		1	只有直接记录在蓝图中的基础才会被放置
+AutoReformButtonText1		1	放置蓝图所需的基础将添加到手动指定的基础中
+AutoReformButtonText2		1	位于蓝图中所有建筑物下的基础将被添加到手动指定的基础中
+AutoReformButtonText3		1	将放置复盖蓝图所有领域的基础
