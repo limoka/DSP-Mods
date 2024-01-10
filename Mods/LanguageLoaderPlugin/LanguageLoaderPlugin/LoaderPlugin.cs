@@ -5,7 +5,6 @@ using BepInEx;
 using BepInEx.Logging;
 using CommonAPI;
 using CommonAPI.Systems.ModLocalization;
-using LanguageLoaderPlugin.SimpleJson;
 
 namespace LanguageLoaderPlugin
 {
