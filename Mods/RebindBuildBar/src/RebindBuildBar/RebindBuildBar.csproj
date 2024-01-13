@@ -1,2 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk" />
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ReferencePathWithRefAssemblies Update="C:\Users\ILYA\.nuget\packages\dysonsphereprogram.modding.ldbtool\2.0.5\lib\net472\LDBTool.dll" />
+  </ItemGroup>
+</Project>

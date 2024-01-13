@@ -37,8 +37,9 @@
   
   <!-- Shared Items -->
   <ItemGroup Label="Plugins">
-    <PackageReference Include="DysonSphereProgram.Modding.CommonAPI" Version="1.*" IncludeAssets="compile" />
-  </ItemGroup>
+    <Reference Include="$(MSBuildThisFileDirectory)/..\Libs\LDBTool.dll" Private="false" SpecificVersion="true" />
+    <Reference Include="$(MSBuildThisFileDirectory)/..\..\..\..\..\CommonAPI\CommonAPI\obj\Release\CommonAPI.dll" Private="false" SpecificVersion="true" />
+  </ItemGroup> 
 
   <ItemGroup Label="Dyson Sphere Program">
     <PackageReference Include="BepInEx.Core" Version="5.*" PrivateAssets="all" />

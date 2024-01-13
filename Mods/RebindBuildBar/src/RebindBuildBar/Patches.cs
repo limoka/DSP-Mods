@@ -75,7 +75,7 @@ namespace RebindBuildBar
                     });
             };
 
-            __instance.randRemindTips = new UIRandomTip[0];
+            __instance.randRemindTips = Array.Empty<UIRandomTip>();
         }
         
 
