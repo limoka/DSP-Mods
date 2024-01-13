@@ -43,6 +43,7 @@ namespace BlueprintTweaks
             if (__instance.reforms == null)
             {
                 __instance.reforms = new ReformData[0];
+                __instance.autoReformMode = 0;
             }
         }
 
@@ -52,6 +53,7 @@ namespace BlueprintTweaks
         public static void Reset(BlueprintData __instance)
         {
             __instance.reforms = new ReformData[0];
+            __instance.autoReformMode = 0;
         }
 
         [HarmonyPatch(typeof(BlueprintData), "Reset")]
@@ -59,6 +61,7 @@ namespace BlueprintTweaks
         public static void SetNull(BlueprintData __instance)
         {
             __instance.reforms = null;
+            __instance.autoReformMode = 0;
         }
     }
 }

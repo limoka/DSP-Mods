@@ -17,7 +17,7 @@ namespace BlueprintTweaks
         public static List<ReformData> runtimeReforms = new List<ReformData>();
         
         private static int lastAutoEstimate;
-        private static AutoReformMode lastReformMode = AutoReformMode.None;
+        private static AutoReformMode lastReformMode = AutoReformMode.Unknown;
 
         private static List<Vector3> tmpPoints = new List<Vector3>();
         private static HashSet<Vector3Int> occupied = new HashSet<Vector3Int>();
@@ -226,7 +226,7 @@ namespace BlueprintTweaks
             reformPreviews.Clear();
             runtimeReforms.Clear();
             lastAutoEstimate = 0;
-            lastReformMode = AutoReformMode.None;
+            lastReformMode = AutoReformMode.Unknown;
         }
 
         [HarmonyPatch(typeof(BuildTool_BlueprintPaste), "DeterminePreviewsPrestage")]

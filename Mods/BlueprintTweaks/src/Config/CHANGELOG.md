@@ -1,3 +1,10 @@
+### v1.6.1
+- Fixed Blueprint width and height not applying immediately to blueprint dragging logic
+- Fixed Chemical Plank Mk2 mirroring offset
+- Fixed issue where belt ports were not mirrored properly (Affects Logistic stations, splitters, etc.)
+- Fixed issue where in certain situations blueprint foundations would not be shown
+- Fixed drag remove button not showing hover and highlight states
+
 ### v1.6.0
 - Added feature that allows foundations to be auto generated for any of your blueprints. The feature has a few modes that allow customization of the foundation patterns.
 - Added ability to reassign recipes of machines that didn't have any.

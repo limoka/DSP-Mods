@@ -97,12 +97,19 @@ namespace BlueprintTweaks
         {
             int longSize = int.Parse(value);
             inspector.blueprint.dragBoxSize_x = longSize;
+            
+            if (inspector.usage == UIBlueprintInspector.EUsage.Paste)
+                inspector.pasteBuildTool.ResetDragboxSize();
+            
         }
         
         public void SetLatitude(string value)
         {
             int latSize = int.Parse(value);
             inspector.blueprint.dragBoxSize_y = latSize;
+            
+            if (inspector.usage == UIBlueprintInspector.EUsage.Paste)
+                inspector.pasteBuildTool.ResetDragboxSize();
         }
 
         public void SetAnchor(int type)

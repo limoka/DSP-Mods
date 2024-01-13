@@ -32,6 +32,11 @@ namespace BlueprintTweaks
             //Chemical plant
             buildingsAxis.Add(64, MajorAxis.XAXIS);
             buildingsOffsets.Add(64, new Vector2(0, -1));
+
+            //Chemical plant mk2
+            buildingsAxis.Add(376, MajorAxis.XAXIS);
+            buildingsOffsets.Add(376, new Vector2(0, -1));
+
             //Particle accelerator
             buildingsAxis.Add(69, MajorAxis.XAXIS);
 
@@ -44,7 +49,7 @@ namespace BlueprintTweaks
         {
             if (GameMain.mainPlayer?.controller == null) return;
             if (GameMain.mainPlayer.controller.actionBuild.blueprintMode != EBlueprintMode.Paste) return;
-            
+
             GameMain.mainPlayer.controller.actionBuild.blueprintPasteTool.ForceDetermineBP();
         }
 
@@ -73,7 +78,7 @@ namespace BlueprintTweaks
                 _height *= -1;
             }
         }
-        
+
         public static float MirrorRotation(float yaw)
         {
             if (mirrorLat && mirrorLong) return yaw + 180;
@@ -86,7 +91,7 @@ namespace BlueprintTweaks
         public static void MirrorArea(ref Vector4 area, float longAxis, float latAxis, float yaw)
         {
             int yawCount = Mathf.FloorToInt(yaw / 90f);
-            
+
             if (mirrorLat)
             {
                 if (yawCount == 1 || yawCount == 3)
@@ -128,16 +133,16 @@ namespace BlueprintTweaks
 
                 return MirrorRotation(yaw);
             }
-            
+
             // STEP 1
-            
+
             // turns
             // Vector4 vector4 = array[l + blueprintBuilding.areaIndex];
             // vector4.x = ((num2 < 0f) ? vector4.z : vector4.x);
             // vector4.y = ((num3 < 0f) ? vector4.w : vector4.y);
-            
+
             // into
-            
+
             // Vector4 vector4 = array[l + blueprintBuilding.areaIndex];
             // MirrorArea(ref vector4, num2, num3, _yaw);
 
@@ -150,7 +155,7 @@ namespace BlueprintTweaks
             matcher.Advance(1);
 
             object longAxisVar = matcher.Operand;
-            
+
             while (matcher.Opcode != OpCodes.Stfld)
             {
                 matcher.RemoveInstruction();
@@ -159,7 +164,7 @@ namespace BlueprintTweaks
             matcher.RemoveInstructions(2);
 
             object latAxisVar = matcher.Operand;
-            
+
             while (matcher.Opcode != OpCodes.Stfld)
             {
                 matcher.RemoveInstruction();
@@ -172,13 +177,13 @@ namespace BlueprintTweaks
                 .InsertAndAdvance(Transpilers.EmitDelegate<RefAction>(MirrorArea));
 
             // STEP 2
-            
+
             // turns
             // Vector2 vector5 = BlueprintUtils.TransitionWidthAndHeight(_yaw, blueprintBuilding.localOffset_x, blueprintBuilding.localOffset_y);
-            
+
             // into
             // Vector2 vector5 = @delegate(_yaw, blueprintBuilding);
-            
+
             matcher.MatchForward(false,
                     new CodeMatch(OpCodes.Call, AccessTools.Method(typeof(BlueprintUtils), nameof(BlueprintUtils.TransitionWidthAndHeight))))
                 .Advance(-3)
@@ -204,13 +209,13 @@ namespace BlueprintTweaks
                 }));
 
             // STEP 3
-            
+
             // turns
             // Quaternion quaternion = Maths.SphericalRotation(dir, blueprintBuilding.yaw - (float)num * 90f);
-            
+
             // into
             // Quaternion quaternion = Maths.SphericalRotation(dir, MirrorBuildingRotation(blueprintBuilding.yaw, blueprintBuilding) - (float)num * 90f);
-            
+
             matcher.MatchForward(false,
                     new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(BlueprintBuilding), nameof(BlueprintBuilding.yaw)))
                 ).Advance(1)
@@ -218,13 +223,13 @@ namespace BlueprintTweaks
                 .InsertAndAdvance(Transpilers.EmitDelegate<Func<float, BlueprintBuilding, float>>(MirrorBuildingRotation)).Advance(2);
 
             // STEP 4
-            
+
             // turns
             // Quaternion quaternion2 = Maths.SphericalRotation(dir2, blueprintBuilding.yaw2 - (float)num * 90f);
-            
+
             // into
             // Quaternion quaternion2 = Maths.SphericalRotation(dir2, MirrorBuildingRotation(blueprintBuilding.yaw2, blueprintBuilding) - (float)num * 90f);
-            
+
             matcher.MatchForward(false,
                     new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(BlueprintBuilding), nameof(BlueprintBuilding.yaw2)))
                 ).Advance(1)
@@ -232,14 +237,14 @@ namespace BlueprintTweaks
                 .InsertAndAdvance(Transpilers.EmitDelegate<Func<float, BlueprintBuilding, float>>(MirrorBuildingRotation));
 
             // STEP 5
-            
-            // inserts delegate approx after
+
+            // inserts delegate approx before
             // if (buildPreview2.desc.isInserter)
-            
-            matcher.MatchForward(true,
+
+            matcher.MatchForward(false,
                     new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(BuildPreview), nameof(BuildPreview.desc))),
                     new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(PrefabDesc), nameof(PrefabDesc.isInserter))))
-                .Advance(2);
+                .Advance(-1);
 
             object previewVar2 = matcher.Operand;
 
@@ -247,50 +252,75 @@ namespace BlueprintTweaks
                 .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, previewVar2))
                 .InsertAndAdvance(Transpilers.EmitDelegate<Action<BuildPreview>>(preview =>
                 {
-                    if (preview.input != null && preview.input.desc.slotPoses.Length > preview.inputFromSlot &&
-                        !preview.input.desc.isBelt)
+                    if (preview.desc.isInserter)
                     {
-                        Quaternion invRot = Quaternion.Inverse(preview.input.lrot);
-                        Vector3 slotPosition = preview.lpos - preview.input.lpos;
-                        slotPosition = invRot * slotPosition;
-                        Quaternion slotRotation = invRot * preview.lrot;
-
-
-                        for (int i = 0; i < preview.input.desc.slotPoses.Length; i++)
-                        {
-                            Pose slotPose = preview.input.desc.slotPoses[i];
-                            if (!((slotPose.position - slotPosition).sqrMagnitude < 0.1f)) continue;
-                            if (!slotPose.rotation.Approximately(slotRotation)) continue;
-                            if (preview.inputFromSlot == i) break;
-
-                            preview.inputFromSlot = i;
-                            break;
-                        }
+                        EntityInputsAndOutputs(preview, true);
                     }
 
-                    if (preview.output != null && preview.output.desc.slotPoses.Length > preview.outputToSlot &&
-                        !preview.output.desc.isBelt)
+                    if (preview.desc.isBelt)
                     {
-                        Quaternion invRot = Quaternion.Inverse(preview.output.lrot);
-                        Vector3 slotPosition = preview.lpos2 - preview.output.lpos;
-                        slotPosition = invRot * slotPosition;
-                        Quaternion slotRotation = invRot * (preview.lrot2 * Quaternion.Euler(0f, -180f, 0f));
-
-                        for (int i = 0; i < preview.output.desc.slotPoses.Length; i++)
-                        {
-                            Pose slotPose = preview.output.desc.slotPoses[i];
-                            if (!((slotPose.position - slotPosition).sqrMagnitude < 0.1f)) continue;
-                            if (!slotPose.rotation.Approximately(slotRotation)) continue;
-                            if (preview.outputToSlot == i) break;
-
-                            preview.outputToSlot = i;
-                            break;
-                        }
+                        EntityInputsAndOutputs(preview, false);
                     }
                 }));
 
 
             return matcher.InstructionEnumeration();
+        }
+
+        private static Pose[] GetSlotsOrPorts(this PrefabDesc desc, bool useSlots)
+        {
+            return useSlots ? desc.slotPoses : desc.portPoses;
+        }
+        
+        private static void EntityInputsAndOutputs(BuildPreview preview, bool useSlots)
+        {
+            if (preview.input != null && 
+                !preview.input.desc.isBelt && 
+                !preview.input.desc.isInserter &&
+                preview.inputFromSlot < preview.input.desc.GetSlotsOrPorts(useSlots).Length)
+            {
+                Quaternion invRot = Quaternion.Inverse(preview.input.lrot);
+                Vector3 portPosition = preview.lpos - preview.input.lpos;
+                portPosition = invRot * portPosition;
+                Quaternion portRotation = invRot * preview.lrot;
+
+                Pose[] poses = preview.input.desc.GetSlotsOrPorts(useSlots);
+
+                for (int i = 0; i < poses.Length; i++)
+                {
+                    Pose pose = poses[i];
+                    if (!((pose.position - portPosition).sqrMagnitude < 0.1f)) continue;
+                    if (!pose.rotation.Approximately(portRotation)) continue;
+                    if (preview.inputFromSlot == i) break;
+
+                    preview.inputFromSlot = i;
+                    break;
+                }
+            }
+
+            if (preview.output != null && 
+                !preview.output.desc.isBelt && 
+                !preview.output.desc.isInserter &&
+                preview.outputToSlot < preview.output.desc.GetSlotsOrPorts(useSlots).Length)
+            {
+                Quaternion invRot = Quaternion.Inverse(preview.output.lrot);
+                Vector3 portPosition = preview.lpos2 - preview.output.lpos;
+                portPosition = invRot * portPosition;
+                Quaternion portRotation = invRot * (preview.lrot2 * Quaternion.Euler(0f, -180f, 0f));
+
+                Pose[] poses = preview.output.desc.GetSlotsOrPorts(useSlots);
+                
+                for (int i = 0; i < poses.Length; i++)
+                {
+                    Pose pose = poses[i];
+                    if (!((pose.position - portPosition).sqrMagnitude < 0.1f)) continue;
+                    if (!pose.rotation.Approximately(portRotation)) continue;
+                    if (preview.outputToSlot == i) break;
+
+                    preview.outputToSlot = i;
+                    break;
+                }
+            }
         }
     }
 }
