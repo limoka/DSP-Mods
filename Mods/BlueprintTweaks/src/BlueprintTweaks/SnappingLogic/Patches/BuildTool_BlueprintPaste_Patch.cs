@@ -16,7 +16,7 @@ namespace BlueprintTweaks.Patches
             if (__result)
             {
                 __instance.blueprint.anchorType = __instance.anchorType;
-                __instance.uiInspector.Refresh(true, true, true);
+                __instance.uiInspector.Refresh(true, true, true, false);
             }
         }
 

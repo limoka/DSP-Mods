@@ -124,16 +124,6 @@ namespace BlueprintTweaks
         [HarmonyTranspiler]
         static IEnumerable<CodeInstruction> RefreshPreviews(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
-            float MirrorBuildingRotation(float yaw, BlueprintBuilding building)
-            {
-                if (buildingsAxis.ContainsKey(building.modelIndex) && buildingsAxis[building.modelIndex] == MajorAxis.XAXIS)
-                {
-                    return MirrorRotation(yaw + 90f) - 90f;
-                }
-
-                return MirrorRotation(yaw);
-            }
-
             // STEP 1
 
             // turns
@@ -238,6 +228,12 @@ namespace BlueprintTweaks
 
             // STEP 5
 
+            matcher.MatchForward(false,
+                new CodeMatch(OpCodes.Ldloc_S),
+                new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(BlueprintBuilding), nameof(BlueprintBuilding.index))));
+
+            object buildingVar = matcher.Operand;
+
             // inserts delegate approx before
             // if (buildPreview2.desc.isInserter)
 
@@ -250,7 +246,8 @@ namespace BlueprintTweaks
 
             matcher.Advance(1)
                 .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, previewVar2))
-                .InsertAndAdvance(Transpilers.EmitDelegate<Action<BuildPreview>>(preview =>
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, buildingVar))
+                .InsertAndAdvance(Transpilers.EmitDelegate<Action<BuildPreview, BlueprintBuilding>>((preview, building) =>
                 {
                     if (preview.desc.isInserter)
                     {
@@ -261,21 +258,36 @@ namespace BlueprintTweaks
                     {
                         EntityInputsAndOutputs(preview, false);
                     }
+
+                    if (preview.desc.isStation)
+                    {
+                        MirrorStationData(preview, building);
+                    }
                 }));
 
 
             return matcher.InstructionEnumeration();
+        }
+        
+        public static float MirrorBuildingRotation(float yaw, BlueprintBuilding building)
+        {
+            if (buildingsAxis.ContainsKey(building.modelIndex) && buildingsAxis[building.modelIndex] == MajorAxis.XAXIS)
+            {
+                return MirrorRotation(yaw + 90f) - 90f;
+            }
+
+            return MirrorRotation(yaw);
         }
 
         private static Pose[] GetSlotsOrPorts(this PrefabDesc desc, bool useSlots)
         {
             return useSlots ? desc.slotPoses : desc.portPoses;
         }
-        
+
         private static void EntityInputsAndOutputs(BuildPreview preview, bool useSlots)
         {
-            if (preview.input != null && 
-                !preview.input.desc.isBelt && 
+            if (preview.input != null &&
+                !preview.input.desc.isBelt &&
                 !preview.input.desc.isInserter &&
                 preview.inputFromSlot < preview.input.desc.GetSlotsOrPorts(useSlots).Length)
             {
@@ -298,8 +310,8 @@ namespace BlueprintTweaks
                 }
             }
 
-            if (preview.output != null && 
-                !preview.output.desc.isBelt && 
+            if (preview.output != null &&
+                !preview.output.desc.isBelt &&
                 !preview.output.desc.isInserter &&
                 preview.outputToSlot < preview.output.desc.GetSlotsOrPorts(useSlots).Length)
             {
@@ -309,7 +321,7 @@ namespace BlueprintTweaks
                 Quaternion portRotation = invRot * (preview.lrot2 * Quaternion.Euler(0f, -180f, 0f));
 
                 Pose[] poses = preview.output.desc.GetSlotsOrPorts(useSlots);
-                
+
                 for (int i = 0; i < poses.Length; i++)
                 {
                     Pose pose = poses[i];
@@ -319,6 +331,70 @@ namespace BlueprintTweaks
 
                     preview.outputToSlot = i;
                     break;
+                }
+            }
+        }
+
+        public static Vector2 RotateXZ(Vector3 inVec, float angleRad)
+        {
+            float x = inVec.x * Mathf.Cos(angleRad) - inVec.z * Mathf.Sin(angleRad);
+            float y = inVec.x * Mathf.Sin(angleRad) + inVec.z * Mathf.Cos(angleRad);
+            return new Vector2(x, y);
+        }
+        
+        private static void MirrorStationData(BuildPreview preview, BlueprintBuilding building)
+        {
+            if (preview.desc.isCollectStation) return;
+            if (building.parameters == null ||
+                building.parameters.Length == 0) return;
+
+            const int startIndex = 192;
+            
+            if (!mirrorLat && !mirrorLong)
+            {
+                for (int i = 0; i < preview.desc.portPoses.Length; i++)
+                {
+                    int currentIndex = startIndex + i * 4;
+                    preview.parameters[currentIndex] = building.parameters[currentIndex];
+                    preview.parameters[currentIndex + 1] = building.parameters[currentIndex + 1];
+                }
+                return;
+            }
+
+            float finalYaw = MirrorBuildingRotation(building.yaw, building);
+            float buildingYawRad = building.yaw * Mathf.Deg2Rad;
+
+            bool xAxisMirror = mirrorLat;
+            bool yAxisMirror = mirrorLong;
+
+            float angleDiff = Mathf.Abs(Mathf.DeltaAngle(building.yaw, finalYaw));
+            // Hack, because I have no idea why using mirrored angle doesn't work.
+            if (angleDiff == 180)
+            {
+                xAxisMirror = !mirrorLat;
+                yAxisMirror = !mirrorLong;
+            }
+
+            for (int i = 0; i < preview.desc.portPoses.Length; i++)
+            {
+                Vector3 originalPos = preview.desc.portPoses[i].position;
+                Vector2 transitionedPos = RotateXZ(originalPos, buildingYawRad);
+                int currentIndex = startIndex + i * 4;
+
+                Vector2 mirroredPos = new Vector2(
+                    xAxisMirror ? -transitionedPos.x : transitionedPos.x,
+                    yAxisMirror ? -transitionedPos.y : transitionedPos.y);
+
+                for (int j = 0; j < preview.desc.portPoses.Length; j++)
+                {
+                    Vector3 testPosition = preview.desc.portPoses[j].position;
+                    Vector2 transitionedTestPos = RotateXZ(testPosition, buildingYawRad);
+
+                    if (!((mirroredPos - transitionedTestPos).sqrMagnitude < 0.1f)) continue;
+
+                    int newIndex = startIndex + j * 4;
+                    preview.parameters[currentIndex] = building.parameters[newIndex];
+                    preview.parameters[currentIndex + 1] = building.parameters[newIndex + 1];
                 }
             }
         }

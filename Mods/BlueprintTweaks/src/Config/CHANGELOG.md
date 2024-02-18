@@ -1,9 +1,18 @@
+### v1.6.3
+- Updated to work with game version 0.10.29.21904 or higher
+
+### v1.6.2
+- Fixed that Station input and output belts broke whenever blueprint with them was mirrored
+
 ### v1.6.1
 - Fixed Blueprint width and height not applying immediately to blueprint dragging logic
 - Fixed Chemical Plank Mk2 mirroring offset
 - Fixed issue where belt ports were not mirrored properly (Affects Logistic stations, splitters, etc.)
 - Fixed issue where in certain situations blueprint foundations would not be shown
 - Fixed drag remove button not showing hover and highlight states
+
+<details>
+<summary>Full changelog</summary>
 
 ### v1.6.0
 - Added feature that allows foundations to be auto generated for any of your blueprints. The feature has a few modes that allow customization of the foundation patterns.
@@ -13,8 +22,6 @@
 - Fixed issue where user would not be notified that they don't have enough soil pile to place blueprint with foundations
 - Fixed issue that sandbox mode "infinite soil pile" button was not respected by Blueprint Tweaks.
 
-<details>
-<summary>Full changelog</summary>
 
 <details>
 <summary>v1.5</summary>
