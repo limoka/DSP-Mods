@@ -1,4 +1,8 @@
 ﻿using NebulaAPI;
+using NebulaAPI.DataStructures;
+using NebulaAPI.GameState;
+using NebulaAPI.Networking;
+using NebulaAPI.Packets;
 
 namespace BlueprintTweaks.FactoryUndo.Nebula
 {

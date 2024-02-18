@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using NebulaAPI;
+using NebulaAPI.Interfaces;
+using NebulaAPI.Networking;
+using NebulaAPI.Packets;
 
 namespace BlueprintTweaks.Nebula
 {

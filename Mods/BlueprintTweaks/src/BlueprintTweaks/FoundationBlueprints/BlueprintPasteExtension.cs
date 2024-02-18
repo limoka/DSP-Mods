@@ -5,6 +5,7 @@ using System.Reflection.Emit;
 using CommonAPI;
 using HarmonyLib;
 using NebulaAPI;
+using NebulaAPI.GameState;
 using UnityEngine;
 using static System.String;
 

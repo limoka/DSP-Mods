@@ -6,6 +6,8 @@ using BlueprintTweaks.Nebula;
 using CommonAPI;
 using HarmonyLib;
 using NebulaAPI;
+using NebulaAPI.GameState;
+using NebulaAPI.Networking;
 using PowerNetworkStructures;
 using UnityEngine;
 
@@ -713,11 +715,12 @@ namespace BlueprintTweaks
                 if (session.LocalPlayer.IsHost &&
                     session.Factories.IsIncomingRequest.Value)
                 {
-                    session.Network.PlayerManager.GetConnectedPlayers(out Dictionary<INebulaConnection, INebulaPlayer> connectedPlayers);
                     try
                     {
-                        INebulaConnection conn = connectedPlayers.First(pair => pair.Value.Id == session.Factories.PacketAuthor).Key;
-                        conn.SendPacket(new ReturnItemsPacket(takeBackCount, takeBackInc));
+                        session.Network.SendToMatching(
+                            new ReturnItemsPacket(takeBackCount, takeBackInc),
+                            nebulaPlayer => nebulaPlayer.Id == session.Factories.PacketAuthor
+                        );
                     }
                     catch (InvalidOperationException)
                     {

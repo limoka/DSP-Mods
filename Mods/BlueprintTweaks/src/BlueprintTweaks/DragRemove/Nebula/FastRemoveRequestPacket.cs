@@ -2,6 +2,8 @@
 using BlueprintTweaks.FactoryUndo;
 using BlueprintTweaks.FactoryUndo.Nebula;
 using NebulaAPI;
+using NebulaAPI.Networking;
+using NebulaAPI.Packets;
 
 namespace BlueprintTweaks.Nebula
 {

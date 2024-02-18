@@ -19,6 +19,7 @@ using CommonAPI.Systems;
 using CommonAPI.Systems.ModLocalization;
 using HarmonyLib;
 using NebulaAPI;
+using NebulaAPI.Interfaces;
 using UnityEngine;
 
 [module: UnverifiableCode]
@@ -46,7 +47,7 @@ namespace BlueprintTweaks
 
         public const string MOD_DISP_NAME = "Blueprint Tweaks";
 
-        public const string VERSION = "1.6.3";
+        public const string VERSION = "1.6.4";
 
         public const string GENESIS_BOOK_MODGUID = "org.LoShin.GenesisBook";
         public const string FREE_FOUNDATIONS_GUID = "de.Hotte.DSP.FreeFoundations";

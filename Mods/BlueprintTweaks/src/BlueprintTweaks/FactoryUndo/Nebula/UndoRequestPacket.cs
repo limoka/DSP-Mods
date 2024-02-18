@@ -1,4 +1,8 @@
 ﻿using NebulaAPI;
+using NebulaAPI.DataStructures;
+using NebulaAPI.GameState;
+using NebulaAPI.Networking;
+using NebulaAPI.Packets;
 
 namespace BlueprintTweaks.FactoryUndo.Nebula
 {
@@ -20,8 +24,7 @@ namespace BlueprintTweaks.FactoryUndo.Nebula
         {
             public override void ProcessPacket(PlanetFactory factory, PlayerAction_Build actionBuild, UndoRequestPacket packet, INebulaConnection conn)
             {
-                INebulaPlayer player = NebulaModAPI.MultiplayerSession.Network.PlayerManager.GetPlayer(conn);
-                if (UndoManager.undos[player.Id].TryUndo(factory, out string message, out bool sound))
+                if (UndoManager.undos[(ushort)packet.AuthorId].TryUndo(factory, out string message, out bool sound))
                 {
                     conn.SendPacket(new ActionResultPacket(message, sound));
                 }

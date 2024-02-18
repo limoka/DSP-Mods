@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using BlueprintTweaks.FactoryUndo.Nebula;
 using NebulaAPI;
+using NebulaAPI.GameState;
 
 namespace BlueprintTweaks.FactoryUndo
 {

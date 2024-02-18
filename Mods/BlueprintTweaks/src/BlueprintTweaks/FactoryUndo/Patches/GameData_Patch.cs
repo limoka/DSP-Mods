@@ -2,6 +2,7 @@
 using CommonAPI;
 using HarmonyLib;
 using NebulaAPI;
+using NebulaAPI.GameState;
 using UnityEngine;
 
 namespace BlueprintTweaks.FactoryUndo
