@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 // ReSharper disable InconsistentNaming
 
@@ -14,31 +16,29 @@ namespace GigaStations
         public static RectTransform contentTrs;
         public static RectTransform scrollTrs;
 
-        [HarmonyTranspiler] 
+        [HarmonyTranspiler]
         [HarmonyPatch(typeof(UIStationWindow), "OnMinDeliverVesselValueChange")]
         [HarmonyPatch(typeof(UIStationWindow), "OnMinDeliverDroneValueChange")]
         public static IEnumerable<CodeInstruction> Replace10With1Transpiler(IEnumerable<CodeInstruction> instructions)
         {
-
             CodeMatcher matcher = new CodeMatcher(instructions)
                 .MatchForward(false, new CodeMatch(instr => instr.opcode == OpCodes.Ldc_R4 && Mathf.Approximately((float)instr.operand, 10f)))
                 .SetOperandAndAdvance(1f);
 
             return matcher.InstructionEnumeration();
         }
-        
-        [HarmonyTranspiler] 
+
+        [HarmonyTranspiler]
         [HarmonyPatch(typeof(UIStationWindow), "OnStationIdChange")]
         public static IEnumerable<CodeInstruction> RemoveDivisionBy10(IEnumerable<CodeInstruction> instructions)
         {
-
             CodeMatcher matcher = new CodeMatcher(instructions)
                 .MatchForward(false, new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(StationComponent), nameof(StationComponent.deliveryDrones))))
                 .MatchForward(false, new CodeMatch(instr => instr.opcode == OpCodes.Ldc_R4 && Mathf.Approximately((float)instr.operand, 0.1f)))
                 .SetAndAdvance(OpCodes.Nop, null)
                 .Advance(2)
                 .SetAndAdvance(OpCodes.Nop, null);
-            
+
             matcher
                 .MatchForward(false, new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(StationComponent), nameof(StationComponent.deliveryShips))))
                 .MatchForward(false, new CodeMatch(instr => instr.opcode == OpCodes.Ldc_R4 && Mathf.Approximately((float)instr.operand, 0.1f)))
@@ -71,7 +71,7 @@ namespace GigaStations
             if (!__instance.active) return;
 
             string name = __instance.factory.ReadExtraInfoOnEntity(stationComponent.entityId);
-            
+
             string text;
             if (!string.IsNullOrEmpty(name))
                 text = name;
@@ -81,7 +81,7 @@ namespace GigaStations
                 text = "Orbital Giga Collector #" + stationComponent.gid;
             else
                 text = "Interstellar Giga Station #" + stationComponent.gid;
-            
+
             __state = text;
         }
 
@@ -97,24 +97,28 @@ namespace GigaStations
             StationComponent stationComponent = __instance.transport.stationPool[__instance.stationId];
             ItemProto itemProto = LDB.items.Select(__instance.factory.entityPool[stationComponent.entityId].protoId);
 
-            int storageCount = ((stationComponent.isCollector || stationComponent.isVeinCollector) ? stationComponent.collectionIds.Length : stationComponent.storage.Length);
+            int storageCount = ((stationComponent.isCollector || stationComponent.isVeinCollector)
+                ? stationComponent.collectionIds.Length
+                : stationComponent.storage.Length);
 
             int baseYSize = stationComponent.isStellar ? 376 : 316;
-            
+
             if (stationComponent.isCollector)
             {
                 baseYSize = 136;
-            }else if (stationComponent.isVeinCollector)
+            }
+            else if (stationComponent.isVeinCollector)
             {
                 baseYSize = 289;
             }
 
-            ((RectTransform) __instance.storageUIs[0].transform).anchoredPosition = new Vector2(0, 0);
+            ((RectTransform)__instance.storageUIs[0].transform).anchoredPosition = new Vector2(0, 0);
 
             int yPos = stationComponent.isVeinCollector ? -190 : -90;
             scrollTrs.anchoredPosition = new Vector2(scrollTrs.anchoredPosition.x, yPos);
-            
-            __instance.panelDownTrans.anchoredPosition = new Vector2(__instance.panelDownTrans.anchoredPosition.x, __instance.panelDownTrans.anchoredPosition.y - 10f);
+
+            __instance.panelDownTrans.anchoredPosition =
+                new Vector2(__instance.panelDownTrans.anchoredPosition.x, __instance.panelDownTrans.anchoredPosition.y - 10f);
 
             if (itemProto.ID != GigaStationsPlugin.pls.ID && itemProto.ID != GigaStationsPlugin.ils.ID && itemProto.ID != GigaStationsPlugin.collector.ID)
             {
@@ -122,7 +126,7 @@ namespace GigaStations
                 {
                     slot.popupBoxRect.anchoredPosition = new Vector2(5, 0);
                 }
-                
+
                 scrollTrs.sizeDelta = new Vector2(scrollTrs.sizeDelta.x, 76 * storageCount);
                 contentTrs.sizeDelta = new Vector2(contentTrs.sizeDelta.x, 76 * storageCount);
                 int newYSize = baseYSize + 76 * storageCount;
@@ -130,14 +134,14 @@ namespace GigaStations
                 __instance.windowTrans.sizeDelta = new Vector2(600, newYSize);
                 return;
             }
-            
+
             __instance.nameInput.text = __state;
 
             if (__instance.active)
             {
                 int verticalCount = storageCount;
                 int newXSize = 600;
-                
+
                 if (GigaStationsPlugin.gridXCount > 1)
                 {
                     int diff = 526 * (GigaStationsPlugin.gridXCount - 1);
@@ -148,6 +152,7 @@ namespace GigaStations
                     {
                         slot.popupBoxRect.anchoredPosition = new Vector2(-200, 0);
                     }
+
                     bool logisticShipWarpDrive = GameMain.history.logisticShipWarpDrive;
                     __instance.powerGroupRect.sizeDelta = new Vector2((stationComponent.isStellar ? (logisticShipWarpDrive ? 320f : 380f) : 440f) + diff, 40f);
                 }
@@ -158,9 +163,10 @@ namespace GigaStations
                         slot.popupBoxRect.anchoredPosition = new Vector2(5, 0);
                     }
                 }
+
                 int visibleCount = verticalCount > GigaStationsPlugin.gridYCount ? GigaStationsPlugin.gridYCount : verticalCount;
                 int newYSize = baseYSize + 76 * visibleCount;
-            
+
                 __instance.windowTrans.sizeDelta = new Vector2(newXSize, newYSize);
 
                 int viewCount = verticalCount < GigaStationsPlugin.gridYCount ? verticalCount : GigaStationsPlugin.gridYCount;
@@ -182,8 +188,93 @@ namespace GigaStations
                         __instance.storageUIs[i].index = 0;
                         __instance.storageUIs[i]._Close();
                     }
+
                     __instance.storageUIs[i].ClosePopMenu();
                 }
+            }
+        }
+        
+        [HarmonyTranspiler]
+        [HarmonyPatch(typeof(UIStationWindow), "RefreshTrans")]
+        public static IEnumerable<CodeInstruction> RefreshTransChanger(IEnumerable<CodeInstruction> instructions)
+        {
+            CodeMatcher matcher = new CodeMatcher(instructions)
+                .MatchForward(true,
+                    new CodeMatch(OpCodes.Ldarg_1),
+                    new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(StationComponent), nameof(StationComponent.collectionIds))),
+                    new CodeMatch(OpCodes.Ldlen),
+                    new CodeMatch(OpCodes.Conv_I4),
+                    new CodeMatch(OpCodes.Stloc_2)
+                );
+
+            matcher.Advance(1);
+            
+            matcher.InsertAndAdvance(
+                new CodeInstruction(OpCodes.Ldloc_2),
+                new CodeInstruction(OpCodes.Ldarg_1),
+                new CodeInstruction(OpCodes.Ldarg_0));
+            
+            matcher.InsertAndAdvance(
+                Transpilers.EmitDelegate <Func<int, StationComponent, UIStationWindow, int>>((count, station, stationUI) =>
+                {
+                    ItemProto itemProto = LDB.items.Select(stationUI.factory.entityPool[station.entityId].protoId);
+
+                    if (itemProto.ID != GigaStationsPlugin.pls.ID && itemProto.ID != GigaStationsPlugin.ils.ID &&
+                        itemProto.ID != GigaStationsPlugin.collector.ID)
+                    {
+                        return count;
+                    }
+                    
+                    int verticalCount = count;
+
+                    if (GigaStationsPlugin.gridXCount > 1)
+                    {
+                        verticalCount = count / GigaStationsPlugin.gridXCount;
+                    }
+
+                    int visibleCount = verticalCount > GigaStationsPlugin.gridYCount ? GigaStationsPlugin.gridYCount : verticalCount;
+                    return visibleCount;
+                }));
+
+            matcher.InsertAndAdvance(new CodeInstruction(OpCodes.Stloc_2));
+
+
+            return matcher.InstructionEnumeration();
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(UIStationWindow), "RefreshTrans")]
+        public static void OnRefreshTrans(UIStationWindow __instance, StationComponent station)
+        {
+            ItemProto itemProto = LDB.items.Select(__instance.factory.entityPool[station.entityId].protoId);
+
+            if (itemProto.ID != GigaStationsPlugin.pls.ID && itemProto.ID != GigaStationsPlugin.ils.ID && itemProto.ID != GigaStationsPlugin.collector.ID)
+            {
+                return;
+            }
+
+            if (__instance.active)
+            {
+                int storageCount = ((station.isCollector || station.isVeinCollector)
+                    ? station.collectionIds.Length
+                    : station.storage.Length);
+                
+                int verticalCount = storageCount;
+                int newXSize = 600;
+
+                if (GigaStationsPlugin.gridXCount > 1)
+                {
+                    int diff = 526 * (GigaStationsPlugin.gridXCount - 1);
+                    newXSize += diff;
+                    verticalCount = storageCount / GigaStationsPlugin.gridXCount;
+                }
+
+                __instance.windowTrans.sizeDelta = new Vector2(newXSize, __instance.windowTrans.sizeDelta.y);
+
+                int viewCount = verticalCount < GigaStationsPlugin.gridYCount ? verticalCount : GigaStationsPlugin.gridYCount;
+
+                scrollTrs.sizeDelta = new Vector2(scrollTrs.sizeDelta.x, 76 * viewCount);
+                contentTrs.sizeDelta = new Vector2(contentTrs.sizeDelta.x, 76 * verticalCount);
             }
         }
 
@@ -199,7 +290,7 @@ namespace GigaStations
             StationComponent stationComponent = __instance.transport.stationPool[__instance.stationId];
 
             float size = __instance.powerGroupRect.sizeDelta.x - 140;
-            float percent = stationComponent.energy / (float) stationComponent.energyMax;
+            float percent = stationComponent.energy / (float)stationComponent.energyMax;
 
             float diff = percent > 0.7 ? -30 : 30;
 
@@ -236,10 +327,12 @@ namespace GigaStations
             {
                 return false;
             }
+
             if (!stationComponent.isStellar)
             {
                 return false;
             }
+
             if (__instance.player.inhandItemId > 0 && __instance.player.inhandItemCount == 0)
             {
                 __instance.player.SetHandItems(0, 0);
@@ -253,6 +346,7 @@ namespace GigaStations
                     UIRealtimeTip.Popup("只能放入".Translate() + itemProto.name);
                     return false;
                 }
+
                 int num2 = GigaStationsPlugin.ilsMaxWarps;
                 int warperCount = stationComponent.warperCount;
                 int num3 = num2 - warperCount;
@@ -260,12 +354,14 @@ namespace GigaStations
                 {
                     num3 = 0;
                 }
+
                 int num4 = (__instance.player.inhandItemCount >= num3) ? num3 : __instance.player.inhandItemCount;
                 if (num4 <= 0)
                 {
                     UIRealtimeTip.Popup("栏位已满".Translate());
                     return false;
                 }
+
                 stationComponent.warperCount += num4;
                 __instance.player.AddHandItemCount_Unsafe(-num4);
                 if (__instance.player.inhandItemCount <= 0)
@@ -282,6 +378,7 @@ namespace GigaStations
                 {
                     return false;
                 }
+
                 if (VFInput.shift || VFInput.control)
                 {
                     num5 = __instance.player.package.AddItemStacked(1210, num5, 0, out int _);
@@ -289,6 +386,7 @@ namespace GigaStations
                     {
                         UIRealtimeTip.Popup("无法添加物品".Translate());
                     }
+
                     UIItemup.Up(1210, num5);
                 }
                 else
@@ -296,6 +394,7 @@ namespace GigaStations
                     __instance.player.SetHandItemId_Unsafe(1210);
                     __instance.player.SetHandItemCount_Unsafe(num5);
                 }
+
                 stationComponent.warperCount -= num5;
                 if (stationComponent.warperCount < 0)
                 {
@@ -306,7 +405,7 @@ namespace GigaStations
 
             return false;
         }
-        
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(UIStationWindow), "_OnCreate")]
         public static bool _OnCreatePrefix(UIStationWindow __instance)
@@ -330,7 +429,7 @@ namespace GigaStations
 
             GameObject contentPane = scrollPane.transform.Find("Viewport/pane").gameObject;
             contentTrs = (RectTransform)contentPane.transform;
-            
+
             __instance.storageUIs = new UIStationStorage[12];
             for (int i = 0; i < __instance.storageUIs.Length; i++)
             {
@@ -338,8 +437,14 @@ namespace GigaStations
                 __instance.storageUIs[i].stationWindow = __instance;
                 __instance.storageUIs[i]._Create();
             }
+
             __instance.veinCollectorPanel._Create();
-            
+            for (int j = 0; j < __instance.groupBtns.Length; j++)
+            {
+                __instance.groupBtns[j].data = j;
+            }
+            __instance.uiRoutePanel._Create();
+
             return false;
         }
     }

@@ -1,4 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Update="DysonSphereProgram.GameLibs" Version="0.10.30.23430-r.0" PrivateAssets="all" IncludeAssets="compile" />
+  </ItemGroup>
 </Project>
 

@@ -1,11 +1,20 @@
+### v2.3.8
+- Updated to work with game version 0.10.30.23272 or higher
+
+<details>
+<summary>Changelog</summary>
+
+### v2.3.7
+- Removed debug logs
+
+### v2.3.6
+- Updated to work with game version 0.10.30.22239 or higher
+
 ### v2.3.5
 - Fixed issue where slots 7-12 would not accept items if slots 1-6 were filled.
 
 ### v2.3.4
 - Updated to work with game version 0.10.28.20729 or higher
-
-<details>
-<summary>Changelog</summary>
 
 ### v2.3.3
 - Remove game exe name targeting

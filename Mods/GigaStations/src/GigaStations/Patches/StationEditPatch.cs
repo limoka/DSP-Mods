@@ -177,7 +177,8 @@ namespace GigaStations
         {
             __instance.needs = new int[13];
 
-            if (_entityPool[_entityId].protoId != GigaStationsPlugin.ils.ID && _entityPool[_entityId].protoId != GigaStationsPlugin.pls.ID && _entityPool[_entityId].protoId != GigaStationsPlugin.collector.ID) // not my stations
+            var protoId = _entityPool[_entityId].protoId;
+            if (protoId != GigaStationsPlugin.ils.ID && protoId != GigaStationsPlugin.pls.ID && protoId != GigaStationsPlugin.collector.ID) // not my stations
             {
                 return;
             }
@@ -187,6 +188,7 @@ namespace GigaStations
                 _desc.stationMaxEnergyAcc = Convert.ToInt64(GigaStationsPlugin.plsMaxAcuMJ * 1000000);
                 __instance.energyMax = GigaStationsPlugin.plsMaxAcuMJ * 1000000;
                 __instance.storage = new StationStore[GigaStationsPlugin.plsMaxSlots];
+                __instance.priorityLocks = new StationPriorityLock[GigaStationsPlugin.plsMaxSlots];
                 __instance.energyPerTick = 1000000;
             }
             else if (__instance.isStellar && !__instance.isCollector)
@@ -196,10 +198,10 @@ namespace GigaStations
                 __instance.energyMax = GigaStationsPlugin.ilsMaxAcuGJ * 1000000000;
                 __instance.warperMaxCount = GigaStationsPlugin.ilsMaxWarps;
                 __instance.storage = new StationStore[GigaStationsPlugin.ilsMaxSlots];
+                __instance.priorityLocks = new StationPriorityLock[GigaStationsPlugin.ilsMaxSlots];
                 __instance.energyPerTick = 1000000;
-            }
+            }   
         }
-
 
 
         [HarmonyTranspiler]
@@ -219,6 +221,52 @@ namespace GigaStations
 
         }
         
+        
+        [HarmonyTranspiler]
+        [HarmonyPatch(typeof(PlanetTransport), "Import")]
+        [HarmonyDebug]
+        public static IEnumerable<CodeInstruction> PlanetImportTranspiler(IEnumerable<CodeInstruction> instructions)
+        {
+            var matcher = new CodeMatcher(instructions)
+                .MatchForward(false, // false = move at the start of the match, true = move at the end of the match
+                    new CodeMatch(OpCodes.Ldarg_1),
+                    new CodeMatch(OpCodes.Callvirt, AccessTools.Method(typeof(StationComponent), nameof(StationComponent.Import))));
+
+            matcher
+                .Advance(2)
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldarg_0))
+                .Advance(4)
+                .InsertAndAdvance(
+                    Transpilers.EmitDelegate<Action<PlanetTransport, StationComponent>>(
+                        (planet, station) =>
+                        {
+                            short protoId = planet.factory.entityPool[station.entityId].protoId;
+                            if (protoId != GigaStationsPlugin.ils.ID && 
+                                protoId != GigaStationsPlugin.pls.ID &&
+                                protoId != GigaStationsPlugin.collector.ID) // not my stations
+                            {
+                                return;
+                            }
+                            
+                            if (!station.isStellar && !station.isCollector) //pls
+                            {
+                                station.priorityLocks = new StationPriorityLock[GigaStationsPlugin.plsMaxSlots];
+                            }
+                            else if (station.isStellar && !station.isCollector)
+                            {
+                                station.priorityLocks = new StationPriorityLock[GigaStationsPlugin.ilsMaxSlots];
+                            }   
+                            
+                        })
+                )
+                .InsertAndAdvance(
+                    new CodeInstruction(OpCodes.Ldarg_0),
+                    new CodeInstruction(OpCodes.Ldfld, AccessTools.Field(typeof(PlanetTransport), nameof(PlanetTransport.stationPool))),
+                    new CodeInstruction(OpCodes.Ldloc_1),
+                    new CodeInstruction(OpCodes.Ldelem_Ref));
+            
+            return matcher.InstructionEnumeration();
+        }
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(StationComponent), "UpdateNeeds")]

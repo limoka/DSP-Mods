@@ -29,7 +29,7 @@ namespace GigaStations
 
         public const string MODGUID = "org.kremnev8.plugin.GigaStationsUpdated";
         public const string MODNAME = "GigaStationsUpdated";
-        public const string VERSION = "2.3.5";
+        public const string VERSION = "2.3.8";
         
         public const string LDB_TOOL_GUID = "me.xiaoye97.plugin.Dyson.LDBTool";
         public const string WARPERS_MOD_GUID = "ShadowAngel.DSP.DistributeSpaceWarper";
@@ -159,6 +159,7 @@ namespace GigaStations
             harmony.PatchAll(typeof(UIStationWindowPatch));
             harmony.PatchAll(typeof(BlueprintBuilding_Patch));
             harmony.PatchAll(typeof(UIEntityBriefInfo_Patch));
+            harmony.PatchAll(typeof(UIControlPanelStationInspector_Patch));
 
             foreach (var pluginInfo in BepInEx.Bootstrap.Chainloader.PluginInfos)
             {
