@@ -344,6 +344,7 @@ namespace BlueprintTweaks
 
             string message = "";
             int playerFoundationCount = __instance.player.package.GetItemCount(PlatformSystem.REFORM_ID);
+            playerFoundationCount += __instance.player.deliveryPackage.GetItemCount(PlatformSystem.REFORM_ID);
             bool isError = false;
 
             if (playerFoundationCount < tmpPoints.Count)
@@ -545,12 +546,24 @@ namespace BlueprintTweaks
             if (BlueprintTweaksPlugin.freeFoundationsIsInstalled) return true;
             if (GameMain.data.history.HasFeatureKey(1100001) && GameMain.sandboxToolsEnabled) return true;
             
-            if (tool.player.package.GetItemCount(PlatformSystem.REFORM_ID) < reformCount) return false;
+            int mainPackageCount = tool.player.package.GetItemCount(PlatformSystem.REFORM_ID);
+            int playerFoundationCount = mainPackageCount + tool.player.deliveryPackage.GetItemCount(PlatformSystem.REFORM_ID);
+            
+            if (playerFoundationCount < reformCount) return false;
 
             long result = tool.player.sandCount - cost;
             if (result <= 0) return false;
 
-            tool.player.package.TakeItem(PlatformSystem.REFORM_ID, reformCount, out int _);
+            if (mainPackageCount < reformCount)
+            {
+                int itemId = PlatformSystem.REFORM_ID;
+                tool.player.package.TakeItem(itemId, mainPackageCount, out int _);
+
+                int remainsCount = reformCount - mainPackageCount;
+                tool.player.deliveryPackage.TakeItems(ref itemId, ref remainsCount, out int _);
+            }
+            else tool.player.package.TakeItem(PlatformSystem.REFORM_ID, reformCount, out int _);
+
             tool.player.SetSandCount(result);
 
             return true;
