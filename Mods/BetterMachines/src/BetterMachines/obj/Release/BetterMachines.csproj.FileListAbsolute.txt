@@ -1,0 +1,9 @@
+C:\DSP-Mods-master\Mods\Bettermachines\src\BetterMachines\obj\Release\BetterMachines.csproj.AssemblyReference.cache
+C:\DSP-Mods-master\Mods\Bettermachines\src\BetterMachines\obj\Release\BetterMachines.GeneratedMSBuildEditorConfig.editorconfig
+C:\DSP-Mods-master\Mods\Bettermachines\src\BetterMachines\obj\Release\BetterMachines.AssemblyInfoInputs.cache
+C:\DSP-Mods-master\Mods\Bettermachines\src\BetterMachines\obj\Release\BetterMachines.AssemblyInfo.cs
+C:\DSP-Mods-master\Mods\Bettermachines\src\BetterMachines\obj\Release\BetterMachines.csproj.CoreCompileInputs.cache
+C:\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\BepInEx\plugins\BetterMachines\BetterMachines.dll
+C:\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\BepInEx\plugins\BetterMachines\BetterMachines.pdb
+C:\DSP-Mods-master\Mods\BetterMachines\src\BetterMachines\obj\Release\BetterMachines.dll
+C:\DSP-Mods-master\Mods\BetterMachines\src\BetterMachines\obj\Release\BetterMachines.pdb

@@ -1,0 +1,72 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\DSP-Mods-master\\Mods\\BetterMachines\\src\\BetterMachines\\BetterMachines.csproj": {}
+  },
+  "projects": {
+    "C:\\DSP-Mods-master\\Mods\\BetterMachines\\src\\BetterMachines\\BetterMachines.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\DSP-Mods-master\\Mods\\BetterMachines\\src\\BetterMachines\\BetterMachines.csproj",
+        "projectName": "BetterMachines",
+        "projectPath": "C:\\DSP-Mods-master\\Mods\\BetterMachines\\src\\BetterMachines\\BetterMachines.csproj",
+        "packagesPath": "C:\\Users\\crypt\\.nuget\\packages\\",
+        "outputPath": "C:\\DSP-Mods-master\\Mods\\BetterMachines\\src\\BetterMachines\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\DSP-Mods-master\\Mods\\BetterMachines\\src\\NuGet.Config",
+          "C:\\Users\\crypt\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net472"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {},
+          "https://nuget.bepinex.dev/v3/index.json": {}
+        },
+        "frameworks": {
+          "net472": {
+            "targetAlias": "net472",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        }
+      },
+      "frameworks": {
+        "net472": {
+          "targetAlias": "net472",
+          "dependencies": {
+            "BepInEx.Core": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[5.*, )"
+            },
+            "DysonSphereProgram.Modding.CommonAPI": {
+              "include": "Compile",
+              "target": "Package",
+              "version": "[1.*, )"
+            },
+            "UnityEngine.Modules": {
+              "include": "Compile",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2018.4.12, )"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.400\\RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "dgSpecHash": "G3Nsw3BwNy8=",
+  "success": true,
+  "projectFilePath": "C:\\DSP-Mods-master\\Mods\\BetterMachines\\src\\BetterMachines\\BetterMachines.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\crypt\\.nuget\\packages\\bepinex.baselib\\5.4.20\\bepinex.baselib.5.4.20.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\bepinex.core\\5.4.21\\bepinex.core.5.4.21.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\dysonsphereprogram.modding.commonapi\\1.6.5\\dysonsphereprogram.modding.commonapi.1.6.5.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\dysonsphereprogram.modding.dspmodsave\\1.2.0\\dysonsphereprogram.modding.dspmodsave.1.2.0.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\dysonsphereprogram.modding.ldbtool\\3.0.0\\dysonsphereprogram.modding.ldbtool.3.0.0.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\dysonsphereprogram.modding.nebulamultiplayermodapi\\2.0.0\\dysonsphereprogram.modding.nebulamultiplayermodapi.2.0.0.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\harmonyx\\2.7.0\\harmonyx.2.7.0.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\mono.cecil\\0.11.4\\mono.cecil.0.11.4.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\monomod.runtimedetour\\21.12.13.1\\monomod.runtimedetour.21.12.13.1.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\monomod.utils\\21.12.13.1\\monomod.utils.21.12.13.1.nupkg.sha512",
+    "C:\\Users\\crypt\\.nuget\\packages\\unityengine.modules\\2018.4.12\\unityengine.modules.2018.4.12.nupkg.sha512"
+  ],
+  "logs": []
+}

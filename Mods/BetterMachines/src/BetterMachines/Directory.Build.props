@@ -15,7 +15,7 @@
     <BepInExDir>$(DSPGameDir)BepInEx\core\</BepInExDir>
     <DSPAssemblyDir>$(DSPGameDir)DSPGAME_Data\Managed\</DSPAssemblyDir>
     <PluginOutputDirectory>$(DSPGameDir)BepInEx\plugins\BetterMachines\</PluginOutputDirectory>
-	<DumpedAssembliesDir>$(DSPGameDir)BepInEx\DumpedAssemblies\</DumpedAssembliesDir>
+	<!--<DumpedAssembliesDir>$(DSPGameDir)BepInEx\DumpedAssemblies\</DumpedAssembliesDir>-->
     <ProjectDir>$(MSBuildThisFileDirectory)\</ProjectDir>
   </PropertyGroup>
 
