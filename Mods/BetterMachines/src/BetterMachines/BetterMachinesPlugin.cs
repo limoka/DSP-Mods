@@ -115,8 +115,6 @@ namespace FasterMachines
 
                 ProtoRegistry.RegisterString("chemicalPlantMk2Desc",
                     "Chemical facility. Can process the primary products of Crude oil into more advanced chemical products. Production speed has been increased.");
-                ProtoRegistry.RegisterString("chemicalPlantMk1Desc",
-                   "Chemical facility. Can process the primary products of Crude oil into more advanced chemical products.");
                 //ProtoRegistry.RegisterString("chemicalPlantMk3Desc",
                 //    "Chemical facility. Can process the primary products of Crude oil into more advanced chemical products. Production speed has been greatly increased.");
 
@@ -416,10 +414,6 @@ namespace FasterMachines
                 ProtoRegistry.EditRecipe(116, ERecipeType.Assemble, 300, new[] {smelterMk2item.ID, 1206, 1304, 1402}, new[] {1, 8, 4, 8},
                     new[] {2315}, new[] {1}, "smelterMk3Desc", 1417, ProtoRegistry.GetGridIndex(2, 2, 4));
 
-                // Chem plant mk1 <= Chem plant mk1, Steel * 8, Stone * 8, Glass * 8, Circuit Board * 2
-                ProtoRegistry.RegisterRecipe(22, ERecipeType.Assemble, 300, new[] {1103, 1108, 1110, 1301}, new[] {8, 8, 8, 2},
-                    new[] {chemicalPlantMk1Item.ID}, new[] {1}, "chemicalPlantMk1Desc", 1202, ProtoRegistry.GetGridIndex(2, 11, 3));
-
                 // Chem plant mk2 <= Chem plant mk1, Titanium alloy * 4, Titanium glass * 4, Processor * 4
                 ProtoRegistry.RegisterRecipe(251, ERecipeType.Assemble, 360, new[] {2309, 1107, 1119, 1303}, new[] {1, 4, 4, 4},
                     new[] {chemicalPlantMk2item.ID}, new[] {1}, "chemicalPlantMk2Desc", 1202);
@@ -544,7 +538,7 @@ namespace FasterMachines
             chemicalPlantMk3Item.prefabDesc.workEnergyPerTick = 48000;
             chemicalPlantMk3Item.prefabDesc.idleEnergyPerTick = 1600;
             
-            LDB.recipes.Select(22).GridIndex = ProtoRegistry.GetGridIndex(2, 4, 5);
+            LDB.recipes.Select(22).GridIndex = ProtoRegistry.GetGridIndex(2, 11, 3);
 
             
             ColorUtility.TryParseHtmlString("#F9D352FF", out Color yellow);
