@@ -5,6 +5,5 @@
     <SteamDir>C:\Program Files (x86)\Steam\</SteamDir>
     <!--Replace the path to your Dyson Sphere Program installation folder-->
     <DSPGameDir>C:\Program Files (x86)\Steam\steamapps\common\Dyson Sphere Program\</DSPGameDir>
-	  <DumpedAssembliesDir>C:\Users\crypt\AppData\Roaming\r2modmanPlus-local\DysonSphereProgram\profiles\Default\BepInEx\DumpedAssemblies\DSPGAME\</DumpedAssembliesDir>
   </PropertyGroup>
 </Project>
