@@ -1,9 +1,12 @@
 
-### v1.1.4
-- Ensure model indexes in old blueprints are migrated
+### v1.2.0
+- Updated to work with recent game versions. (Thanks to https://github.com/CheesyCrypto for fixing the mod)
 
 <details>
 <summary>All changes</summary>
+
+### v1.1.4
+- Ensure model indexes in old blueprints are migrated
 
 ### v1.1.3
 - Fix Matrix Lab being unaccessable due to grid index collision.

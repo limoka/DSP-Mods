@@ -5,7 +5,6 @@ using BepInEx;
 using CommonAPI;
 using FasterMachines;
 using HarmonyLib;
-using RebindBuildBar;
 
 namespace InstallCheck
 {
@@ -17,7 +16,9 @@ namespace InstallCheck
         public const string MODGUID = "org.kremnev8.plugin.BetterMachinesInstallCheck";
 
         public const string LDBTOOL_GUID = "me.xiaoye97.plugin.Dyson.LDBTool";
-
+        public const string REBIND_BUILD_BAR_GUID = "org.kremnev8.plugin.RebindBuildBar";
+        
+        
         public static bool ldbToolInstalled;
         public static bool commonAPIInstalled;
         public static bool rebindBuildBarInstalled;
@@ -32,7 +33,7 @@ namespace InstallCheck
                 ldbToolInstalled = true;
             }
             
-            if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(RebindBuildBarPlugin.MODGUID))
+            if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(REBIND_BUILD_BAR_GUID))
             {
                 rebindBuildBarInstalled = true;
             }

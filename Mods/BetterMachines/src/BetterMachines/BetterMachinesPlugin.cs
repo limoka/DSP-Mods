@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -9,8 +9,8 @@ using BepInEx.Configuration;
 using BepInEx.Logging;
 using CommonAPI;
 using CommonAPI.Systems;
+using CommonAPI.Systems.ModLocalization;
 using HarmonyLib;
-using RebindBuildBar;
 using UnityEngine;
 using xiaoye97;
 
@@ -24,7 +24,7 @@ namespace FasterMachines
     [BepInPlugin(MODGUID, MOD_DISP_NAME, VERSION)]
     [BepInDependency(LDBToolPlugin.MODGUID)]
     [BepInDependency(CommonAPIPlugin.GUID)]
-    [CommonAPISubmoduleDependency(nameof(ProtoRegistry), nameof(CustomDescSystem), nameof(UtilSystem))]
+    [CommonAPISubmoduleDependency(nameof(ProtoRegistry), nameof(CustomDescSystem), nameof(UtilSystem), nameof(LocalizationModule))]
     public class BetterMachinesPlugin : BaseUnityPlugin
     {
         public const string MODNAME = "BetterMachines";
@@ -33,7 +33,7 @@ namespace FasterMachines
         
         public const string MOD_DISP_NAME = "Better Machines";
         
-        public const string VERSION = "1.1.4";
+        public const string VERSION = "1.2.0";
 
         public ItemProto smelterMk2item;
 
@@ -91,59 +91,59 @@ namespace FasterMachines
 
                 #region Strings
 
-                ProtoRegistry.EditString("电弧熔炉", "Arc Smelter (MK.I)", "电弧熔炉 (MK.I)");
-                ProtoRegistry.RegisterString("smelterMk2", "Arc Smelter (MK.II)", "电弧熔炉 (MK.II)");
-                ProtoRegistry.EditString("位面熔炉", "Plane Smelter (MK.III)", "位面熔炉 (MK.III)");
+                LocalizationModule.EditTranslation("电弧熔炉", "Arc Smelter (MK.I)", "电弧熔炉 (MK.I)", "");
+                LocalizationModule.RegisterTranslation("smelterMk2", "Arc Smelter (MK.II)", "电弧熔炉 (MK.II)", "");
+                LocalizationModule.EditTranslation("位面熔炉", "Plane Smelter (MK.III)", "位面熔炉 (MK.III)", "");
 
-                ProtoRegistry.EditString("化工厂", "Chemical Plant MK.I", "化工厂 MK.I");
-                ProtoRegistry.RegisterString("chemicalPlantMk2", "Chemical Plant MK.II", "化工厂 MK.II");
-                ProtoRegistry.EditString("化工厂 Mk.II", "Quantum Chemical Plant (MK.III)", "量子化工厂 (MK.III)");
+                LocalizationModule.EditTranslation("化工厂", "Chemical Plant MK.I", "化工厂 MK.I", "");
+                LocalizationModule.RegisterTranslation("chemicalPlantMk2", "Chemical Plant MK.II", "化工厂 MK.II", "");
+                LocalizationModule.EditTranslation("化工厂 Mk.II", "Quantum Chemical Plant (MK.III)", "量子化工厂 (MK.III)", "");
 
-                ProtoRegistry.RegisterString("storageMk3", "Storage MK.III", "型储物仓 MK.III");
-                ProtoRegistry.RegisterString("storageMk4", "Storage MK.IV", "型储物仓 MK.IV");
+                LocalizationModule.RegisterTranslation("storageMk3", "Storage MK.III", "型储物仓 MK.III", "");
+                LocalizationModule.RegisterTranslation("storageMk4", "Storage MK.IV", "型储物仓 MK.IV", "");
 
-                ProtoRegistry.EditString("储液罐", "Liquid Tank MK.I", "储液罐 MK.I", "Réservoir de stockage de liquide MK.I");
-                ProtoRegistry.RegisterString("liquidTankMk2", "Liquid Tank MK.II", "储液罐 MK.II", "Réservoir de stockage de liquide MK.II");
-                ProtoRegistry.RegisterString("liquidTankMk3", "Liquid Tank MK.III", "储液罐 MK.III", "Réservoir de stockage de liquide MK.III");
+                LocalizationModule.EditTranslation("储液罐", "Liquid Tank MK.I", "储液罐 MK.I", "Réservoir de stockage de liquide MK.I");
+                LocalizationModule.RegisterTranslation("liquidTankMk2", "Liquid Tank MK.II", "储液罐 MK.II", "Réservoir de stockage de liquide MK.II");
+                LocalizationModule.RegisterTranslation("liquidTankMk3", "Liquid Tank MK.III", "储液罐 MK.III", "Réservoir de stockage de liquide MK.III");
 
-                ProtoRegistry.RegisterString("smelterMk2Desc",
+                LocalizationModule.RegisterTranslation("smelterMk2Desc",
                     "High temperature arc smelting can smelt ores and metals, and also be used for purification and crystal smelting. By increasing maximum furnace temperature arc smelter can now smelt faster!");
-                ProtoRegistry.EditString("位面冶金结果",
+                LocalizationModule.EditTranslation("位面冶金结果",
                     "You have unlocked the more advanced smelter ━━ <color=\"#FD965ECC\">Plane Smelter</color>, which is faster as an Arc Smelter (MK.II)!",
                     "你解锁了更高级的熔炉━━<color=\"#FD965ECC\">位面熔炉</color>， 它的速度比电弧炉（MK.II）还要高！",
                     "You have unlocked the more advanced smelter ━━ <color=\"#FD965ECC\">Plane Smelter</color>, which is faster as an Arc Smelter (MK.II)!");
 
-                ProtoRegistry.RegisterString("chemicalPlantMk2Desc",
+                LocalizationModule.RegisterTranslation("chemicalPlantMk2Desc",
                     "Chemical facility. Can process the primary products of Crude oil into more advanced chemical products. Production speed has been increased.");
-                //ProtoRegistry.RegisterString("chemicalPlantMk3Desc",
+                //LocalizationModule.RegisterTranslation("chemicalPlantMk3Desc",
                 //    "Chemical facility. Can process the primary products of Crude oil into more advanced chemical products. Production speed has been greatly increased.");
 
-                ProtoRegistry.EditString("I小型储物仓", "Storage MK.I is designed to store Solids.");
-                ProtoRegistry.EditString("I大型储物仓", "Storage MK.II is designed to store Solids. Thanks to new materials it has more capacity than Storage Mk.I");
-                ProtoRegistry.RegisterString("storageMk3Desc",
+                LocalizationModule.EditTranslation("I小型储物仓", "Storage MK.I is designed to store Solids.");
+                LocalizationModule.EditTranslation("I大型储物仓", "Storage MK.II is designed to store Solids. Thanks to new materials it has more capacity than Storage Mk.I");
+                LocalizationModule.RegisterTranslation("storageMk3Desc",
                     "Storage MK.III is designed to store Solids. Thanks to new materials it has more capacity than Storage Mk.II");
-                ProtoRegistry.RegisterString("storageMk4Desc",
+                LocalizationModule.RegisterTranslation("storageMk4Desc",
                     "Storage MK.IV is designed to store Solids. Thanks to new materials it has more capacity than Storage Mk.III");
 
-                ProtoRegistry.EditString("I储液罐",
+                LocalizationModule.EditTranslation("I储液罐",
                     "Liquid Tank MK.I is designed to store Liquids. When dismantling a non-empty Storage Tank any remaining fluid will be lost.");
-                ProtoRegistry.RegisterString("liquidTankMk2Desc",
+                LocalizationModule.RegisterTranslation("liquidTankMk2Desc",
                     "Liquid Tank MK.II is designed to store Liquids. Thanks to new materials it has more capacity than Liquid Tank Mk.I. When dismantling a non-empty Storage Tank any remaining fluid will be lost.");
-                ProtoRegistry.RegisterString("liquidTankMk3Desc",
+                LocalizationModule.RegisterTranslation("liquidTankMk3Desc",
                     "Liquid Tank MK.III is designed to store Liquids. Thanks to new materials it has more capacity than Liquid Tank Mk.II. When dismantling a non-empty Storage Tank any remaining fluid will be lost.");
 
-                ProtoRegistry.RegisterString("highDensityStorageTech", "High density storage");
-                ProtoRegistry.RegisterString("highDensityStorageTechDesc",
+                LocalizationModule.RegisterTranslation("highDensityStorageTech", "High density storage");
+                LocalizationModule.RegisterTranslation("highDensityStorageTechDesc",
                     "By using new stronger materials maximum capacity of Storages and Liquid Tanks can be increased.");
-                ProtoRegistry.RegisterString("highDensityStorageTechConc",
+                LocalizationModule.RegisterTranslation("highDensityStorageTechConc",
                     "You have obtained new Storage MK.IV and Liquid Tank Mk.III, which have increased storage capacity");
 
-                ProtoRegistry.RegisterString("beltMk4", "Belt MK.IV");
-                ProtoRegistry.RegisterString("beltMk4Desc",
+                LocalizationModule.RegisterTranslation("beltMk4", "Belt MK.IV");
+                LocalizationModule.RegisterTranslation("beltMk4Desc",
                     "Allows to transport items around. I have heard that it's so fast, that the game doesn't understand what to do with it.");
 
 
-                ProtoRegistry.RegisterString("BMModModificationWarn", "  - [Better Machines] Replaced {0} buildings", "  - [Better Machines] 取代 {0} 建筑物");
+                LocalizationModule.RegisterTranslation("BMModModificationWarn", "  - [Better Machines] Replaced {0} buildings", "  - [Better Machines] 取代 {0} 建筑物", "");
 
                 #endregion
 
@@ -304,7 +304,7 @@ namespace FasterMachines
                 chemicalPlantMatMk2Lod.SetFloat(emissionSwitch, 1);
                 chemicalPlantMatMk2Lod.SetFloat(emissionUsePower, 1);
                 chemicalPlantMatMk2Lod.SetFloat(alphaClip, 0.5f);
-                
+
                 chemicalPlantMatMk2Lod.SetFloat(emissionSwitch, 1);
                 chemicalPlantMatMk2Lod.SetFloat(emissionUsePower, 1);
                 
@@ -330,11 +330,11 @@ namespace FasterMachines
                 smelterMk3Item.SetIcon("Assets/BetterMachines/Icons/smelter-3", false);
 
                 smelterMk2item = ProtoRegistry.RegisterItem(3700, "smelterMk2", "smelterMk2Desc",
-                    "Assets/BetterMachines/Icons/smelter-2", ProtoRegistry.GetGridIndex(2, 5, 4), 50, EItemType.Production);
+                    "Assets/BetterMachines/Icons/smelter-2", ProtoRegistry.GetGridIndex(2, 7, 8), 50, EItemType.Production);
                 bmItems.Add(smelterMk2item);
                 
                 ItemProto chemicalPlantMk2item = ProtoRegistry.RegisterItem(3701, "chemicalPlantMk2", "chemicalPlantMk2Desc",
-                    "Assets/BetterMachines/Icons/chemical-plant-mk2", ProtoRegistry.GetGridIndex(2, 5, 5), 50, EItemType.Production);
+                    "Assets/BetterMachines/Icons/chemical-plant-mk2", ProtoRegistry.GetGridIndex(2, 6, 8), 50, EItemType.Production);
                 bmItems.Add(chemicalPlantMk2item);
                     
                 /*ItemProto chemicalPlantMk3item = ProtoRegistry.RegisterItem(3702, "chemicalPlantMk3", "chemicalPlantMk3Desc",
@@ -342,23 +342,23 @@ namespace FasterMachines
                 bmItems.Add(chemicalPlantMk3item);*/
 
                 ItemProto storageMk3Item = ProtoRegistry.RegisterItem(3703, "storageMk3", "storageMk3Desc",
-                    "Assets/BetterMachines/Icons/storage-3", ProtoRegistry.GetGridIndex(2, 1, 6), 50, EItemType.Logistics);
+                    "Assets/BetterMachines/Icons/storage-3", ProtoRegistry.GetGridIndex(2, 1, 8), 50, EItemType.Logistics);
                 bmItems.Add(storageMk3Item);
 
                 ItemProto storageMk4Item = ProtoRegistry.RegisterItem(3704, "storageMk4", "storageMk4Desc",
-                    "Assets/BetterMachines/Icons/storage-4", ProtoRegistry.GetGridIndex(2, 2, 6), 50, EItemType.Logistics);
+                    "Assets/BetterMachines/Icons/storage-4", ProtoRegistry.GetGridIndex(2, 2, 8), 50, EItemType.Logistics);
                 bmItems.Add(storageMk4Item);
 
                 ItemProto tankMk2Item = ProtoRegistry.RegisterItem(3705, "liquidTankMk2", "liquidTankMk2Desc",
-                    "Assets/BetterMachines/Icons/storage-tank-2", ProtoRegistry.GetGridIndex(2, 1, 5), 50, EItemType.Logistics);
+                    "Assets/BetterMachines/Icons/storage-tank-2", ProtoRegistry.GetGridIndex(2, 3, 8), 50, EItemType.Logistics);
                 bmItems.Add(tankMk2Item);
 
                 ItemProto tankMk3Item = ProtoRegistry.RegisterItem(3706, "liquidTankMk3", "liquidTankMk3Desc",
-                    "Assets/BetterMachines/Icons/storage-tank-3", ProtoRegistry.GetGridIndex(2, 2, 5), 50, EItemType.Logistics);
+                    "Assets/BetterMachines/Icons/storage-tank-3", ProtoRegistry.GetGridIndex(2, 4, 8), 50, EItemType.Logistics);
                 bmItems.Add(tankMk3Item);
 
                 beltMk4Item = ProtoRegistry.RegisterItem(3707, "beltMk4", "beltMk4Desc",
-                    "Assets/BetterMachines/Icons/belt-4", ProtoRegistry.GetGridIndex(2, 3, 5), 300, EItemType.Logistics);
+                    "Assets/BetterMachines/Icons/belt-4", ProtoRegistry.GetGridIndex(2, 5, 8), 300, EItemType.Logistics);
                 bmItems.Add(beltMk4Item);
 
 
@@ -366,12 +366,12 @@ namespace FasterMachines
 
                 #region Models
 
-                ProtoRegistry.RegisterModel(450, smelterMk2item, "Assets/BetterMachines/Machines/smelter-mk2",
+                ProtoRegistry.RegisterModel(672, smelterMk2item, "Assets/BetterMachines/Machines/smelter-mk2",
                     new[] {smelterMk2Part1, smelterMk2Part2}, new[] {22, 11, 12, 1}, 502, 2, new[] {2302, 0, 2315});
                 ProtoRegistry.AddLodMaterials("Assets/BetterMachines/Machines/smelter-mk2", 1, new[] {smelterMk2Lods});
                 ProtoRegistry.AddLodMaterials("Assets/BetterMachines/Machines/smelter-mk2", 2, new[] {smelterMk2Lods});
 
-                ProtoRegistry.RegisterModel(451, chemicalPlantMk2item, "Assets/BetterMachines/Machines/chemical-plant-mk2",
+                ProtoRegistry.RegisterModel(671, chemicalPlantMk2item, "Assets/BetterMachines/Machines/chemical-plant-mk2",
                     new[] {chemicalPlantMatMk2, chemicalPlantMatGlass, blackMat, chemicalPlantMatWater}, new[] {22, 11, 12, 1}, 704, 2,
                     new[] {2309, 0, 2317});
                 ProtoRegistry.AddLodMaterials("Assets/BetterMachines/Machines/chemical-plant-mk2", 1, new[] {chemicalPlantMatMk2Lod, chemicalPlantMatGlass});
@@ -383,27 +383,28 @@ namespace FasterMachines
                 ProtoRegistry.AddLodMaterials("Assets/BetterMachines/Machines/chemical-plant-mk3", 1, new[] {chemicalPlantMatMk3Lod, chemicalPlantMatGlass});
                 ProtoRegistry.AddLodMaterials("Assets/BetterMachines/Machines/chemical-plant-mk3", 2, new[] {chemicalPlantMatMk3Lod, chemicalPlantMatGlass});*/
 
-                ProtoRegistry.RegisterModel(453, storageMk3Item, "Assets/BetterMachines/Machines/storage-3",
-                    new[] {storageMat}, new[] {17, 1}, 403);
+                ProtoRegistry.RegisterModel(670, storageMk3Item, "Assets/BetterMachines/Machines/storage-3",
+                    new[] {storageMat}, new[] {17, 1}, 664);
                 ProtoRegistry.AddLodMaterials("Assets/BetterMachines/Machines/storage-3", 1, new[] {storageMatLod1});
 
 
-                ProtoRegistry.RegisterModel(454, storageMk4Item, "Assets/BetterMachines/Machines/storage-4",
-                    new[] {storageMat}, new[] {17, 1}, 404);
+                ProtoRegistry.RegisterModel(669, storageMk4Item, "Assets/BetterMachines/Machines/storage-4",
+                    new[] {storageMat}, new[] {17, 1}, 665);
                 ProtoRegistry.AddLodMaterials("Assets/BetterMachines/Machines/storage-4", 1, new[] {storageMatLod1});
 
-                liquidTankMk2 = ProtoRegistry.RegisterModel(455, tankMk2Item, "Assets/BetterMachines/Machines/liquid-tank-mk2",
+                liquidTankMk2 = ProtoRegistry.RegisterModel(666, tankMk2Item, "Assets/BetterMachines/Machines/liquid-tank-mk2",
                     new[] {liquidTankMat, blackMatToggle, liquidTankGlassMat}, new[] {30, 1}, 406, 0, Array.Empty<int>(), 3);
 
-                liquidTankMk3 = ProtoRegistry.RegisterModel(456, tankMk3Item, "Assets/BetterMachines/Machines/liquid-tank-mk3",
+                liquidTankMk3 = ProtoRegistry.RegisterModel(667, tankMk3Item, "Assets/BetterMachines/Machines/liquid-tank-mk3",
                     new[] {liquidTankMat, blackMatToggle, liquidTankGlassMat}, new[] {30, 1}, 407, 0, Array.Empty<int>(), 3);
 
-                beltMk4 = ProtoRegistry.RegisterModel(457, beltMk4Item, "Assets/BetterMachines/Machines/belt-4",
+                beltMk4 = ProtoRegistry.RegisterModel(668, beltMk4Item, "Assets/BetterMachines/Machines/belt-4",
                     null, new[] {15, 1}, 304, 4, new[] {2001, 2002, 2003, 0});
 
                 #endregion
 
                 #region Recipes
+                ItemProto chemicalPlantMk1Item = LDB.items.Select(2309);
 
                 // Smelter mk2 <= Smelter mk1,  Titanium alloy * 4, Processor * 4, Magnetic coil * 8
                 ProtoRegistry.RegisterRecipe(250, ERecipeType.Assemble, 240, new[] {2302, 1107, 1303, 1202}, new[] {1, 4, 4, 8},
@@ -411,7 +412,7 @@ namespace FasterMachines
 
                 // Smelter mk3 <= Smelter mk2,  Particle container * 8, Plane filter * 4, Particle broadband * 8
                 ProtoRegistry.EditRecipe(116, ERecipeType.Assemble, 300, new[] {smelterMk2item.ID, 1206, 1304, 1402}, new[] {1, 8, 4, 8},
-                    new[] {2315}, new[] {1}, "smelterMk3Desc", 1417, ProtoRegistry.GetGridIndex(2, 6, 4));
+                    new[] {2315}, new[] {1}, "smelterMk3Desc", 1417, ProtoRegistry.GetGridIndex(2, 2, 4));
 
                 // Chem plant mk2 <= Chem plant mk1, Titanium alloy * 4, Titanium glass * 4, Processor * 4
                 ProtoRegistry.RegisterRecipe(251, ERecipeType.Assemble, 360, new[] {2309, 1107, 1119, 1303}, new[] {1, 4, 4, 4},
@@ -447,11 +448,15 @@ namespace FasterMachines
                 LDBTool.SetBuildBar(3, 5, 2011);
                 LDBTool.SetBuildBar(3, 6, 2012);
                 LDBTool.SetBuildBar(3, 7, 2013);
-                LDBTool.SetBuildBar(3, 8, 2040);
-                LDBTool.SetBuildBar(3, 9, 2030);
+                LDBTool.SetBuildBar(3, 8, 2014);
+                LDBTool.SetBuildBar(3, 9, 2040);
                 LDBTool.SetBuildBar(3, 10, 2020);
 
-                LDBTool.SetBuildBar(4, 5, 2106); //Move default position for Liquid Tank mk1
+                LDBTool.SetBuildBar(4, 5, 2106); //Set storage positions on build bar
+                LDBTool.SetBuildBar(4, 6, tankMk2Item.ID);
+                LDBTool.SetBuildBar(4, 7, tankMk3Item.ID);
+                LDBTool.SetBuildBar(4, 3, storageMk3Item.ID);
+                LDBTool.SetBuildBar(4, 4, storageMk4Item.ID);
 
                 LDBTool.SetBuildBar(5, 2, smelterMk2item.ID);
                 LDBTool.SetBuildBar(5, 3, 2315); //Move default position for Plane Smelter (MK.III)
@@ -495,16 +500,6 @@ namespace FasterMachines
             assDesc3.ApplyProperties(new PrefabDesc());
 
             assemblerMk3.prefabDesc.assemblerSpeed = (int) (assDesc3.assembleSpeed * 10000);
-
-            // Spray coater grid index
-            LDB.recipes.Select(10).GridIndex = ProtoRegistry.GetGridIndex(2, 9, 4);
-            LDB.items.Select(2901).GridIndex = ProtoRegistry.GetGridIndex(2, 9, 4);
-            
-            // Quantum chemical plant
-            LDB.recipes.Select(124).GridIndex = ProtoRegistry.GetGridIndex(2, 6, 5);
-            
-            // Arc smelter grid index
-            LDB.recipes.Select(56).GridIndex = ProtoRegistry.GetGridIndex(2, 4, 4);
             
             ItemProto smelterMk1Item = LDB.items.Select(2302);
             ItemProto smelterMk3Item = LDB.items.Select(2315);
@@ -516,7 +511,7 @@ namespace FasterMachines
             smelterMk1Item.FindRecipes();
 
             // Plane smelter grid index
-            smelterMk3Item.GridIndex = ProtoRegistry.GetGridIndex(2, 6, 4);
+            smelterMk3Item.GridIndex = ProtoRegistry.GetGridIndex(2, 2, 4);
             smelterMk1Item.recipes = null; //Reload smelter recipes
             smelterMk2item.recipes = null;
             smelterMk3Item.recipes = null;
@@ -526,10 +521,10 @@ namespace FasterMachines
             
 
             // Chemical plant mk1 grid index
-            chemicalPlantMk1Item.GridIndex = ProtoRegistry.GetGridIndex(2, 4, 5);
+            chemicalPlantMk1Item.GridIndex = ProtoRegistry.GetGridIndex(2, 11, 6);
             chemicalPlantMk1Item.recipes = null;
             chemicalPlantMk1Item.FindRecipes();
-            chemicalPlantMk3Item.GridIndex = ProtoRegistry.GetGridIndex(2, 6, 5);
+            chemicalPlantMk3Item.GridIndex = ProtoRegistry.GetGridIndex(2, 12, 2);
             chemicalPlantMk3Item.recipes = null;
             chemicalPlantMk3Item.FindRecipes();
 
@@ -543,7 +538,7 @@ namespace FasterMachines
             chemicalPlantMk3Item.prefabDesc.workEnergyPerTick = 48000;
             chemicalPlantMk3Item.prefabDesc.idleEnergyPerTick = 1600;
             
-            LDB.recipes.Select(22).GridIndex = ProtoRegistry.GetGridIndex(2, 4, 5);
+            LDB.recipes.Select(22).GridIndex = ProtoRegistry.GetGridIndex(2, 11, 3);
 
             
             ColorUtility.TryParseHtmlString("#F9D352FF", out Color yellow);

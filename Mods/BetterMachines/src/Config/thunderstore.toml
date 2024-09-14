@@ -5,14 +5,14 @@ schemaVersion = "0.0.1"
 namespace = "kremnev8"
 name = "BetterMachines"
 description = "Adds new faster and improved machines, bigger storage and faster belts."
-versionNumber = "1.1.4"
+versionNumber = "1.2.0"
 websiteUrl = "https://github.com/kremnev8/DSP-Mods/tree/master/Mods/BetterMachines"
 containsNsfwContent = false
 
   [package.dependencies]
   xiaoye97-BepInEx = "5.4.17"
-  CommonAPI-CommonAPI = "1.5.3"
-  kremnev8-RebindBuildBar = "1.0.3"
+  CommonAPI-CommonAPI = "1.6.5"
+  kremnev8-RebindBuildBar = "1.0.4"
 
 [build]
 icon = "./icon.png"
@@ -24,7 +24,7 @@ outdir = "./../Build"
   target = "./"
 
 [publish]
-repository = "https://dsp.thunderstore.io"
+repository = "https://thunderstore.io"
 communities = [ "dyson-sphere-program" ]
 categories = [
   "storage",
