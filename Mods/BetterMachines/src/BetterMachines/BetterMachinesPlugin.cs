@@ -11,7 +11,6 @@ using CommonAPI;
 using CommonAPI.Systems;
 using CommonAPI.Systems.ModLocalization;
 using HarmonyLib;
-using RebindBuildBar;
 using UnityEngine;
 using xiaoye97;
 
