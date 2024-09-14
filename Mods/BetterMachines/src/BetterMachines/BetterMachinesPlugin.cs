@@ -329,11 +329,11 @@ namespace FasterMachines
                 ItemProto smelterMk3Item = LDB.items.Select(2315);
                 smelterMk3Item.SetIcon("Assets/BetterMachines/Icons/smelter-3", false);
 
-                smelterMk2item = ProtoRegistry.RegisterItem(7001, "smelterMk2", "smelterMk2Desc",
+                smelterMk2item = ProtoRegistry.RegisterItem(3703, "smelterMk2", "smelterMk2Desc",
                     "Assets/BetterMachines/Icons/smelter-2", ProtoRegistry.GetGridIndex(2, 7, 8), 50, EItemType.Production);
                 bmItems.Add(smelterMk2item);
                 
-                ItemProto chemicalPlantMk2item = ProtoRegistry.RegisterItem(7002, "chemicalPlantMk2", "chemicalPlantMk2Desc",
+                ItemProto chemicalPlantMk2item = ProtoRegistry.RegisterItem(3702, "chemicalPlantMk2", "chemicalPlantMk2Desc",
                     "Assets/BetterMachines/Icons/chemical-plant-mk2", ProtoRegistry.GetGridIndex(2, 6, 8), 50, EItemType.Production);
                 bmItems.Add(chemicalPlantMk2item);
                     
@@ -341,23 +341,23 @@ namespace FasterMachines
                     "Assets/BetterMachines/Icons/chemical-plant-mk3", ProtoRegistry.GetGridIndex(2, 6, 5), 50, EItemType.Production);
                 bmItems.Add(chemicalPlantMk3item);*/
 
-                ItemProto storageMk3Item = ProtoRegistry.RegisterItem(7003, "storageMk3", "storageMk3Desc",
+                ItemProto storageMk3Item = ProtoRegistry.RegisterItem(3703, "storageMk3", "storageMk3Desc",
                     "Assets/BetterMachines/Icons/storage-3", ProtoRegistry.GetGridIndex(2, 1, 8), 50, EItemType.Logistics);
                 bmItems.Add(storageMk3Item);
 
-                ItemProto storageMk4Item = ProtoRegistry.RegisterItem(7004, "storageMk4", "storageMk4Desc",
+                ItemProto storageMk4Item = ProtoRegistry.RegisterItem(3704, "storageMk4", "storageMk4Desc",
                     "Assets/BetterMachines/Icons/storage-4", ProtoRegistry.GetGridIndex(2, 2, 8), 50, EItemType.Logistics);
                 bmItems.Add(storageMk4Item);
 
-                ItemProto tankMk2Item = ProtoRegistry.RegisterItem(7005, "liquidTankMk2", "liquidTankMk2Desc",
+                ItemProto tankMk2Item = ProtoRegistry.RegisterItem(3705, "liquidTankMk2", "liquidTankMk2Desc",
                     "Assets/BetterMachines/Icons/storage-tank-2", ProtoRegistry.GetGridIndex(2, 3, 8), 50, EItemType.Logistics);
                 bmItems.Add(tankMk2Item);
 
-                ItemProto tankMk3Item = ProtoRegistry.RegisterItem(7006, "liquidTankMk3", "liquidTankMk3Desc",
+                ItemProto tankMk3Item = ProtoRegistry.RegisterItem(3706, "liquidTankMk3", "liquidTankMk3Desc",
                     "Assets/BetterMachines/Icons/storage-tank-3", ProtoRegistry.GetGridIndex(2, 4, 8), 50, EItemType.Logistics);
                 bmItems.Add(tankMk3Item);
 
-                beltMk4Item = ProtoRegistry.RegisterItem(7007, "beltMk4", "beltMk4Desc",
+                beltMk4Item = ProtoRegistry.RegisterItem(3707, "beltMk4", "beltMk4Desc",
                     "Assets/BetterMachines/Icons/belt-4", ProtoRegistry.GetGridIndex(2, 5, 8), 300, EItemType.Logistics);
                 bmItems.Add(beltMk4Item);
 
@@ -366,12 +366,12 @@ namespace FasterMachines
 
                 #region Models
 
-                ProtoRegistry.RegisterModel(669, smelterMk2item, "Assets/BetterMachines/Machines/smelter-mk2",
+                ProtoRegistry.RegisterModel(672, smelterMk2item, "Assets/BetterMachines/Machines/smelter-mk2",
                     new[] {smelterMk2Part1, smelterMk2Part2}, new[] {22, 11, 12, 1}, 502, 2, new[] {2302, 0, 2315});
                 ProtoRegistry.AddLodMaterials("Assets/BetterMachines/Machines/smelter-mk2", 1, new[] {smelterMk2Lods});
                 ProtoRegistry.AddLodMaterials("Assets/BetterMachines/Machines/smelter-mk2", 2, new[] {smelterMk2Lods});
 
-                ProtoRegistry.RegisterModel(670, chemicalPlantMk2item, "Assets/BetterMachines/Machines/chemical-plant-mk2",
+                ProtoRegistry.RegisterModel(671, chemicalPlantMk2item, "Assets/BetterMachines/Machines/chemical-plant-mk2",
                     new[] {chemicalPlantMatMk2, chemicalPlantMatGlass, blackMat, chemicalPlantMatWater}, new[] {22, 11, 12, 1}, 704, 2,
                     new[] {2309, 0, 2317});
                 ProtoRegistry.AddLodMaterials("Assets/BetterMachines/Machines/chemical-plant-mk2", 1, new[] {chemicalPlantMatMk2Lod, chemicalPlantMatGlass});
@@ -383,12 +383,12 @@ namespace FasterMachines
                 ProtoRegistry.AddLodMaterials("Assets/BetterMachines/Machines/chemical-plant-mk3", 1, new[] {chemicalPlantMatMk3Lod, chemicalPlantMatGlass});
                 ProtoRegistry.AddLodMaterials("Assets/BetterMachines/Machines/chemical-plant-mk3", 2, new[] {chemicalPlantMatMk3Lod, chemicalPlantMatGlass});*/
 
-                ProtoRegistry.RegisterModel(23, storageMk3Item, "Assets/BetterMachines/Machines/storage-3",
+                ProtoRegistry.RegisterModel(670, storageMk3Item, "Assets/BetterMachines/Machines/storage-3",
                     new[] {storageMat}, new[] {17, 1}, 664);
                 ProtoRegistry.AddLodMaterials("Assets/BetterMachines/Machines/storage-3", 1, new[] {storageMatLod1});
 
 
-                ProtoRegistry.RegisterModel(24, storageMk4Item, "Assets/BetterMachines/Machines/storage-4",
+                ProtoRegistry.RegisterModel(669, storageMk4Item, "Assets/BetterMachines/Machines/storage-4",
                     new[] {storageMat}, new[] {17, 1}, 665);
                 ProtoRegistry.AddLodMaterials("Assets/BetterMachines/Machines/storage-4", 1, new[] {storageMatLod1});
 
