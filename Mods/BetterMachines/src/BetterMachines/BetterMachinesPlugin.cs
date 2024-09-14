@@ -341,23 +341,23 @@ namespace FasterMachines
                     "Assets/BetterMachines/Icons/chemical-plant-mk3", ProtoRegistry.GetGridIndex(2, 6, 5), 50, EItemType.Production);
                 bmItems.Add(chemicalPlantMk3item);*/
 
-                ItemProto storageMk3Item = ProtoRegistry.RegisterItem(3702, "storageMk3", "storageMk3Desc",
+                ItemProto storageMk3Item = ProtoRegistry.RegisterItem(3703, "storageMk3", "storageMk3Desc",
                     "Assets/BetterMachines/Icons/storage-3", ProtoRegistry.GetGridIndex(2, 1, 8), 50, EItemType.Logistics);
                 bmItems.Add(storageMk3Item);
 
-                ItemProto storageMk4Item = ProtoRegistry.RegisterItem(3703, "storageMk4", "storageMk4Desc",
+                ItemProto storageMk4Item = ProtoRegistry.RegisterItem(3704, "storageMk4", "storageMk4Desc",
                     "Assets/BetterMachines/Icons/storage-4", ProtoRegistry.GetGridIndex(2, 2, 8), 50, EItemType.Logistics);
                 bmItems.Add(storageMk4Item);
 
-                ItemProto tankMk2Item = ProtoRegistry.RegisterItem(3704, "liquidTankMk2", "liquidTankMk2Desc",
+                ItemProto tankMk2Item = ProtoRegistry.RegisterItem(3705, "liquidTankMk2", "liquidTankMk2Desc",
                     "Assets/BetterMachines/Icons/storage-tank-2", ProtoRegistry.GetGridIndex(2, 3, 8), 50, EItemType.Logistics);
                 bmItems.Add(tankMk2Item);
 
-                ItemProto tankMk3Item = ProtoRegistry.RegisterItem(3705, "liquidTankMk3", "liquidTankMk3Desc",
+                ItemProto tankMk3Item = ProtoRegistry.RegisterItem(3706, "liquidTankMk3", "liquidTankMk3Desc",
                     "Assets/BetterMachines/Icons/storage-tank-3", ProtoRegistry.GetGridIndex(2, 4, 8), 50, EItemType.Logistics);
                 bmItems.Add(tankMk3Item);
 
-                beltMk4Item = ProtoRegistry.RegisterItem(3706, "beltMk4", "beltMk4Desc",
+                beltMk4Item = ProtoRegistry.RegisterItem(3707, "beltMk4", "beltMk4Desc",
                     "Assets/BetterMachines/Icons/belt-4", ProtoRegistry.GetGridIndex(2, 5, 8), 300, EItemType.Logistics);
                 bmItems.Add(beltMk4Item);
 
