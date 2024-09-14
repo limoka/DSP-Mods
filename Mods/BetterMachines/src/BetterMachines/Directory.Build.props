@@ -15,7 +15,6 @@
     <BepInExDir>$(DSPGameDir)BepInEx\core\</BepInExDir>
     <DSPAssemblyDir>$(DSPGameDir)DSPGAME_Data\Managed\</DSPAssemblyDir>
     <PluginOutputDirectory>$(DSPGameDir)BepInEx\plugins\BetterMachines\</PluginOutputDirectory>
-	<!--<DumpedAssembliesDir>$(DSPGameDir)BepInEx\DumpedAssemblies\</DumpedAssembliesDir>-->
     <ProjectDir>$(MSBuildThisFileDirectory)\</ProjectDir>
   </PropertyGroup>
 
@@ -41,7 +40,7 @@
   </ItemGroup>
 
   <ItemGroup Label="Dyson Sphere Program">
-    <PackageReference Include="DysonSphereProgram.GameLibs" Version="0.10.28.20779-r.0" IncludeAssets="compile" PrivateAssets="all" />
+    <PackageReference Include="DysonSphereProgram.GameLibs" Version="0.10.30.23430-r.0" IncludeAssets="compile" PrivateAssets="all" />
 
     <PackageReference Include="BepInEx.Core" Version="5.*" PrivateAssets="all" />
     <PackageReference Include="UnityEngine.Modules" Version="2018.4.12" IncludeAssets="compile" PrivateAssets="all" />
