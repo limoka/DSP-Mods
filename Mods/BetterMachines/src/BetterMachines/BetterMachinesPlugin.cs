@@ -329,7 +329,7 @@ namespace FasterMachines
                 ItemProto smelterMk3Item = LDB.items.Select(2315);
                 smelterMk3Item.SetIcon("Assets/BetterMachines/Icons/smelter-3", false);
 
-                smelterMk2item = ProtoRegistry.RegisterItem(3703, "smelterMk2", "smelterMk2Desc",
+                smelterMk2item = ProtoRegistry.RegisterItem(3701, "smelterMk2", "smelterMk2Desc",
                     "Assets/BetterMachines/Icons/smelter-2", ProtoRegistry.GetGridIndex(2, 7, 8), 50, EItemType.Production);
                 bmItems.Add(smelterMk2item);
                 
