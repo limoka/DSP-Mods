@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -9,6 +9,7 @@ using BepInEx.Configuration;
 using BepInEx.Logging;
 using CommonAPI;
 using CommonAPI.Systems;
+using CommonAPI.Systems.ModLocalization;
 using HarmonyLib;
 using RebindBuildBar;
 using UnityEngine;
@@ -24,7 +25,7 @@ namespace FasterMachines
     [BepInPlugin(MODGUID, MOD_DISP_NAME, VERSION)]
     [BepInDependency(LDBToolPlugin.MODGUID)]
     [BepInDependency(CommonAPIPlugin.GUID)]
-    [CommonAPISubmoduleDependency(nameof(ProtoRegistry), nameof(CustomDescSystem), nameof(UtilSystem))]
+    [CommonAPISubmoduleDependency(nameof(ProtoRegistry), nameof(CustomDescSystem), nameof(UtilSystem), nameof(LocalizationModule))]
     public class BetterMachinesPlugin : BaseUnityPlugin
     {
         public const string MODNAME = "BetterMachines";
@@ -91,59 +92,59 @@ namespace FasterMachines
 
                 #region Strings
 
-                ProtoRegistry.EditString("电弧熔炉", "Arc Smelter (MK.I)", "电弧熔炉 (MK.I)");
-                ProtoRegistry.RegisterString("smelterMk2", "Arc Smelter (MK.II)", "电弧熔炉 (MK.II)");
-                ProtoRegistry.EditString("位面熔炉", "Plane Smelter (MK.III)", "位面熔炉 (MK.III)");
+                LocalizationModule.EditTranslation("电弧熔炉", "Arc Smelter (MK.I)", "电弧熔炉 (MK.I)", "");
+                LocalizationModule.RegisterTranslation("smelterMk2", "Arc Smelter (MK.II)", "电弧熔炉 (MK.II)", "");
+                LocalizationModule.EditTranslation("位面熔炉", "Plane Smelter (MK.III)", "位面熔炉 (MK.III)", "");
 
-                ProtoRegistry.EditString("化工厂", "Chemical Plant MK.I", "化工厂 MK.I");
-                ProtoRegistry.RegisterString("chemicalPlantMk2", "Chemical Plant MK.II", "化工厂 MK.II");
-                ProtoRegistry.EditString("化工厂 Mk.II", "Quantum Chemical Plant (MK.III)", "量子化工厂 (MK.III)");
+                LocalizationModule.EditTranslation("化工厂", "Chemical Plant MK.I", "化工厂 MK.I", "");
+                LocalizationModule.RegisterTranslation("chemicalPlantMk2", "Chemical Plant MK.II", "化工厂 MK.II", "");
+                LocalizationModule.EditTranslation("化工厂 Mk.II", "Quantum Chemical Plant (MK.III)", "量子化工厂 (MK.III)", "");
 
-                ProtoRegistry.RegisterString("storageMk3", "Storage MK.III", "型储物仓 MK.III");
-                ProtoRegistry.RegisterString("storageMk4", "Storage MK.IV", "型储物仓 MK.IV");
+                LocalizationModule.RegisterTranslation("storageMk3", "Storage MK.III", "型储物仓 MK.III", "");
+                LocalizationModule.RegisterTranslation("storageMk4", "Storage MK.IV", "型储物仓 MK.IV", "");
 
-                ProtoRegistry.EditString("储液罐", "Liquid Tank MK.I", "储液罐 MK.I", "Réservoir de stockage de liquide MK.I");
-                ProtoRegistry.RegisterString("liquidTankMk2", "Liquid Tank MK.II", "储液罐 MK.II", "Réservoir de stockage de liquide MK.II");
-                ProtoRegistry.RegisterString("liquidTankMk3", "Liquid Tank MK.III", "储液罐 MK.III", "Réservoir de stockage de liquide MK.III");
+                LocalizationModule.EditTranslation("储液罐", "Liquid Tank MK.I", "储液罐 MK.I", "Réservoir de stockage de liquide MK.I");
+                LocalizationModule.RegisterTranslation("liquidTankMk2", "Liquid Tank MK.II", "储液罐 MK.II", "Réservoir de stockage de liquide MK.II");
+                LocalizationModule.RegisterTranslation("liquidTankMk3", "Liquid Tank MK.III", "储液罐 MK.III", "Réservoir de stockage de liquide MK.III");
 
-                ProtoRegistry.RegisterString("smelterMk2Desc",
+                LocalizationModule.RegisterTranslation("smelterMk2Desc",
                     "High temperature arc smelting can smelt ores and metals, and also be used for purification and crystal smelting. By increasing maximum furnace temperature arc smelter can now smelt faster!");
-                ProtoRegistry.EditString("位面冶金结果",
+                LocalizationModule.EditTranslation("位面冶金结果",
                     "You have unlocked the more advanced smelter ━━ <color=\"#FD965ECC\">Plane Smelter</color>, which is faster as an Arc Smelter (MK.II)!",
                     "你解锁了更高级的熔炉━━<color=\"#FD965ECC\">位面熔炉</color>， 它的速度比电弧炉（MK.II）还要高！",
                     "You have unlocked the more advanced smelter ━━ <color=\"#FD965ECC\">Plane Smelter</color>, which is faster as an Arc Smelter (MK.II)!");
 
-                ProtoRegistry.RegisterString("chemicalPlantMk2Desc",
+                LocalizationModule.RegisterTranslation("chemicalPlantMk2Desc",
                     "Chemical facility. Can process the primary products of Crude oil into more advanced chemical products. Production speed has been increased.");
-                //ProtoRegistry.RegisterString("chemicalPlantMk3Desc",
+                //LocalizationModule.RegisterTranslation("chemicalPlantMk3Desc",
                 //    "Chemical facility. Can process the primary products of Crude oil into more advanced chemical products. Production speed has been greatly increased.");
 
-                ProtoRegistry.EditString("I小型储物仓", "Storage MK.I is designed to store Solids.");
-                ProtoRegistry.EditString("I大型储物仓", "Storage MK.II is designed to store Solids. Thanks to new materials it has more capacity than Storage Mk.I");
-                ProtoRegistry.RegisterString("storageMk3Desc",
+                LocalizationModule.EditTranslation("I小型储物仓", "Storage MK.I is designed to store Solids.");
+                LocalizationModule.EditTranslation("I大型储物仓", "Storage MK.II is designed to store Solids. Thanks to new materials it has more capacity than Storage Mk.I");
+                LocalizationModule.RegisterTranslation("storageMk3Desc",
                     "Storage MK.III is designed to store Solids. Thanks to new materials it has more capacity than Storage Mk.II");
-                ProtoRegistry.RegisterString("storageMk4Desc",
+                LocalizationModule.RegisterTranslation("storageMk4Desc",
                     "Storage MK.IV is designed to store Solids. Thanks to new materials it has more capacity than Storage Mk.III");
 
-                ProtoRegistry.EditString("I储液罐",
+                LocalizationModule.EditTranslation("I储液罐",
                     "Liquid Tank MK.I is designed to store Liquids. When dismantling a non-empty Storage Tank any remaining fluid will be lost.");
-                ProtoRegistry.RegisterString("liquidTankMk2Desc",
+                LocalizationModule.RegisterTranslation("liquidTankMk2Desc",
                     "Liquid Tank MK.II is designed to store Liquids. Thanks to new materials it has more capacity than Liquid Tank Mk.I. When dismantling a non-empty Storage Tank any remaining fluid will be lost.");
-                ProtoRegistry.RegisterString("liquidTankMk3Desc",
+                LocalizationModule.RegisterTranslation("liquidTankMk3Desc",
                     "Liquid Tank MK.III is designed to store Liquids. Thanks to new materials it has more capacity than Liquid Tank Mk.II. When dismantling a non-empty Storage Tank any remaining fluid will be lost.");
 
-                ProtoRegistry.RegisterString("highDensityStorageTech", "High density storage");
-                ProtoRegistry.RegisterString("highDensityStorageTechDesc",
+                LocalizationModule.RegisterTranslation("highDensityStorageTech", "High density storage");
+                LocalizationModule.RegisterTranslation("highDensityStorageTechDesc",
                     "By using new stronger materials maximum capacity of Storages and Liquid Tanks can be increased.");
-                ProtoRegistry.RegisterString("highDensityStorageTechConc",
+                LocalizationModule.RegisterTranslation("highDensityStorageTechConc",
                     "You have obtained new Storage MK.IV and Liquid Tank Mk.III, which have increased storage capacity");
 
-                ProtoRegistry.RegisterString("beltMk4", "Belt MK.IV");
-                ProtoRegistry.RegisterString("beltMk4Desc",
+                LocalizationModule.RegisterTranslation("beltMk4", "Belt MK.IV");
+                LocalizationModule.RegisterTranslation("beltMk4Desc",
                     "Allows to transport items around. I have heard that it's so fast, that the game doesn't understand what to do with it.");
 
 
-                ProtoRegistry.RegisterString("BMModModificationWarn", "  - [Better Machines] Replaced {0} buildings", "  - [Better Machines] 取代 {0} 建筑物");
+                LocalizationModule.RegisterTranslation("BMModModificationWarn", "  - [Better Machines] Replaced {0} buildings", "  - [Better Machines] 取代 {0} 建筑物", "");
 
                 #endregion
 

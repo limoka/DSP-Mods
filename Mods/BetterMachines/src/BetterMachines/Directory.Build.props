@@ -37,15 +37,14 @@
   
   <!-- Shared Items -->
   <ItemGroup Label="Plugins">
-    <PackageReference Include="DysonSphereProgram.Modding.CommonAPI" Version="1.*" IncludeAssets="compile" />
+    <PackageReference Include="DysonSphereProgram.Modding.CommonAPI" Version="1.6.*" IncludeAssets="compile" />
   </ItemGroup>
 
   <ItemGroup Label="Dyson Sphere Program">
-    <Reference Include="$(MSBuildThisFileDirectory)/../Libs/Assembly-CSharp.dll" Private="false" SpecificVersion="true" />
+    <PackageReference Include="DysonSphereProgram.GameLibs" Version="0.10.28.20779-r.0" IncludeAssets="compile" PrivateAssets="all" />
 
     <PackageReference Include="BepInEx.Core" Version="5.*" PrivateAssets="all" />
     <PackageReference Include="UnityEngine.Modules" Version="2018.4.12" IncludeAssets="compile" PrivateAssets="all" />
-    <Reference Include="$(DSPAssemblyDir)UnityEngine.UI.dll" Private="false" SpecificVersion="true" />
   </ItemGroup>
 
 </Project>
