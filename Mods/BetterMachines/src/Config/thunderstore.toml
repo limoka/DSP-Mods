@@ -5,7 +5,7 @@ schemaVersion = "0.0.1"
 namespace = "kremnev8"
 name = "BetterMachines"
 description = "Adds new faster and improved machines, bigger storage and faster belts."
-versionNumber = "1.2.0"
+versionNumber = "1.2.1"
 websiteUrl = "https://github.com/kremnev8/DSP-Mods/tree/master/Mods/BetterMachines"
 containsNsfwContent = false
 

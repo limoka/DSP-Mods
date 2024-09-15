@@ -1,4 +1,7 @@
 
+### v1.2.1
+- Added Negentropy Smelter upgrade after Plane Smelter (mk3) (Thanks to CheesyCrypto)
+
 ### v1.2.0
 - Updated to work with recent game versions. (Thanks to https://github.com/CheesyCrypto for fixing the mod)
 
