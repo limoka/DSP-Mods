@@ -367,7 +367,7 @@ namespace FasterMachines
                 #region Models
 
                 ProtoRegistry.RegisterModel(672, smelterMk2item, "Assets/BetterMachines/Machines/smelter-mk2",
-                    new[] {smelterMk2Part1, smelterMk2Part2}, new[] {22, 11, 12, 1}, 502, 2, new[] {2302, 0, 2315});
+                    new[] {smelterMk2Part1, smelterMk2Part2}, new[] {22, 11, 12, 1}, 502, 2, new[] {2302, 0, 2315, 2319});
                 ProtoRegistry.AddLodMaterials("Assets/BetterMachines/Machines/smelter-mk2", 1, new[] {smelterMk2Lods});
                 ProtoRegistry.AddLodMaterials("Assets/BetterMachines/Machines/smelter-mk2", 2, new[] {smelterMk2Lods});
 
