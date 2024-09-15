@@ -33,7 +33,7 @@ namespace FasterMachines
         
         public const string MOD_DISP_NAME = "Better Machines";
         
-        public const string VERSION = "1.2.0";
+        public const string VERSION = "1.2.1";
 
         public ItemProto smelterMk2item;
 

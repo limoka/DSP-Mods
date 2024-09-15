@@ -1,7 +1,7 @@
 {
   "name": "BetterMachines",
   "description": "Adds new faster and improved machines, bigger storage and faster belts.",
-  "version_number": "1.2.0",
+  "version_number": "1.2.1",
   "dependencies": [
     "xiaoye97-BepInEx-5.4.17",
     "CommonAPI-CommonAPI-1.6.5",
