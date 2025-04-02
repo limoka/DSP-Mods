@@ -717,7 +717,7 @@ namespace BlueprintTweaks
 
                     if (height < heightT2)
                     {
-                        factory.planet.landPercentDirty = true;
+                        factory.planet.landPercentDirtyFlag = true;
                     }
                 }
             }

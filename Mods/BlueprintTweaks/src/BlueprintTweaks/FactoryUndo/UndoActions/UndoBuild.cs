@@ -188,7 +188,7 @@ namespace BlueprintTweaks.FactoryUndo
                 if (preview.desc.multiLevel)
                 {
                     Vector3 prevBuildingPos = preview.lpos - preview.lrot * preview.desc.lapJoint;
-                    int count = factory.planet.physics.nearColliderLogic.GetBuildingsInAreaNonAlloc(prevBuildingPos, 0.25f, tmpIds, false);
+                    int count = factory.planet.physics.nearColliderLogic.GetBuildingsInAreaNonAlloc(prevBuildingPos, 0.25f, ref tmpIds, false);
                     if (count > 0)
                     {
                         for (int i = 0; i < count; i++)

@@ -41,7 +41,7 @@ namespace BlueprintTweaks.FactoryUndo
                 }else if (pathAddon.handPrefabDesc.addonType == EAddonType.Storage)
                 {
                     var handbp = previews[0];
-                    int count = factory.planet.physics.nearColliderLogic.GetBuildingsInAreaNonAlloc(previews[0].lpos, 2f, tmpIds, false);
+                    int count = factory.planet.physics.nearColliderLogic.GetBuildingsInAreaNonAlloc(previews[0].lpos, 2f, ref tmpIds, false);
                     if (count > 0)
                     {
                         for (int i = 0; i < count; i++)
