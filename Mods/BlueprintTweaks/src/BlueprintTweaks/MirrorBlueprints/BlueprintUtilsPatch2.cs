@@ -226,6 +226,34 @@ namespace BlueprintTweaks
                 .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, 30)) //TODO this is unsafe
                 .InsertAndAdvance(Transpilers.EmitDelegate<Func<float, BlueprintBuilding, float>>(MirrorBuildingRotation));
 
+            // STEP 3b - Inserter
+
+            // turns
+            // lrot = Maths.SphericalRotation(dir, 0f) * Quaternion.Euler(blueprintBuilding.pitch, blueprintBuilding.yaw - (float)num * 90f, blueprintBuilding.tilt);
+
+            // into
+            // lrot = Maths.SphericalRotation(dir, 0f) * Quaternion.Euler(blueprintBuilding.pitch, MirrorBuildingRotation(blueprintBuilding.yaw, blueprintBuilding) - (float)num * 90f, blueprintBuilding.tilt);
+
+            matcher.MatchForward(false,
+                new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(BlueprintBuilding), nameof(BlueprintBuilding.yaw)))
+            ).Advance(1)
+            .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, 30)) //TODO this is unsafe
+            .InsertAndAdvance(Transpilers.EmitDelegate<Func<float, BlueprintBuilding, float>>(MirrorBuildingRotation)).Advance(2);
+
+            // STEP 4b - Inserter
+
+            // turns 							
+            // lrot2 = Maths.SphericalRotation(dir2, 0f) * Quaternion.Euler(blueprintBuilding.pitch2, blueprintBuilding.yaw2 - (float)num * 90f, blueprintBuilding.tilt2);
+
+            // into
+            // lrot2 = Maths.SphericalRotation(dir2, 0f) * Quaternion.Euler(blueprintBuilding.pitch2, MirrorBuildingRotation(blueprintBuilding.yaw2, blueprintBuilding) - (float)num * 90f, blueprintBuilding.tilt2);
+
+            matcher.MatchForward(false,
+                new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(BlueprintBuilding), nameof(BlueprintBuilding.yaw2)))
+            ).Advance(1)
+            .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, 30)) //TODO this is unsafe
+            .InsertAndAdvance(Transpilers.EmitDelegate<Func<float, BlueprintBuilding, float>>(MirrorBuildingRotation));
+
             // STEP 5
 
             matcher.MatchForward(false,
