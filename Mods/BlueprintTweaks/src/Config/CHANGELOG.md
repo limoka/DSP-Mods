@@ -1,8 +1,11 @@
-### v1.6.8
-- Updated to work with game version 0.10.32.25779 or higher
+### v1.6.9
+- Fixed issues when using blueprint mirroring (Thanks [aekoch](https://github.com/aekoch) for PR [#123](https://github.com/limoka/DSP-Mods/pull/123))
 
 <details>
 <summary>Full changelog</summary>
+
+### v1.6.8
+- Updated to work with game version 0.10.32.25779 or higher
 
 ### v1.6.7
 - Updated to work with game version 0.10.32.25682 or higher
