@@ -1,8 +1,14 @@
-### v1.6.5-6
-- Updated to work with game version 0.10.32.25496 or higher
+### v1.6.8
+- Updated to work with game version 0.10.32.25779 or higher
 
 <details>
 <summary>Full changelog</summary>
+
+### v1.6.7
+- Updated to work with game version 0.10.32.25682 or higher
+
+### v1.6.5-6
+- Updated to work with game version 0.10.32.25496 or higher
 
 ### v1.6.4
 - Fixed mod not working with Nebula Multiplayer Mod API version 2.0.0 or higher
