@@ -9,7 +9,7 @@ using UnityEngine;
 // ReSharper disable InconsistentNaming
 
 namespace BlueprintTweaks
-{
+{/*
     [HarmonyPatch]
     public static class BlueprintPastePatch
     {
@@ -51,5 +51,5 @@ namespace BlueprintTweaks
                 __instance.OperatingPrestage();
             }
         }
-    }
+    }*/
 }

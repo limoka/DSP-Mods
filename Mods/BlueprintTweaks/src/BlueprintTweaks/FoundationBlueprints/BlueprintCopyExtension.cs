@@ -112,7 +112,7 @@ namespace BlueprintTweaks
 
             CopyToTempArray(__instance);
 
-            BlueprintUtils.GenerateBlueprintData(__instance.blueprint, __instance.planet, __instance.actionBuild.planetAux, __instance._tmp_selected_ids, __instance._tmp_selected_cnt, __instance.divideLineRad);
+            BlueprintUtils.GenerateBlueprintData(__instance.blueprint, __instance.planet, __instance.actionBuild.planetAux, __instance._tmp_selected_ids, __instance._tmp_selected_cnt, __instance.divideLineRad, __instance.selectedReformIds, __instance.hasReform);
             __instance.blueprint.CheckBuildingData();
 
             Array.Clear(__instance._tmp_selected_ids, 0, __instance._tmp_selected_ids.Length);

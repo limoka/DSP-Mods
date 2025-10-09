@@ -15,7 +15,7 @@ namespace BlueprintTweaks
     [HarmonyPatch]
     public static class BlueprintUtilsPatch2
     {
-        public delegate void RefAction(ref Vector4 area, float longAxis, float latAxis, float yaw);
+        public delegate float RefAction(ref Vector4 area, ref float latValueOut, bool longAxis, bool latAxis, float yaw);
 
         public static bool mirrorLat;
         public static bool mirrorLong;
@@ -88,7 +88,7 @@ namespace BlueprintTweaks
             return yaw;
         }
 
-        public static void MirrorArea(ref Vector4 area, float longAxis, float latAxis, float yaw)
+        public static float MirrorArea(ref Vector4 area, ref float latValueOut, bool longAxis, bool latAxis, float yaw)
         {
             int yawCount = Mathf.FloorToInt(yaw / 90f);
 
@@ -96,11 +96,11 @@ namespace BlueprintTweaks
             {
                 if (yawCount == 1 || yawCount == 3)
                 {
-                    latAxis *= -1;
+                    latAxis = !latAxis;
                 }
                 else
                 {
-                    longAxis *= -1;
+                    longAxis = !longAxis;
                 }
             }
 
@@ -108,64 +108,98 @@ namespace BlueprintTweaks
             {
                 if (yawCount == 1 || yawCount == 3)
                 {
-                    longAxis *= -1;
+                    longAxis = !longAxis;
                 }
                 else
                 {
-                    latAxis *= -1;
+                    latAxis = !latAxis;
                 }
             }
 
-            area.x = longAxis < 0f ? area.z : area.x;
-            area.y = latAxis < 0f ? area.w : area.y;
+            float longValue = longAxis ? area.z : area.x;
+            latValueOut = latAxis ? area.w : area.y;
+            
+            return longValue;
         }
 
         [HarmonyPatch(typeof(BlueprintUtils), "RefreshBuildPreview")]
         [HarmonyTranspiler]
         static IEnumerable<CodeInstruction> RefreshPreviews(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
+            CodeMatcher matcher = new CodeMatcher(instructions, generator);
+            
+            RefreshPreviewsPatchStep1(matcher);
+            RefreshPreviewsPatchStep2(matcher);
+            RefreshPreviewsPatchStep3(matcher);
+            RefreshPreviewsPatchStep4(matcher);
+            RefreshPreviewsPatchStep3b(matcher);
+            RefreshPreviewsPatchStep4b(matcher);
+            RefreshPreviewsPatchStep5(matcher);
+
+            return matcher.InstructionEnumeration();
+        }
+
+        private static void RefreshPreviewsPatchStep1(CodeMatcher matcher)
+        {
             // STEP 1
 
             // turns
-            // Vector4 vector4 = array[l + blueprintBuilding.areaIndex];
-            // vector4.x = ((num2 < 0f) ? vector4.z : vector4.x);
-            // vector4.y = ((num3 < 0f) ? vector4.w : vector4.y);
+            // ref Vector4 ptr4 = ref array[l + blueprintBuilding.areaIndex];
+            // object obj = (flag ? ptr4.z : ptr4.x); (On stack)
+            // float num44 = (flag2 ? ptr4.w : ptr4.y);
 
             // into
 
             // Vector4 vector4 = array[l + blueprintBuilding.areaIndex];
             // MirrorArea(ref vector4, num2, num3, _yaw);
 
-            CodeMatcher matcher = new CodeMatcher(instructions, generator)
-                .MatchForward(true,
-                    new CodeMatch(OpCodes.Ldelem, typeof(Vector4)),
+            //Anchor to prevent false positive
+            matcher.MatchForward(
+                false,
+                new CodeMatch(
+                    OpCodes.Ldfld,
+                    AccessTools.Field(typeof(BuildPreview), nameof(BuildPreview.bpgpuiModelId))
+                )
+            );
+            
+            //Actual target
+            matcher.MatchForward(true,
+                    new CodeMatch(OpCodes.Ldelema, typeof(Vector4)),
                     new CodeMatch(OpCodes.Stloc_S),
-                    new CodeMatch(OpCodes.Ldloca_S));
+                    new CodeMatch(OpCodes.Ldloc_S));
 
+            matcher.Advance(-1);
+            object vectorPtrVar = matcher.Operand;
             matcher.Advance(1);
-
+            
             object longAxisVar = matcher.Operand;
 
-            while (matcher.Opcode != OpCodes.Stfld)
+            // Remove two ldfld's (First value stays on the stack)
+            for (int i = 0; i < 2; i++)
             {
+                while (matcher.Opcode != OpCodes.Ldfld)
+                    matcher.RemoveInstruction();
                 matcher.RemoveInstruction();
             }
-
-            matcher.RemoveInstructions(2);
 
             object latAxisVar = matcher.Operand;
 
-            while (matcher.Opcode != OpCodes.Stfld)
-            {
+            while (matcher.Opcode != OpCodes.Stloc_S)
                 matcher.RemoveInstruction();
-            }
+            
+            object latValueVar = matcher.Operand;
 
             matcher.RemoveInstruction()
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, vectorPtrVar))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloca_S, latValueVar))
                 .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, longAxisVar))
                 .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, latAxisVar))
-                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldarg_S, 6)) //yaw
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldarg_S, 8)) //yaw
                 .InsertAndAdvance(Transpilers.EmitDelegate<RefAction>(MirrorArea));
-
+        }
+        
+        private static void RefreshPreviewsPatchStep2(CodeMatcher matcher)
+        {
             // STEP 2
 
             // turns
@@ -197,7 +231,10 @@ namespace BlueprintTweaks
 
                     return BlueprintUtils.TransitionWidthAndHeight(yaw, x, y);
                 }));
-
+        }
+        
+        private static void RefreshPreviewsPatchStep3(CodeMatcher matcher)
+        {
             // STEP 3
 
             // turns
@@ -208,10 +245,17 @@ namespace BlueprintTweaks
 
             matcher.MatchForward(false,
                     new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(BlueprintBuilding), nameof(BlueprintBuilding.yaw)))
-                ).Advance(1)
-                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, 30)) //TODO this is unsafe
+                ).Advance(-1);
+                
+            var buildingVar = matcher.Operand;    
+            
+            matcher.Advance(2)
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, buildingVar))
                 .InsertAndAdvance(Transpilers.EmitDelegate<Func<float, BlueprintBuilding, float>>(MirrorBuildingRotation)).Advance(2);
-
+        }
+        
+        private static void RefreshPreviewsPatchStep4(CodeMatcher matcher)
+        {
             // STEP 4
 
             // turns
@@ -222,10 +266,17 @@ namespace BlueprintTweaks
 
             matcher.MatchForward(false,
                     new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(BlueprintBuilding), nameof(BlueprintBuilding.yaw2)))
-                ).Advance(1)
-                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, 30)) //TODO this is unsafe
+                ).Advance(-1);
+                
+            var buildingVar = matcher.Operand;    
+            
+            matcher.Advance(2)
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, buildingVar))
                 .InsertAndAdvance(Transpilers.EmitDelegate<Func<float, BlueprintBuilding, float>>(MirrorBuildingRotation));
-
+        }
+        
+        private static void RefreshPreviewsPatchStep3b(CodeMatcher matcher)
+        {
             // STEP 3b - Inserter
 
             // turns
@@ -235,11 +286,18 @@ namespace BlueprintTweaks
             // lrot = Maths.SphericalRotation(dir, 0f) * Quaternion.Euler(blueprintBuilding.pitch, MirrorBuildingRotation(blueprintBuilding.yaw, blueprintBuilding) - (float)num * 90f, blueprintBuilding.tilt);
 
             matcher.MatchForward(false,
-                new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(BlueprintBuilding), nameof(BlueprintBuilding.yaw)))
-            ).Advance(1)
-            .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, 30)) //TODO this is unsafe
-            .InsertAndAdvance(Transpilers.EmitDelegate<Func<float, BlueprintBuilding, float>>(MirrorBuildingRotation)).Advance(2);
-
+                    new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(BlueprintBuilding), nameof(BlueprintBuilding.yaw)))
+                ).Advance(-1);
+                
+            var buildingVar = matcher.Operand;    
+            
+            matcher.Advance(2)
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, buildingVar))
+                .InsertAndAdvance(Transpilers.EmitDelegate<Func<float, BlueprintBuilding, float>>(MirrorBuildingRotation)).Advance(2);
+        }
+        
+        private static void RefreshPreviewsPatchStep4b(CodeMatcher matcher)
+        {
             // STEP 4b - Inserter
 
             // turns 							
@@ -249,11 +307,18 @@ namespace BlueprintTweaks
             // lrot2 = Maths.SphericalRotation(dir2, 0f) * Quaternion.Euler(blueprintBuilding.pitch2, MirrorBuildingRotation(blueprintBuilding.yaw2, blueprintBuilding) - (float)num * 90f, blueprintBuilding.tilt2);
 
             matcher.MatchForward(false,
-                new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(BlueprintBuilding), nameof(BlueprintBuilding.yaw2)))
-            ).Advance(1)
-            .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, 30)) //TODO this is unsafe
-            .InsertAndAdvance(Transpilers.EmitDelegate<Func<float, BlueprintBuilding, float>>(MirrorBuildingRotation));
+                    new CodeMatch(OpCodes.Ldfld, AccessTools.Field(typeof(BlueprintBuilding), nameof(BlueprintBuilding.yaw2)))
+                ).Advance(-1);
+                
+            var buildingVar = matcher.Operand;    
+            
+            matcher.Advance(2)
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, buildingVar))
+                .InsertAndAdvance(Transpilers.EmitDelegate<Func<float, BlueprintBuilding, float>>(MirrorBuildingRotation));
+        }
 
+        private static void RefreshPreviewsPatchStep5(CodeMatcher matcher)
+        {
             // STEP 5
 
             matcher.MatchForward(false,
@@ -292,11 +357,8 @@ namespace BlueprintTweaks
                         MirrorStationData(preview, building);
                     }
                 }));
-
-
-            return matcher.InstructionEnumeration();
         }
-        
+
         public static float MirrorBuildingRotation(float yaw, BlueprintBuilding building)
         {
             if (buildingsAxis.ContainsKey(building.modelIndex) && buildingsAxis[building.modelIndex] == MajorAxis.XAXIS)

@@ -307,7 +307,7 @@ namespace BlueprintTweaks
 
         public void DismantleAction()
         {
-            FastRemoveHelper.SwitchDelete(factory, selectObjIds.ToList(), edgeObjIds.ToList());
+            RemoveHelper.SwitchDelete(factory, selectObjIds.ToList(), edgeObjIds.ToList());
 
             VFAudio.Create("demolish-large", null, GameMain.mainPlayer.position, true, 5);
 

@@ -53,7 +53,7 @@
   <ItemGroup Label="Dyson Sphere Program">
 
     <PackageReference Include="BepInEx.Core" Version="5.*" PrivateAssets="all" /> 
-    <PackageReference Include="UnityEngine.Modules" Version="2018.4.12" IncludeAssets="compile" PrivateAssets="all" />
+    <PackageReference Include="UnityEngine.Modules" Version="2022.3.53" IncludeAssets="compile" PrivateAssets="all" />
     <Reference Include="$(DSPAssemblyDir)UnityEngine.UI.dll" Private="false" SpecificVersion="true" />
     <Reference Include="$(MSBuildThisFileDirectory)/../Libs/Assembly-CSharp.dll" Private="false" SpecificVersion="true" />
     

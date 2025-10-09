@@ -212,12 +212,13 @@ namespace BlueprintTweaks
                     ReformData reformPreview = BlueprintPasteExtension.reformPreviews[reformsLength * j + i];
                     Vector4 areaData = array[j + reformData.areaIndex];
 
-                    BlueprintUtilsPatch2.MirrorArea(ref areaData, yawX, yawY, _yaw);
+                    float latValue = 0f;
+                    float longValue = BlueprintUtilsPatch2.MirrorArea(ref areaData, ref latValue, yawX < 0f, yawY < 0f, _yaw);
 
-                    float longitudeRadPerGrid = BlueprintUtils.GetLongitudeRadPerGrid(areaData.y, _segmentCnt);
+                    float longitudeRadPerGrid = BlueprintUtils.GetLongitudeRadPerGrid(latValue, _segmentCnt);
                     Vector2 vector4 = BlueprintUtils.TransitionWidthAndHeight(_yaw, reformData.localLongitude - 0.5f, reformData.localLatitude - 0.5f);
-                    float longitudeRad = areaData.x + vector4.x * longitudeRadPerGrid * yawX;
-                    float finalLatitude = areaData.y + vector4.y * latitudeRadPerGrid * yawY;
+                    float longitudeRad = longValue + vector4.x * longitudeRadPerGrid * yawX;
+                    float finalLatitude = latValue + vector4.y * latitudeRadPerGrid * yawY;
                     finalLatitude = Math.Abs(finalLatitude) > 1.5707964f ? 1.5707964f * Math.Sign(finalLatitude) : finalLatitude;
 
                     reformPreview.latitude = finalLatitude;

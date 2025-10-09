@@ -248,7 +248,7 @@ namespace BlueprintTweaks
             return matcher.InstructionEnumeration();
         }
         
-        [HarmonyPatch(typeof(BuildTool_Reform), "UpdateRaycast")]
+        [HarmonyPatch(typeof(BuildTool_Reform), "UpdateRaycastAndReform")]
         [HarmonyTranspiler]
         public static IEnumerable<CodeInstruction> ClickReform(IEnumerable<CodeInstruction> instructions)
         {

@@ -99,7 +99,7 @@ namespace BlueprintTweaks
 
         public static ConfigEntry<bool> excludeStations;
         public static ConfigEntry<bool> undoExcludeStations;
-        public static ConfigEntry<bool> useFastDismantle;
+
         public static ConfigEntry<int> undoMaxHistory;
         public static ConfigEntry<bool> showUndoClearedMessage;
 
@@ -182,8 +182,8 @@ namespace BlueprintTweaks
 
             if (blueprintFoundations.Value)
             {
-                harmony.PatchAll(BLUEPRINT_FOUNDATIONS);
-                ApplyBlueprintDataPatch();
+                //harmony.PatchAll(BLUEPRINT_FOUNDATIONS);
+               // ApplyBlueprintDataPatch();
             }
 
             if (changeTierEnabled.Value)
@@ -208,7 +208,7 @@ namespace BlueprintTweaks
                 harmony.PatchAll(typeof(UIBlueprintInspectorPatch));
             if (forcePasteEnabled.Value)
             {
-                harmony.PatchAll(typeof(BlueprintPastePatch));
+                //harmony.PatchAll(typeof(BlueprintPastePatch));
             }
 
             harmony.PatchAll(typeof(BuildTool_BlueprintPaste_Patch_3));
@@ -256,8 +256,6 @@ namespace BlueprintTweaks
                 "If enabled when you exit build mode, some functions (Axis/Grid lock, Mirror) will reset their state");
             canBlueprintOnGasGiants = Config.Bind("Misc", "bpOnGasGiants", true, "Allow using Blueprints on Gas Giants\nAll values are applied on restart");
 
-            useFastDismantle = Config.Bind("Misc", "useFastDismantle", true,
-                "When using drag remove tool or factory undo, an improved algorithm of removing entities will be used. It is about 20x faster, but might have some imperfections. If you encounter issues you can switch back to vanilla code.");
             excludeStations = Config.Bind("Misc", "excludeStations", true,
                 "When using drag remove tool, logistic stations (and miners Mk.II) will not get removed. This is a safeguard against errors which occur most of the time when you try to mass dismantle logistic stations.");
 
@@ -434,7 +432,7 @@ namespace BlueprintTweaks
 
             if (forcePasteEnabled.Value)
             {
-                BlueprintPastePatch.isEnabled = CustomKeyBindSystem.GetKeyBind("ForceBPPlace").keyValue;
+                //BlueprintPastePatch.isEnabled = CustomKeyBindSystem.GetKeyBind("ForceBPPlace").keyValue;
             }
 
             if (blueprintMirroring.Value && CustomKeyBindSystem.GetKeyBind("MirrorLongAxis").keyValue)

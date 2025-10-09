@@ -21,9 +21,9 @@ namespace BlueprintTweaks.FactoryUndo
         {
             using (UndoManager.IgnoreAllEvents.On())
             {
-                FastRemoveHelper.excludeStationOverride = BlueprintTweaksPlugin.undoExcludeStations.Value;
-                FastRemoveHelper.SwitchDelete(factory, objectIds);
-                FastRemoveHelper.excludeStationOverride = false;
+                RemoveHelper.excludeStationOverride = BlueprintTweaksPlugin.undoExcludeStations.Value;
+                RemoveHelper.SwitchDelete(factory, objectIds);
+                RemoveHelper.excludeStationOverride = false;
             }
 
             undoData.notifyBuildListeners.Remove(this);
@@ -66,10 +66,12 @@ namespace BlueprintTweaks.FactoryUndo
                 if (condition)
                 {
                     paste.ActiveColliders(actionBuild.model);
-                    paste.buildCondition = paste.CheckBuildConditions();
+                    bool isOkay = paste.CheckBuildConditions();
                     paste.DeactiveColliders(actionBuild.model);
+                    
+                    paste.result = (isOkay ? (paste.result & ~EBlueprintPasteResult.HasError) : (paste.result | EBlueprintPasteResult.HasError));
 
-                    if (paste.buildCondition)
+                    if (isOkay)
                     {
                         paste.CreatePrebuilds();
                         success = true;

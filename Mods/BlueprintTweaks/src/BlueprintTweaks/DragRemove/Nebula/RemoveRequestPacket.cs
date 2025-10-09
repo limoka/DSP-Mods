@@ -7,7 +7,7 @@ using NebulaAPI.Packets;
 
 namespace BlueprintTweaks.Nebula
 {
-    public class FastRemoveRequestPacket : IFactoryPacket
+    public class RemoveRequestPacket : IFactoryPacket
     {
         public int PlanetId { get; set; }
         public int[] ObjIds { get; set; }
@@ -16,8 +16,8 @@ namespace BlueprintTweaks.Nebula
         public bool UseEdgeVariant { get; set; }
         public bool ExcludeStations { get; set; }
 
-        public FastRemoveRequestPacket() { }
-        public FastRemoveRequestPacket(int planetId, int[] objIds, int[] edgeObjIds, int authorId, bool variant, bool excludeStations)
+        public RemoveRequestPacket() { }
+        public RemoveRequestPacket(int planetId, int[] objIds, int[] edgeObjIds, int authorId, bool variant, bool excludeStations)
         {
             AuthorId = authorId;
             PlanetId = planetId;
@@ -28,20 +28,20 @@ namespace BlueprintTweaks.Nebula
         }
         
         [RegisterPacketProcessor]
-        public class FastRemoveRequestHandler : RemoteFactoryProcessor<FastRemoveRequestPacket>
+        public class RemoveRequestHandler : RemoteFactoryProcessor<RemoveRequestPacket>
         {
-            public override void ProcessPacket(PlanetFactory factory, PlayerAction_Build actionBuild, FastRemoveRequestPacket packet, INebulaConnection conn)
+            public override void ProcessPacket(PlanetFactory factory, PlayerAction_Build actionBuild, RemoveRequestPacket packet, INebulaConnection conn)
             {
-                FastRemoveHelper.excludeStationOverride = packet.ExcludeStations;
+                RemoveHelper.excludeStationOverride = packet.ExcludeStations;
                 if (packet.UseEdgeVariant)
                 {
-                    FastRemoveHelper.SwitchDelete(factory, packet.ObjIds.ToList(), packet.EdgeObjIds.ToList());
+                    RemoveHelper.SwitchDelete(factory, packet.ObjIds.ToList(), packet.EdgeObjIds.ToList());
                 }
                 else
                 {
-                    FastRemoveHelper.SwitchDelete(factory, packet.ObjIds.ToList());
+                    RemoveHelper.SwitchDelete(factory, packet.ObjIds.ToList());
                 }
-                FastRemoveHelper.excludeStationOverride = false;
+                RemoveHelper.excludeStationOverride = false;
             }
         }
     }
