@@ -1,8 +1,12 @@
-### v1.6.9
-- Fixed issues when using blueprint mirroring (Thanks [aekoch](https://github.com/aekoch) for PR [#123](https://github.com/limoka/DSP-Mods/pull/123))
+### v1.6.10
+- Updated to work with game version 0.10.33.26465 or higher
+- Foundation blueprints feature removed (because vanilla now supports that). Old blueprints with old foundations will be automatically migrated. It is recommended to resave them after to ensure they are saved in the new format. Some foundation blueprints (especially at poles) might be corrupted
 
 <details>
 <summary>Full changelog</summary>
+
+### v1.6.9
+- Fixed issues when using blueprint mirroring (Thanks [aekoch](https://github.com/aekoch) for PR [#123](https://github.com/limoka/DSP-Mods/pull/123))
 
 ### v1.6.8
 - Updated to work with game version 0.10.32.25779 or higher
