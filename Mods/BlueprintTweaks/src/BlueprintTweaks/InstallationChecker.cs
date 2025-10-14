@@ -25,8 +25,10 @@ namespace BlueprintTweaks.InstallCheck
 
         private void Awake()
         {
-            Type reformData = AccessTools.TypeByName("BlueprintTweaks.ReformData");
-            preloaderInstalled = reformData != null;
+            Type blueprintData = AccessTools.TypeByName("BlueprintData");
+            FieldInfo anchorField = blueprintData.GetField("anchorType");
+            
+            preloaderInstalled = anchorField != null;
 
             if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(LDBTOOLGUID))
             {

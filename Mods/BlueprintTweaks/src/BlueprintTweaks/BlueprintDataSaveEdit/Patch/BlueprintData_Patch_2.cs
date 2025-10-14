@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using CommonAPI;
 using HarmonyLib;
 using UnityEngine;
 
@@ -23,34 +24,7 @@ namespace BlueprintTweaks.BlueprintDataSaveEdit
         public static void Export(BlueprintData __instance, BinaryWriter w)
         {
             w.Write(CURRENT_DATA_VERSION);
-
-            bool hasData = __instance.reforms != null && __instance.reforms.Length > 0;
-            if (hasData)
-            {
-                w.Write((byte)1);
-                w.Write(__instance.reforms.Length);
-                foreach (ReformData data in __instance.reforms)
-                {
-                    data.Export(w);
-                }
-
-                bool hasColors = __instance.customColors != null && __instance.customColors.Length > 0;
-                w.Write(hasColors);
-                if (hasColors)
-                {
-                    for (int i = 0; i < 16; i++)
-                    {
-                        w.Write(__instance.customColors[i].r);
-                        w.Write(__instance.customColors[i].g);
-                        w.Write(__instance.customColors[i].b);
-                        w.Write(__instance.customColors[i].a);
-                    }
-                }
-            }
-            else
-            {
-                w.Write((byte)0);
-            }
+            w.Write((byte)0);
 
             w.Write((byte)__instance.anchorType);
             w.Write((byte)__instance.autoReformMode);
@@ -86,26 +60,20 @@ namespace BlueprintTweaks.BlueprintDataSaveEdit
                 {
                     if (version >= INITIAL_VERSION)
                     {
-                        int len = r.ReadInt32();
-                        __instance.reforms = new ReformData[len];
-                        for (int i = 0; i < len; i++)
-                        {
-                            __instance.reforms[i] = new ReformData();
-                            ReformData data = __instance.reforms[i];
-                            data.Import(r);
-                        }
+                        MigrateFoundationData(__instance, r);
                     }
 
                     if (version >= CUSTOM_COLORS_VERSION && r.ReadBoolean())
                     {
-                        __instance.customColors = new Color[16];
                         for (int i = 0; i < 16; i++)
                         {
-                            __instance.customColors[i] = new Color(
+                            var color = (Color32) new Color(
                                 r.ReadSingle(),
                                 r.ReadSingle(),
                                 r.ReadSingle(),
                                 r.ReadSingle());
+                            
+                            __instance.reformData.customReformColors[i] = (uint)((color.r << 24) | (color.g << 16) | (color.b << 8) | color.a);
                         }
                     }
                 }
@@ -128,7 +96,64 @@ namespace BlueprintTweaks.BlueprintDataSaveEdit
                 }
             }
         }
-        
+
+        private static void MigrateFoundationData(BlueprintData __instance, BinaryReader r)
+        {
+            int len = r.ReadInt32();
+            BlueprintTweaksPlugin.logger.LogWarning($"Blueprint has {len} old foundations, performing migration.");
+
+            var reformDatas = new Dictionary<int, byte[]>();
+
+            for (int i = 0; i < len; i++)
+            {
+                r.ReadByte();
+
+                var areaIndex = (byte)r.ReadInt32();
+                if (areaIndex >= __instance.areas.Length) continue;
+
+                var area = __instance.areas[areaIndex];
+                            
+                if (!reformDatas.TryGetValue(areaIndex, out byte[] reforms))
+                {
+                    reforms = new byte[area.width * area.height];
+                    reformDatas[areaIndex] = reforms;
+                }
+
+                var type = r.ReadInt32();
+                var color = r.ReadInt32();
+                            
+                var data = (byte)((type << 5) + (color & 31));
+                var rawY = r.ReadSingle();
+                var rawX = r.ReadSingle();
+                            
+                var y = Mathf.RoundToInt(rawY);
+                var x = Mathf.RoundToInt(rawX);
+
+                var segmentCount = area.areaSegments;
+                if (x >= segmentCount * 5)
+                    x -= segmentCount * 5;
+
+                var index = y * area.width + x;
+                reforms[index] = data;
+            }
+
+            var outputList = new List<BPReformRect>(32);
+            uint[] openList = null;
+
+            for (int i = 0; i < __instance.areas.Length; i++)
+            {
+                if (!reformDatas.ContainsKey(i)) continue;
+                            
+                var area = __instance.areas[i];
+                var reforms = reformDatas[i];
+                            
+                BlueprintUtils.GenerateReformRect(ref outputList, ref openList, reforms, area.width, area.height, (byte)i);
+            }
+                        
+            BlueprintTweaksPlugin.logger.LogWarning($"Optimized reform count: {outputList.Count}");
+            __instance.reformData.rects = outputList.ToArray();
+        }
+
         private static void InvokeCustomSerializers(BlueprintData __instance, BinaryWriter w)
         {
             foreach (var pair in customSerializers)

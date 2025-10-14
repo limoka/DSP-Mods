@@ -16,7 +16,12 @@ namespace BlueprintTweaks
     public static class BlueprintUtilsPatch2
     {
         public delegate float RefAction(ref Vector4 area, ref float latValueOut, bool longAxis, bool latAxis, float yaw);
+        public delegate void RectRefAction(ref float xPos, ref float yPos, int yawCount);
 
+        public delegate float MirrorFunc(ref Vector4 area, bool longAxis, int yawCount);
+        public delegate float ApplyFunc(float value, int yawCount);
+
+            
         public static bool mirrorLat;
         public static bool mirrorLong;
 
@@ -78,6 +83,47 @@ namespace BlueprintTweaks
                 _height *= -1;
             }
         }
+        
+        public static void MirrorReformRect(ref float xPos, ref float yPos, int yawCount)
+        {
+            if (mirrorLat)
+            {
+                if (yawCount == 1 || yawCount == 3)
+                    yPos *= -1;
+                else
+                    xPos *= -1;
+            }
+
+            if (mirrorLong)
+            {
+                if (yawCount == 1 || yawCount == 3)
+                    xPos *= -1;
+                else
+                    yPos *= -1;
+            }
+        }
+
+        public static float ApplyMirrorLat(float latValue, int yawCount)
+        {
+            if (!mirrorLong && !mirrorLat) return latValue;
+            if (mirrorLong && mirrorLat) return latValue * -1;
+            
+            if (yawCount == 1 || yawCount == 3)
+                return mirrorLong ? latValue : latValue * -1;
+            else
+                return mirrorLong ? latValue * -1 : latValue;
+        }
+        
+        public static float ApplyMirrorLong(float longValue, int yawCount)
+        {
+            if (!mirrorLong && !mirrorLat) return longValue;
+            if (mirrorLong && mirrorLat) return longValue * -1;
+            
+            if (yawCount == 1 || yawCount == 3)
+                return mirrorLat ? longValue : longValue * -1;
+            else
+                return mirrorLat ? longValue * -1 : longValue;
+        }
 
         public static float MirrorRotation(float yaw)
         {
@@ -88,6 +134,37 @@ namespace BlueprintTweaks
             return yaw;
         }
 
+        public static float MirrorAreaLong(ref Vector4 area, bool longAxis, int yawCount)
+        {
+            if (mirrorLat && yawCount != 1 && yawCount != 3)
+            {
+                longAxis = !longAxis;
+            }
+
+            if (mirrorLong && (yawCount == 1 || yawCount == 3))
+            {
+                longAxis = !longAxis;
+            }
+
+            return longAxis ? area.z : area.x;
+        }
+        
+        public static float MirrorAreaLat(ref Vector4 area, bool latAxis, int yawCount)
+        {
+            if (mirrorLat && (yawCount == 1 || yawCount == 3))
+            {
+                latAxis = !latAxis;
+            }
+
+            if (mirrorLong && yawCount != 1 && yawCount != 3)
+            {
+                latAxis = !latAxis;
+            }
+
+            return latAxis ? area.w : area.y;
+        }
+        
+        
         public static float MirrorArea(ref Vector4 area, ref float latValueOut, bool longAxis, bool latAxis, float yaw)
         {
             int yawCount = Mathf.FloorToInt(yaw / 90f);
@@ -128,7 +205,15 @@ namespace BlueprintTweaks
         {
             CodeMatcher matcher = new CodeMatcher(instructions, generator);
             
-            RefreshPreviewsPatchStep1(matcher);
+            matcher.MatchForward(
+                false,
+                new CodeMatch(OpCodes.Call,AccessTools.Method(typeof(Mathf), nameof(Mathf.FloorToInt)))
+                ).Advance(1);
+
+            var yawCountVar = matcher.Operand;
+            
+            RefreshPreviewsPatchStepReformMirror(matcher, yawCountVar);
+            RefreshPreviewsPatchStep1(matcher, yawCountVar);
             RefreshPreviewsPatchStep2(matcher);
             RefreshPreviewsPatchStep3(matcher);
             RefreshPreviewsPatchStep4(matcher);
@@ -139,19 +224,160 @@ namespace BlueprintTweaks
             return matcher.InstructionEnumeration();
         }
 
-        private static void RefreshPreviewsPatchStep1(CodeMatcher matcher)
+        private static void RefreshPreviewsPatchStepReformMirror(CodeMatcher matcher, object yawCountVar)
+        {
+
+            // STEP 0: grab x and y pos vars (num18 and num19 at the time of writing)
+            // Hook onto first time BPReformRect.y is used
+            matcher.MatchForward(
+                false,
+                new CodeMatch(
+                    OpCodes.Ldfld,
+                    AccessTools.Field(typeof(BPReformRect), nameof(BPReformRect.y))
+                )
+            );
+
+            // Seek until Stloc_S
+            while (matcher.Opcode != OpCodes.Stloc_S)
+                matcher.Advance(1);
+            
+            var xPosVar = matcher.Operand; // First case is rotated (90 deg), so y is indeed x
+            matcher.Advance(1);
+            
+            // Seek until Stloc_S
+            while (matcher.Opcode != OpCodes.Stloc_S)
+                matcher.Advance(1);
+            
+            var yPosVar = matcher.Operand;
+            
+            // STEP 1: mirror lat axis
+            // turns
+            // ref Vector4 ptr3 = ref array[k + areaIndex];
+            // float num22 = (flag2 ? ptr3.w : ptr3.y) / latitudeRadPerGrid;
+
+            // into
+            // ref Vector4 ptr3 = ref array[k + areaIndex];
+            // float num22 = MirrorAreaLat(vector4, flag2, yawCount) / latitudeRadPerGrid;
+
+            matcher.MatchForward(true,
+                new CodeMatch(OpCodes.Ldelema, typeof(Vector4)),
+                new CodeMatch(OpCodes.Stloc_S),
+                new CodeMatch(OpCodes.Ldloc_S));
+            
+            matcher.Advance(-1);
+            object vectorPtrVar = matcher.Operand;
+            matcher.Advance(1);
+            
+            object latAxisVar = matcher.Operand;
+            
+            // Remove two ldfld's
+            for (int i = 0; i < 2; i++)
+            {
+                while (matcher.Opcode != OpCodes.Ldfld)
+                    matcher.RemoveInstruction();
+                matcher.RemoveInstruction();
+            }
+            
+            matcher
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, vectorPtrVar))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, latAxisVar))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, yawCountVar))
+                .InsertAndAdvance(Transpilers.EmitDelegate<MirrorFunc>(MirrorAreaLat));
+
+            // STEP 0b: apply x and y pos mirror
+            // insert this delegate to flip x (num18) and y (num19) (from num switch case)
+            matcher
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloca_S, xPosVar))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloca_S, yPosVar))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, yawCountVar))
+                .InsertAndAdvance(Transpilers.EmitDelegate<RectRefAction>(MirrorReformRect));
+            
+            // STEP 2: insert lat axis rect direction flipping logic
+            // turns 
+            // float num25 = num22 + num3 * (float)m;
+            
+            // into 
+            // float num25 = num22 + ApplyMirrorLat(num3) * (float)m;
+
+            // Anchor to loop start
+            matcher.MatchForward(
+                true,
+                new CodeMatch(OpCodes.Ldc_I4_0),
+                new CodeMatch(OpCodes.Stloc_S)
+            );
+            
+            var mVar = matcher.Operand;
+            matcher.MatchForward(false, new CodeMatch(OpCodes.Ldloc_S, mVar));
+                
+            matcher
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, yawCountVar))
+                .InsertAndAdvance(Transpilers.EmitDelegate<ApplyFunc>(ApplyMirrorLat));
+            
+            // STEP 3: mirror long axis
+
+            // turns
+            // float num30 = (flag ? ptr3.z : ptr3.x) / num29 + num18 * num24 / num29;
+
+            // into
+            // float num30 = MirrorAreaLong(vector4, flag, yawCount) / num29 + num18 * num24 / num29;
+            
+            matcher.MatchForward(
+                false,
+                new CodeMatch(OpCodes.Ldloc_S, vectorPtrVar)
+                ).Advance(-2);
+            
+            object longAxisVar = matcher.Operand;
+            
+            // Remove two ldfld's
+            for (int i = 0; i < 2; i++)
+            {
+                while (matcher.Opcode != OpCodes.Ldfld)
+                    matcher.RemoveInstruction();
+                matcher.RemoveInstruction();
+            }
+
+            matcher
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, vectorPtrVar))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, longAxisVar))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, yawCountVar))
+                .InsertAndAdvance(Transpilers.EmitDelegate<MirrorFunc>(MirrorAreaLong));
+            
+            // STEP 4: insert long axis rect direction flipping logic
+            // turns 
+            // float num32 = num30 + num31 * (float)n;
+            
+            // into 
+            // float num32 = num30 + ApplyMirrorLat(num31) * (float)n;
+
+            // Anchor to loop start
+            matcher.MatchForward(
+                true,
+                new CodeMatch(OpCodes.Ldc_I4_0),
+                new CodeMatch(OpCodes.Stloc_S)
+            );
+            
+            var nVar = matcher.Operand;
+            matcher.MatchForward(false, new CodeMatch(OpCodes.Ldloc_S, nVar));
+            
+            matcher
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, yawCountVar))
+                .InsertAndAdvance(Transpilers.EmitDelegate<ApplyFunc>(ApplyMirrorLong));
+        }
+        
+        private static void RefreshPreviewsPatchStep1(CodeMatcher matcher, object yawCountVar)
         {
             // STEP 1
 
             // turns
             // ref Vector4 ptr4 = ref array[l + blueprintBuilding.areaIndex];
-            // object obj = (flag ? ptr4.z : ptr4.x); (On stack)
+            // (stack) = (flag ? ptr4.z : ptr4.x);
             // float num44 = (flag2 ? ptr4.w : ptr4.y);
 
             // into
 
             // Vector4 vector4 = array[l + blueprintBuilding.areaIndex];
-            // MirrorArea(ref vector4, num2, num3, _yaw);
+            // (stack) = MirrorAreaLong(vector4, flag, yawCount);
+            // float num44 = MirrorAreaLat(vector4, flag2, yawCount);
 
             //Anchor to prevent false positive
             matcher.MatchForward(
@@ -189,13 +415,19 @@ namespace BlueprintTweaks
             
             object latValueVar = matcher.Operand;
 
+            // For long axis
             matcher.RemoveInstruction()
                 .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, vectorPtrVar))
-                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloca_S, latValueVar))
                 .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, longAxisVar))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, yawCountVar))
+                .InsertAndAdvance(Transpilers.EmitDelegate<MirrorFunc>(MirrorAreaLong))
+                
+                // For lat axis
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, vectorPtrVar))
                 .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, latAxisVar))
-                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldarg_S, 8)) //yaw
-                .InsertAndAdvance(Transpilers.EmitDelegate<RefAction>(MirrorArea));
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, yawCountVar))
+                .InsertAndAdvance(Transpilers.EmitDelegate<MirrorFunc>(MirrorAreaLat))
+                .InsertAndAdvance(new CodeInstruction(OpCodes.Stloc_S, latValueVar));
         }
         
         private static void RefreshPreviewsPatchStep2(CodeMatcher matcher)

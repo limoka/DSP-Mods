@@ -20,9 +20,7 @@ namespace BlueprintTweaks
             if (BlueprintTweaksPlugin.gridControlFeature.Value) 
                 panelPrefabs.Add("assets/blueprinttweaks/ui/panels/grid-size-panel.prefab");
             
-            if (BlueprintTweaksPlugin.blueprintFoundations.Value)
-                panelPrefabs.Add("assets/blueprinttweaks/ui/panels/bp-foundations-panel.prefab");
-            
+            panelPrefabs.Add("assets/blueprinttweaks/ui/panels/component-panel.prefab#ReformOverride");
             panelPrefabs.Add("assets/blueprinttweaks/ui/panels/component-panel.prefab");
             
             if (BlueprintTweaksPlugin.recipeChangeEnabled.Value) 
@@ -63,6 +61,7 @@ namespace BlueprintTweaks
                 __instance.group1.SetParent(contentPane.transform, false);
                 __instance.group2.SetParent(contentPane.transform, false);
                 __instance.group3.SetParent(contentPane.transform, false);
+                __instance.group4.SetParent(contentPane.transform, false);
 
                 RectTransform mainTrs = __instance.rectTrans;
                 mainTrs.sizeDelta = new Vector2(mainTrs.sizeDelta.x + 16, mainTrs.sizeDelta.y);
@@ -71,9 +70,26 @@ namespace BlueprintTweaks
 
                 for (int i = 0; i < panelPrefabs.Count; i++)
                 {
-                    GameObject panelPrefab = BlueprintTweaksPlugin.resource.bundle.LoadAsset<GameObject>(panelPrefabs[i]);
+                    var name = panelPrefabs[i];
+                    var overrideName = "";
+
+                    var parts = name.Split('#');
+                    if (parts.Length == 2)
+                    {
+                        name = parts[0];
+                        overrideName = parts[1];
+                    }
+
+                    GameObject panelPrefab = BlueprintTweaksPlugin.resource.bundle.LoadAsset<GameObject>(name);
                     GameObject panelGO = Object.Instantiate(panelPrefab, contentPane.transform, false);
                     UIBlueprintPanel panel = panelGO.GetComponent<UIBlueprintPanel>();
+                    
+                    if (overrideName == "ReformOverride")
+                    {
+                        Object.DestroyImmediate(panel);
+                        panel = panelGO.AddComponent<UIBPReformsPanel>();
+                    }
+                    
                     panel.Create(__instance);
                     panelsList[i] = panel;
                 }

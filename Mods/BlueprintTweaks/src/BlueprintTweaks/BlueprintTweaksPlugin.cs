@@ -92,7 +92,6 @@ namespace BlueprintTweaks
         public static ConfigEntry<bool> moveWithDragNDrop;
         public static ConfigEntry<bool> factoryUndo;
 
-        public static ConfigEntry<bool> blueprintFoundations;
 
         public static ConfigEntry<bool> resetFunctionsOnMenuExit;
         public static ConfigEntry<bool> canBlueprintOnGasGiants;
@@ -180,12 +179,6 @@ namespace BlueprintTweaks
                 harmony.PatchAll(DRAG_REMOVE);
             }
 
-            if (blueprintFoundations.Value)
-            {
-                //harmony.PatchAll(BLUEPRINT_FOUNDATIONS);
-               // ApplyBlueprintDataPatch();
-            }
-
             if (changeTierEnabled.Value)
                 harmony.PatchAll(typeof(UIBlueprintComponentItemPatch));
 
@@ -247,10 +240,6 @@ namespace BlueprintTweaks
             moveWithDragNDrop = Config.Bind("Features", "moveBPWithDragNDrop", true, "Allow moving blueprints using drag and drop");
             factoryUndo = Config.Bind("Features", "factoryUndo", true,
                 "Enable Factory Undo feature. Allows to undo/redo most building actions. Will force dragRemove to true");
-
-
-            blueprintFoundations = Config.Bind("Features", "blueprintFoundations", true,
-                "Allow blueprinting foundations along with buildings.\nAll values are applied on restart");
 
             resetFunctionsOnMenuExit = Config.Bind("Misc", "resetOnExit", true,
                 "If enabled when you exit build mode, some functions (Axis/Grid lock, Mirror) will reset their state");
