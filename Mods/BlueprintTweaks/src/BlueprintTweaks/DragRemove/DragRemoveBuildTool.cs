@@ -36,7 +36,6 @@ namespace BlueprintTweaks
         public BPGratBox selectArcBox = BPGratBox.zero;
 
         public HashSet<int> selectObjIds;
-        public HashSet<int> edgeObjIds;
 
         public BuildPreview[] bpPool;
 
@@ -62,7 +61,6 @@ namespace BlueprintTweaks
         public override void _OnInit()
         {
             selectObjIds = new HashSet<int>();
-            edgeObjIds = new HashSet<int>();
             
             SetDisplayPreviewCapacity(256);
             waitingForPlayerInput = false;
@@ -71,7 +69,6 @@ namespace BlueprintTweaks
         public override void _OnFree()
         {
             selectObjIds = null;
-            edgeObjIds = null;
             FreeBuildPreviews();
             waitingForPlayerInput = false;
         }
@@ -307,7 +304,7 @@ namespace BlueprintTweaks
 
         public void DismantleAction()
         {
-            RemoveHelper.SwitchDelete(factory, selectObjIds.ToList(), edgeObjIds.ToList());
+            RemoveHelper.SwitchDelete(factory, selectObjIds.ToList());
 
             VFAudio.Create("demolish-large", null, GameMain.mainPlayer.position, true, 5);
 
@@ -413,7 +410,6 @@ namespace BlueprintTweaks
             }
 
             selectObjIds.Clear();
-            edgeObjIds.Clear();
             
             if (Mathf.Abs(selectArcBox.x - selectArcBox.z) < 0.01f && Mathf.Abs(selectArcBox.y - selectArcBox.w) < 0.01f && castObjectId != 0)
             {
@@ -434,10 +430,6 @@ namespace BlueprintTweaks
                         if (ShouldAddObject(item))
                         {
                             selectObjIds.Add(item);
-                            if (selectGratBox.IsOnEdgeOfGratBox(entityPool[i].pos, segmentCnt))
-                            {
-                                edgeObjIds.Add(item);
-                            }
                         }
                     }
                 }
@@ -452,16 +444,13 @@ namespace BlueprintTweaks
                         if (ShouldAddObject(item))
                         {
                             selectObjIds.Add(item);
-                            if (selectGratBox.IsOnEdgeOfGratBox(prebuildPool[i].pos, segmentCnt))
-                            {
-                                edgeObjIds.Add(item);
-                            }
                         }
                     }
                 }
             }
 
             DetermineChainSelection();
+            DetermineMorePreviews();
             DeterminePreviews();
         }
 
@@ -531,7 +520,6 @@ namespace BlueprintTweaks
         public void ClearSelection()
         {
             selectObjIds.Clear();
-            edgeObjIds.Clear();
             lastSelectGratBox = selectGratBox = selectArcBox = BPGratBox.zero;
         }
 
@@ -555,6 +543,66 @@ namespace BlueprintTweaks
             SyncAnimBuffer();
             planet.factoryModel.bpgpuiManager.animBuffer = animBuffer;
             planet.factoryModel.bpgpuiManager.SyncAllGPUBuffer();
+        }
+
+        private bool ObjectIsBeltOrInserter(int objId)
+        {
+            if (objId == 0) return false;
+            ItemProto proto = LDB.items.Select(objId > 0 ? factory.entityPool[objId].protoId : factory.prebuildPool[-objId].protoId);
+            return proto != null && (proto.prefabDesc.isBelt || proto.prefabDesc.isInserter);
+        }
+
+        private void DetermineMorePreviews()
+        {
+            var moreObjIds = new HashSet<int>();
+            foreach (var objId in selectObjIds)
+            {
+                var desc = GetPrefabDesc(objId);
+                var isBelt = desc.isBelt;
+                var isInserter = desc.isInserter;
+                if (isInserter) continue;
+                if (isBelt)
+                {
+                    var needCheck = false;
+                    for (var j = 0; j < 2; j++)
+                    {
+                        factory.ReadObjectConn(objId, j, out _, out var connObjId, out _);
+                        if (connObjId == 0 || ObjectIsBeltOrInserter(connObjId)) continue;
+                        needCheck = true;
+                        break;
+                    }
+                    if (needCheck)
+                    {
+                        for (var k = 0; k < 16; k++)
+                        {
+                            factory.ReadObjectConn(objId, k, out _, out var connObjId, out _);
+                            if (connObjId != 0 && !selectObjIds.Contains(connObjId) && !moreObjIds.Contains(connObjId) && ObjectIsBeltOrInserter(connObjId))
+                                moreObjIds.Add(connObjId);
+                        }
+                    }
+                    for (var m = 0; m < 4; m++)
+                    {
+                        factory.ReadObjectConn(objId, m, out _, out var connObjId, out _);
+                        if (connObjId == 0 || !factory.ObjectIsBelt(connObjId) || selectObjIds.Contains(connObjId) || moreObjIds.Contains(connObjId)) continue;
+                        for (var j = 0; j < 2; j++)
+                        {
+                            factory.ReadObjectConn(connObjId, j, out _, out var connObjId2, out _);
+                            if (connObjId2 == 0 || selectObjIds.Contains(connObjId2) || moreObjIds.Contains(connObjId2) || ObjectIsBeltOrInserter(connObjId2)) continue;
+                            moreObjIds.Add(connObjId);
+                            break;
+                        }
+                    }
+                    continue;
+                }
+                if (desc.addonType == EAddonType.Belt) continue;
+                for (var j = 0; j < 16; j++)
+                {
+                    factory.ReadObjectConn(objId, j, out _, out var connObjId, out _);
+                    if (connObjId != 0 && !selectObjIds.Contains(connObjId) && !moreObjIds.Contains(connObjId) && ObjectIsBeltOrInserter(connObjId))
+                        moreObjIds.Add(connObjId);
+                }
+            }
+            selectObjIds.UnionWith(moreObjIds);
         }
         
         public void DeterminePreviews()

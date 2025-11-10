@@ -1,7 +1,5 @@
 ﻿using System.Linq;
-using BlueprintTweaks.FactoryUndo;
 using BlueprintTweaks.FactoryUndo.Nebula;
-using NebulaAPI;
 using NebulaAPI.Networking;
 using NebulaAPI.Packets;
 
@@ -33,14 +31,7 @@ namespace BlueprintTweaks.Nebula
             public override void ProcessPacket(PlanetFactory factory, PlayerAction_Build actionBuild, RemoveRequestPacket packet, INebulaConnection conn)
             {
                 RemoveHelper.excludeStationOverride = packet.ExcludeStations;
-                if (packet.UseEdgeVariant)
-                {
-                    RemoveHelper.SwitchDelete(factory, packet.ObjIds.ToList(), packet.EdgeObjIds.ToList());
-                }
-                else
-                {
-                    RemoveHelper.SwitchDelete(factory, packet.ObjIds.ToList());
-                }
+                RemoveHelper.SwitchDelete(factory, packet.ObjIds.ToList());
                 RemoveHelper.excludeStationOverride = false;
             }
         }
