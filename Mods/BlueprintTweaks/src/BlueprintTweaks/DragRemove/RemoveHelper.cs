@@ -7,8 +7,6 @@ using CommonAPI;
 using HarmonyLib;
 using NebulaAPI;
 using NebulaAPI.GameState;
-using NebulaAPI.Networking;
-using PowerNetworkStructures;
 using UnityEngine;
 
 namespace BlueprintTweaks
@@ -19,53 +17,6 @@ namespace BlueprintTweaks
         public static bool excludeStationOverride;
 
         public static bool ShouldExcludeStations => excludeStationOverride || BlueprintTweaksPlugin.excludeStations.Value;
-
-        public static void SwitchDelete(PlanetFactory factory, List<int> targetIds, List<int> edgeIds)
-        {
-            if (targetIds.Count <= 0) return;
-
-            if (NebulaModAPI.IsMultiplayerActive)
-            {
-                IMultiplayerSession session = NebulaModAPI.MultiplayerSession;
-                int planetId = session.Factories.TargetPlanet != NebulaModAPI.PLANET_NONE ? session.Factories.TargetPlanet : factory.planet?.id ?? -1;
-
-
-                if (session.LocalPlayer.IsHost || !session.Factories.IsIncomingRequest.Value)
-                {
-                    session.Network.SendPacket(new RemoveRequestPacket(planetId, targetIds.ToArray(), edgeIds.ToArray(),
-                        session.Factories.PacketAuthor == NebulaModAPI.AUTHOR_NONE
-                            ? session.LocalPlayer.Id
-                            : session.Factories.PacketAuthor, true, ShouldExcludeStations));
-                }
-
-                if (!session.LocalPlayer.IsHost && !session.Factories.IsIncomingRequest.Value)
-                {
-                    return;
-                }
-            }
-
-            GenerateUndoData(factory, targetIds);
-
-            if (targetIds.Count < 25)
-            {
-                RegularDeleteEntities(factory, targetIds);
-                return;
-            }
-
-            if (edgeIds.Count == 0)
-            {
-                foreach (int objectId in targetIds)
-                {
-                    if (objectId > 0 && factory.entityPool[objectId].beltId > 0)
-                    {
-                        RegularDeleteEntities(factory, targetIds);
-                        return;
-                    }
-                }
-            }
-            
-            RegularDeleteEntities(factory, targetIds);
-        }
 
         private static void GenerateUndoData(PlanetFactory factory, List<int> targetIds)
         {

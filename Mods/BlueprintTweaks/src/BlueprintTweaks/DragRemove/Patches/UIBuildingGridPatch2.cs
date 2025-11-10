@@ -8,9 +8,9 @@ namespace BlueprintTweaks
     public static class UIBuildingGridPatch2
     {
         private static readonly int cursorGratBox = Shader.PropertyToID("_CursorGratBox");
-        private static readonly int selectColor = Shader.PropertyToID("_SelectColor");
+        private static readonly int zMin = Shader.PropertyToID("_ZMin");
         private static readonly int tintColor = Shader.PropertyToID("_TintColor");
-        private static readonly int showDivideLine = Shader.PropertyToID("_ShowDivideLine");
+        private static readonly int reformMode = Shader.PropertyToID("_ReformMode");
 
         [HarmonyPatch(typeof(UIBuildingGrid), "Update")]
         [HarmonyPriority(Priority.Last)]
@@ -32,25 +32,10 @@ namespace BlueprintTweaks
             if (!BlueprintTweaksPlugin.tool.active) return;
             if (BlueprintTweaksPlugin.tool.isSelecting)
             {
-                __instance.blueprintMaterial.SetColor(tintColor, Color.clear);
-                __instance.blueprintMaterial.SetVector(cursorGratBox, (Vector4) BlueprintTweaksPlugin.tool.selectGratBox);
-                __instance.blueprintMaterial.SetVector(selectColor, __instance.dismantleColor);
-                __instance.blueprintMaterial.SetFloat(showDivideLine, 0f);
-                __instance.blueprintGridRnd.enabled = true;
-            }
-            else
-            {
-                __instance.blueprintMaterial.SetColor(tintColor, __instance.blueprintColor);
-                __instance.blueprintMaterial.SetVector(cursorGratBox, Vector4.zero);
-                __instance.blueprintMaterial.SetVector(selectColor, Vector4.one);
-                __instance.blueprintMaterial.SetFloat(showDivideLine, 0f);
-                __instance.blueprintGridRnd.enabled = false;
-            }
-            
-            for (int l = 0; l < 64; l++)
-            {
-                __instance.blueprintMaterial.SetVector($"_CursorGratBox{l}", Vector4.zero);
-                __instance.blueprintMaterial.SetFloat($"_CursorGratBoxInfo{l}", 0f);
+                __instance.material.SetColor(tintColor, __instance.dismantleColor);
+                __instance.material.SetFloat(reformMode, 0f);
+                __instance.material.SetFloat(zMin, -0.5f);
+                __instance.material.SetVector(cursorGratBox, (Vector4) BlueprintTweaksPlugin.tool.selectGratBox);
             }
         }
     }
