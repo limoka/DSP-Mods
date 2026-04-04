@@ -129,16 +129,12 @@ namespace BlueprintTweaks
                 UIBlueprintPanel[] panels = panelData[__instance].panels;
                 RectTransform mainPane = panelData[__instance].mainPane;
 
-                int textHeight = Mathf.RoundToInt((__instance.descTextInput.preferredHeight - 0.1f) / 2f) * 2;
-                if (textHeight < 38)
-                {
-                    textHeight = 38;
-                }
-
-                int textHeightOffs = textHeight + 136;
+                // Use group1's actual height (set by the game's Refresh) which correctly
+                // accounts for description text height, external fields, and all fixed elements.
+                int group1Height = (int)__instance.group1.sizeDelta.y;
                 int padding = (__instance.usage == UIBlueprintInspector.EUsage.Browser) ? 18 : 24;
 
-                int lastPos = textHeightOffs + padding;
+                int lastPos = group1Height + padding;
 
                 foreach (UIBlueprintPanel panel in panels)
                 {
@@ -158,7 +154,10 @@ namespace BlueprintTweaks
                     }
                 }
 
-                mainPane.sizeDelta = new Vector2(mainPane.sizeDelta.x, lastPos);
+                // Reposition group3 (footer buttons) after all panels
+                __instance.group3.anchoredPosition = new Vector2(__instance.group3.anchoredPosition.x, -lastPos);
+
+                mainPane.sizeDelta = new Vector2(mainPane.sizeDelta.x, lastPos + 200);
             }
         }
     }
