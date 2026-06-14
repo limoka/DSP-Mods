@@ -47,7 +47,7 @@ namespace BlueprintTweaks
 
         public const string MOD_DISP_NAME = "Blueprint Tweaks";
 
-        public const string VERSION = "1.6.10";
+        public const string VERSION = "1.6.11";
 
         public const string GENESIS_BOOK_MODGUID = "org.LoShin.GenesisBook";
 
@@ -67,7 +67,6 @@ namespace BlueprintTweaks
         public static DragRemoveBuildTool tool;
 
         public static bool gotPluginInfo;
-        public static bool freeFoundationsIsInstalled;
         public static bool genesisBookIsInstalled;
 
         public static ConfigEntry<bool> cameraToggleEnabled;

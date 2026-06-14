@@ -1,9 +1,15 @@
-### v1.6.10
-- Updated to work with game version 0.10.33.26465 or higher
-- Foundation blueprints feature removed (because vanilla now supports that). Old blueprints with old foundations will be automatically migrated. It is recommended to resave them after to ensure they are saved in the new format. Some foundation blueprints (especially at poles) might be corrupted
+
+### v1.6.11
+- Fixed drag remove tool ground rendering for latest game patch (Thanks [Soar Qin](https://github.com/soarqin) for PR [#133](https://github.com/limoka/DSP-Mods/pull/133))
+- Fixed possible crash by implementing the same logic as BuildTool_Dismantle.DetermineMorePreviews(), and remove edge variant related functions. (Thanks [Soar Qin](https://github.com/soarqin) for PR [#123](https://github.com/limoka/DSP-Mods/pull/133))
+- Fixed blueprint inspector panel layout issues in blueprint view (Thanks [FyisFe](https://github.com/FyisFe) for PR [#640](https://github.com/limoka/DSP-Mods/pull/640))
 
 <details>
 <summary>Full changelog</summary>
+
+### v1.6.10
+- Updated to work with game version 0.10.33.26465 or higher
+- Foundation blueprints feature removed (because vanilla now supports that). Old blueprints with old foundations will be automatically migrated. It is recommended to resave them after to ensure they are saved in the new format. Some foundation blueprints (especially at poles) might be corrupted
 
 ### v1.6.9
 - Fixed issues when using blueprint mirroring (Thanks [aekoch](https://github.com/aekoch) for PR [#123](https://github.com/limoka/DSP-Mods/pull/123))
