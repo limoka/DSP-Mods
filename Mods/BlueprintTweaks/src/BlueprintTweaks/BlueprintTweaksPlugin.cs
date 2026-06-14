@@ -50,14 +50,11 @@ namespace BlueprintTweaks
         public const string VERSION = "1.6.10";
 
         public const string GENESIS_BOOK_MODGUID = "org.LoShin.GenesisBook";
-        public const string FREE_FOUNDATIONS_GUID = "de.Hotte.DSP.FreeFoundations";
-        public const string FREE_FOUNDATIONS_GUID_2 = "com.aekoch.mods.dsp.UnlimitedFoundations";
 
 
         // Features keys
 
         public const string DRAG_REMOVE = "DragRemove";
-        public const string BLUEPRINT_FOUNDATIONS = "BlueprintFoundations";
         public const string PASTE_LOCKED = "PasteLocked";
         public const string FACTORY_UNDO = "FactoryUndo";
 
@@ -363,16 +360,6 @@ namespace BlueprintTweaks
         {
             if (!gotPluginInfo)
             {
-                if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(FREE_FOUNDATIONS_GUID))
-                {
-                    freeFoundationsIsInstalled = true;
-                }
-
-                if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(FREE_FOUNDATIONS_GUID_2))
-                {
-                    freeFoundationsIsInstalled = true;
-                }
-
                 if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(GENESIS_BOOK_MODGUID))
                 {
                     genesisBookIsInstalled = true;
@@ -388,13 +375,11 @@ namespace BlueprintTweaks
             {
                 if (CustomKeyBindSystem.GetKeyBind("FactoryUndo").keyValue)
                 {
-                    // PrintKeyDebugInfo();
                     UndoManager.TryUndo();
                 }
 
                 if (CustomKeyBindSystem.GetKeyBind("FactoryRedo").keyValue)
                 {
-                    // PrintKeyDebugInfo();
                     UndoManager.TryRedo();
                 }
             }
@@ -437,37 +422,9 @@ namespace BlueprintTweaks
             }
         }
 
-        private void PrintKeyDebugInfo()
-        {
-            HashSet<KeyCode> keysToCheck = new HashSet<KeyCode>((KeyCode[])Enum.GetValues(typeof(KeyCode)));
-            string keysDown = keysToCheck.Select(code =>
-            {
-                bool isPressed = Input.GetKeyDown(code);
-                if (isPressed)
-                {
-                    return code.ToString();
-                }
-
-                return "";
-            }).Where(s => !string.IsNullOrEmpty(s)).Join(null, " ");
-
-            string keysHeld = keysToCheck.Select(code =>
-            {
-                bool isPressed = Input.GetKey(code);
-                if (isPressed)
-                {
-                    return code.ToString();
-                }
-
-                return "";
-            }).Where(s => !string.IsNullOrEmpty(s)).Join(null, " ");
-
-            logger.LogInfo($"Key Debug Info: down: {keysDown}, pressed: {keysHeld}");
-        }
-
         /// <summary>
         /// Register a custom blueprint data serializer. This allows your mod to store extra data within any blueprint.
-        /// Ensure that you have marked your mod dependant on Blueprint Tweaks.
+        /// Ensure that you have marked your mod dependent on Blueprint Tweaks.
         /// </summary>
         /// <param name="key">Serializer key. Must be unique</param>
         /// <typeparam name="T">Your serializer type. Must implement <see cref="ICustomBlueprintDataSerializer"/></typeparam>
