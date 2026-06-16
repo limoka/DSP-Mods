@@ -1,7 +1,6 @@
 Libs/*
 .idea
 
-AssemblyPublicizer.exe
 tcli.exe
 Config/tss_token.txt
 node_modules
