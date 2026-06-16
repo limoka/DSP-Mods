@@ -42,6 +42,7 @@ namespace BlueprintTweaks
             if (isCollapsed.Value)
             {
                 hintText.text = "";
+                hintText.enabled = false;
                 return;
             }
 
@@ -64,6 +65,7 @@ namespace BlueprintTweaks
             }
 
             hintText.text = sb.ToString();
+            hintText.enabled = true;
         }
 
 
