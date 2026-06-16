@@ -47,7 +47,7 @@ namespace BlueprintTweaks
 
         public const string MOD_DISP_NAME = "Blueprint Tweaks";
 
-        public const string VERSION = "1.6.11";
+        public const string VERSION = "1.6.12";
 
         public const string GENESIS_BOOK_MODGUID = "org.LoShin.GenesisBook";
 

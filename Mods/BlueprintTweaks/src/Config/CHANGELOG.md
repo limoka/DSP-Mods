@@ -1,4 +1,7 @@
 
+### v1.6.12
+- Fixed that previous release contained empty binaries
+
 ### v1.6.11
 - Fixed drag remove tool ground rendering for latest game patch (Thanks [Soar Qin](https://github.com/soarqin) for PR [#133](https://github.com/limoka/DSP-Mods/pull/133))
 - Fixed possible crash by implementing the same logic as BuildTool_Dismantle.DetermineMorePreviews(), and remove edge variant related functions. (Thanks [Soar Qin](https://github.com/soarqin) for PR [#123](https://github.com/limoka/DSP-Mods/pull/133))
