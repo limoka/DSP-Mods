@@ -4,5 +4,12 @@
     <Configurations>Release</Configurations>
     <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
+
+  <Target Name="CopyToStaging" AfterTargets="Build">
+    <Copy
+            SourceFiles="$(IntermediateOutputPath)$(TargetName).dll"
+            DestinationFolder="$(ProjectDir)/Staging/patchers"
+            SkipUnchangedFiles="true" />
+  </Target>
 </Project>
 

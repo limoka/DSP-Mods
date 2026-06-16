@@ -25,5 +25,12 @@
   <Target Name="CopyLocaleIntoStaging">
     <Copy SourceFiles="@(LocaleFolder)" DestinationFolder="$(MSBuildThisFileDirectory)\..\Staging\plugins\Locale\%(RecursiveDir)" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" Retries="3" RetryDelayMilliseconds="300" />
   </Target>
+
+  <Target Name="CopyToStaging" AfterTargets="Build">
+    <Copy
+            SourceFiles="$(IntermediateOutputPath)$(TargetName).dll"
+            DestinationFolder="$(ProjectDir)/Staging/plugins"
+            SkipUnchangedFiles="true" />
+  </Target>
 </Project>
 
