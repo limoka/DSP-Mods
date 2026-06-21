@@ -9,6 +9,7 @@ namespace BlueprintTweaks.FactoryUndo
     {
         public static Dictionary<ushort, PlayerUndo> undos = new Dictionary<ushort, PlayerUndo>();
         public static ToggleSwitch IgnoreAllEvents = new ToggleSwitch();
+        public static ToggleSwitch SuppressUI = new ToggleSwitch();
 
         #region GLOBAL
 

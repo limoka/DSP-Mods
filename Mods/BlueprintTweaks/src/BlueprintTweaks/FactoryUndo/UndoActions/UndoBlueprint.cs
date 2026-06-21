@@ -40,9 +40,12 @@ namespace BlueprintTweaks.FactoryUndo
 
             BlueprintData oldBlueprint = paste.blueprint?.Clone();
             string oldPath = paste.blueprintPath;
-            
-            paste._OnOpen();
-            paste.InitTool();
+
+            using (UndoManager.SuppressUI.On())
+            {
+                paste._OnOpen();
+                paste.InitTool();
+            }
 
             paste.yaw = yaw;
             Array.Clear(paste.dotsSnapped, 0, paste.dotsSnapped.Length);
@@ -96,8 +99,10 @@ namespace BlueprintTweaks.FactoryUndo
                     undoData.notifyDismantleListeners.Add(this);
             }
 
-            paste.uiInspector._Close();
-            paste.ResetStates();
+            if (paste.anchorObj != null && paste.anchorObj.gameObject != null)
+                paste.anchorObj.gameObject.SetActive(false);
+            
+            paste.ResetStatesOnClose();
             paste.blueprint = oldBlueprint;
             paste.blueprintPath = oldPath;
             

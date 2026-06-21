@@ -115,6 +115,13 @@ namespace BlueprintTweaks.FactoryUndo
             PlayerUndo data = UndoManager.GetCurrentPlayerData();
             data.AddUndoItem(new UndoBuild(data, objectIds));
         }
+
+        [HarmonyPatch(typeof(BuildTool_BlueprintPaste), nameof(BuildTool_BlueprintPaste.RefreshBlueprintUI))]
+        [HarmonyPrefix]
+        public static bool OnPasteRefreshUI()
+        {
+            return !UndoManager.SuppressUI.Value;
+        }
         
     }
 }

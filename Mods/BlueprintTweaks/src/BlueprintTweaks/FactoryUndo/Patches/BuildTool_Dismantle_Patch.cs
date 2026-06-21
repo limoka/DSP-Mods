@@ -12,6 +12,8 @@ namespace BlueprintTweaks.FactoryUndo
     [RegisterPatch(BlueprintTweaksPlugin.FACTORY_UNDO)]
     public static class BuildTool_Dismantle_Patch
     {
+        
+        
         private static List<int> GetBeltConnectedObjectIds(BuildTool_Dismantle tool,  int objId)
         {
             var results = new List<int>();
