@@ -5,7 +5,7 @@ schemaVersion = "0.0.1"
 namespace = "kremnev8"
 name = "RebindBuildBar"
 description = "Regain control of your Build Bar! This mod allows to rebind any Build bar items as you desire."
-versionNumber = "1.0.5"
+versionNumber = "1.0.6"
 websiteUrl = "https://github.com/limoka/DSP-Mods/tree/master/Mods/RebindBuildBar"
 containsNsfwContent = false
 
@@ -20,6 +20,10 @@ outdir = "./../Build"
 
   [[build.copy]]
   source = "./../Staging"
+  target = "./"
+
+  [[build.copy]]
+  source = "./CHANGELOG.md"
   target = "./"
 
 [publish]

@@ -1,4 +1,7 @@
 
+### v1.0.6
+- Actually include a changelog file
+
 ### v1.0.5
 - Updated to work with game version 0.10.33.27026 or higher
 
