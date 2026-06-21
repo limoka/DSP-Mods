@@ -1,8 +1,9 @@
 Libs/*
 .idea
 
+Staging/*.dll
+
 AssemblyPublicizer.exe
-tcli.exe
 Config/tss_token.txt
 node_modules
 Build

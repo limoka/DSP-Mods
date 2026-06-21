@@ -1,7 +1,9 @@
 {
+  "name": "my-global-tools",
+  "version": "1.0.0",
   "dependencies": {
     "@iarna/toml": "^2.2.5",
-    "archiver": "git+https://github.com/kremnev8/node-archiver.git",
+    "archiver": "git+https://github.com/limoka/node-archiver.git",
     "toml": "^3.0.0"
   }
 }

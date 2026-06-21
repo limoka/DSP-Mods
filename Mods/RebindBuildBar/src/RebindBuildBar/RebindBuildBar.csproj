@@ -3,4 +3,11 @@
   <ItemGroup>
     <ReferencePathWithRefAssemblies Update="C:\Users\ILYA\.nuget\packages\dysonsphereprogram.modding.ldbtool\2.0.5\lib\net472\LDBTool.dll" />
   </ItemGroup>
+
+  <Target Name="CopyToStaging" AfterTargets="Build">
+    <Copy
+            SourceFiles="$(IntermediateOutputPath)$(TargetName).dll"
+            DestinationFolder="$(ProjectDir)/Staging"
+            SkipUnchangedFiles="true" />
+  </Target>
 </Project>

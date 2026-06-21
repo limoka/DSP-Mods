@@ -37,8 +37,8 @@
   
   <!-- Shared Items -->
   <ItemGroup Label="Plugins">
-    <Reference Include="$(MSBuildThisFileDirectory)/..\Libs\LDBTool.dll" Private="false" SpecificVersion="true" />
-    <Reference Include="$(MSBuildThisFileDirectory)/..\..\..\..\..\CommonAPI\CommonAPI\obj\Release\CommonAPI.dll" Private="false" SpecificVersion="true" />
+    <PackageReference Include="DysonSphereProgram.Modding.LDBTool" Version="3.*" IncludeAssets="compile" />
+    <PackageReference Include="DysonSphereProgram.Modding.CommonAPI" Version="1.*" IncludeAssets="compile" />
   </ItemGroup> 
 
   <ItemGroup Label="Dyson Sphere Program">

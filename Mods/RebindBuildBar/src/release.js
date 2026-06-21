@@ -90,7 +90,7 @@ function writeTOML(pluginInfo){
 function Build(){
 	
 	//./tcli.exe build --config-path .\Config\thunderstore.toml
-	execFile('./tcli.exe', ["build", "--config-path", ".\\Config\\thunderstore.toml"], (error, stdout, stderr) => {
+	execFile('tcli.exe', ["build", "--config-path", ".\\Config\\thunderstore.toml"], (error, stdout, stderr) => {
 		console.log(stdout);
 	});
 }
@@ -100,8 +100,9 @@ function Publish(){
 	const token = fs.readFileSync(tokenPath, 'utf8');
 	
 	//./tcli.exe publish --config-path .\Config\thunderstore.toml
-	execFile('./tcli.exe', ["publish", "--token", token, "--config-path", ".\\Config\\thunderstore.toml"], (error, stdout, stderr) => {
+	execFile('tcli.exe', ["publish", "--token", token, "--config-path", ".\\Config\\thunderstore.toml"], (error, stdout, stderr) => {
 		console.log(stdout);
+		console.log(stderr);
 	});
 }
 
