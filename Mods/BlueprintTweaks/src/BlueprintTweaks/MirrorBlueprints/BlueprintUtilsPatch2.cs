@@ -574,6 +574,8 @@ namespace BlueprintTweaks
                 .InsertAndAdvance(new CodeInstruction(OpCodes.Ldloc_S, buildingVar))
                 .InsertAndAdvance(Transpilers.EmitDelegate<Action<BuildPreview, BlueprintBuilding>>((preview, building) =>
                 {
+                    if (!mirrorLat && !mirrorLong) return;
+                    
                     if (preview.desc.isInserter)
                     {
                         EntityInputsAndOutputs(preview, true);
@@ -716,12 +718,14 @@ namespace BlueprintTweaks
                 {
                     Vector3 testPosition = preview.desc.portPoses[j].position;
                     Vector2 transitionedTestPos = RotateXZ(testPosition, buildingYawRad);
-
-                    if (!((mirroredPos - transitionedTestPos).sqrMagnitude < 0.1f)) continue;
-
+                    float magnitude = (mirroredPos - transitionedTestPos).sqrMagnitude;
+                    
+                    if (!(magnitude < 0.1f)) continue;
+                    
                     int newIndex = startIndex + j * 4;
                     preview.parameters[currentIndex] = building.parameters[newIndex];
                     preview.parameters[currentIndex + 1] = building.parameters[newIndex + 1];
+                    break;
                 }
             }
         }
@@ -762,6 +766,7 @@ namespace BlueprintTweaks
                     if (!((mirroredPos - transitionedTestPos).sqrMagnitude < 0.1f)) continue;
 
                     preview.parameters[i] = building.parameters[j];
+                    break;
                 }
             }
         }
