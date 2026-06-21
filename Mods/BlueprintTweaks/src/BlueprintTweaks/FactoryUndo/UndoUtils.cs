@@ -56,6 +56,7 @@ namespace BlueprintTweaks.FactoryUndo
             using (UndoManager.IgnoreAllEvents.On())
             {
                 copy.InitTool();
+                copy.DetermineSegment();
                 copy.selectedObjIds.Clear();
                 foreach (int objectId in objectIds)
                 {
