@@ -11,7 +11,7 @@ containsNsfwContent = false
 
   [package.dependencies]
   xiaoye97-BepInEx = "5.4.11"
-  CommonAPI-CommonAPI = "1.1.0"
+  CommonAPI-CommonAPI = "1.6.7"
 
 [build]
 icon = "./icon.png"
@@ -23,6 +23,6 @@ outdir = "./../Build"
   target = "./"
 
 [publish]
-repository = "https://dsp.thunderstore.io"
+repository = "https://thunderstore.io"
 communities = [ "dyson-sphere-program" ]
 categories = [ "quality-of-life", "nebula-compatible" ]
