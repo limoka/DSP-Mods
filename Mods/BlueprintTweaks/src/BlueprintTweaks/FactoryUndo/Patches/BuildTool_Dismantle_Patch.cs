@@ -12,6 +12,26 @@ namespace BlueprintTweaks.FactoryUndo
     [RegisterPatch(BlueprintTweaksPlugin.FACTORY_UNDO)]
     public static class BuildTool_Dismantle_Patch
     {
+        private static List<int> GetBeltConnectedObjectIds(BuildTool_Dismantle tool,  int objId)
+        {
+            var results = new List<int>();
+            
+            var prefab = tool.GetPrefabDesc(objId);
+            if (!(prefab is { isBelt: true })) return results;
+            
+            for (int i = 0; i < 4; i++)
+            {
+                tool.factory.ReadObjectConn(objId, i, out bool isOutput, out int otherObjId, out int _);
+                
+                BlueprintTweaksPlugin.logger.LogInfo($"Checking belt {objId}, slot {i}:  {isOutput}, {otherObjId}");
+                if (otherObjId <= 0) continue;
+                
+                results.Add(otherObjId);
+            }
+
+            return results;
+        }
+        
         [HarmonyPatch(typeof(BuildTool_Dismantle), nameof(BuildTool_Dismantle.DismantleAction))]
         [HarmonyPrefix]
         public static void OnDismantle(BuildTool_Dismantle __instance)
@@ -25,6 +45,24 @@ namespace BlueprintTweaks.FactoryUndo
             List<int> results = DetermineDismantle(__instance).ToList();
 
             if (results.Count <= 0) return;
+
+            var size = results.Count;
+            for (int i = 0; i < size; i++)
+            {
+                var objectId = results[i];
+
+                var connectedIds = GetBeltConnectedObjectIds(__instance, objectId);
+                if (connectedIds.Count <= 0) continue;
+                
+                BlueprintTweaksPlugin.logger.LogInfo($"Belt {objectId} is connected to {string.Join(", ", connectedIds)}");
+
+                foreach (var connectedId in connectedIds)
+                {
+                    if (results.Contains(connectedId)) continue;
+                    BlueprintTweaksPlugin.logger.LogInfo($"Adding to list {connectedId}");
+                    results.Add(connectedId);
+                }
+            }
 
             BlueprintData blueprint = UndoUtils.GenerateBlueprint(results, out Vector3 position);
             if (blueprint.buildings.Length > 0 && !position.Equals(Vector3.zero))
