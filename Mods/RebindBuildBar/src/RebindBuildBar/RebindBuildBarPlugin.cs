@@ -29,7 +29,7 @@ namespace RebindBuildBar
         public const string MODGUID = "org.kremnev8.plugin.RebindBuildBar";
         public const string MOD_DISP_NAME = "Rebind Build Bar";
 
-        public const string VERSION = "1.0.4";
+        public const string VERSION = "1.0.5";
 
         public static ManualLogSource logger;
         public static ResourceData resources;
