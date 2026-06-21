@@ -60,7 +60,7 @@ BlueprintTweaksPlugin.RegisterCustomBlueprintDataSerializer<MyModBlueprintSerial
 Now your `ICustomBlueprintDataSerializer` methods will be executed when appropriate.
 
 ## Feedback and Bug Report
-Feel free to contact me via Discord (Kremnev8#3756) for any feedback, bug-reports or suggestions.
+Feel free to contact me via Discord (`limoka8`) for any feedback, bug-reports or suggestions.
 
 ## Installation
 ### With Mod Manager
