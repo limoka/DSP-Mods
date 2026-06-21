@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Reflection.Emit;
 using BepInEx;
 using BepInEx.Configuration;
-using CommonAPI;
 using CommonAPI.Systems;
 using HarmonyLib;
 using UnityEngine;
@@ -85,7 +85,9 @@ namespace RebindBuildBar
             if (heldCtrl)
             {
                 UIBuildMenu.StaticLoad();
-                LDBTool.SetBuildBar();
+                
+                MethodInfo setBuildBar = AccessTools.Method(typeof(LDBTool), "SetBuildBar", Array.Empty<Type>());
+                setBuildBar.Invoke(null, Array.Empty<object>());
 
                 ResetConfigFile();
                 customBarBind.Save();
@@ -115,7 +117,10 @@ namespace RebindBuildBar
                 }
             }
             
-            foreach (var kv in LDBTool.BuildBarDict)
+            FieldInfo buildBarDictField = AccessTools.Field(typeof(LDBTool), "BuildBarDict");
+            var barDict = (Dictionary<int, Dictionary<int, int>>)buildBarDictField.GetValue(null);
+            
+            foreach (var kv in barDict)
             {
                 foreach (var kv2 in kv.Value)
                 {
