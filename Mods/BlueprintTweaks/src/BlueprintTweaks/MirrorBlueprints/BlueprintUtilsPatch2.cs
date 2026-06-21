@@ -588,6 +588,11 @@ namespace BlueprintTweaks
                     {
                         MirrorStationData(preview, building);
                     }
+
+                    if (preview.desc.isSplitter)
+                    {
+                        MirrorSplitterData(preview, building);
+                    }
                 }));
         }
 
@@ -717,6 +722,46 @@ namespace BlueprintTweaks
                     int newIndex = startIndex + j * 4;
                     preview.parameters[currentIndex] = building.parameters[newIndex];
                     preview.parameters[currentIndex + 1] = building.parameters[newIndex + 1];
+                }
+            }
+        }
+
+        private static void MirrorSplitterData(BuildPreview preview, BlueprintBuilding building)
+        {
+            if (building.parameters == null ||
+                building.parameters.Length == 0) return;
+            
+            float finalYaw = MirrorBuildingRotation(building.yaw, building);
+            float buildingYawRad = building.yaw * Mathf.Deg2Rad;
+
+            bool xAxisMirror = mirrorLat;
+            bool yAxisMirror = mirrorLong;
+
+            float angleDiff = Mathf.Abs(Mathf.DeltaAngle(building.yaw, finalYaw));
+            // Hack, because I have no idea why using mirrored angle doesn't work.
+            if (angleDiff == 180)
+            {
+                xAxisMirror = !mirrorLat;
+                yAxisMirror = !mirrorLong;
+            }
+
+            for (int i = 0; i < preview.desc.portPoses.Length; i++)
+            {
+                Vector3 originalPos = preview.desc.portPoses[i].position;
+                Vector2 transitionedPos = RotateXZ(originalPos, buildingYawRad);
+
+                Vector2 mirroredPos = new Vector2(
+                    xAxisMirror ? -transitionedPos.x : transitionedPos.x,
+                    yAxisMirror ? -transitionedPos.y : transitionedPos.y);
+
+                for (int j = 0; j < preview.desc.portPoses.Length; j++)
+                {
+                    Vector3 testPosition = preview.desc.portPoses[j].position;
+                    Vector2 transitionedTestPos = RotateXZ(testPosition, buildingYawRad);
+
+                    if (!((mirroredPos - transitionedTestPos).sqrMagnitude < 0.1f)) continue;
+
+                    preview.parameters[i] = building.parameters[j];
                 }
             }
         }
