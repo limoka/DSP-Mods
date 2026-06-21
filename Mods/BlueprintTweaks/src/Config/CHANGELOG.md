@@ -1,4 +1,12 @@
 
+### v1.6.13
+- Now when deleting belts via dismantle tool, neighbor belts will be included in undo blueprint, so connections are preserved when undoing dismantling
+- Now splitter port priority is mirrored when blueprint is mirrored
+- Fixed errors when dismantling on a larger radius planet, after traveling from a smaller one (Galactic Scale)
+- Fixed that rotating logistic stations caused incorrect port assignment
+- Fixed that sometimes blueprint inspector UI was visible after performing an undo
+- Fixed that keybind hints panel was blocking clicks on copy and paste buttons if collapsed
+
 ### v1.6.12
 - Fixed that previous release contained empty binaries
 
