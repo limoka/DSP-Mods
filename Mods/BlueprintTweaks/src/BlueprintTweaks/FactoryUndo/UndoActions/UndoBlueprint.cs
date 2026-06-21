@@ -67,6 +67,7 @@ namespace BlueprintTweaks.FactoryUndo
                 {
                     paste.ActiveColliders(actionBuild.model);
                     bool isOkay = paste.CheckBuildConditions();
+                    paste.DeterminePreviews();
                     paste.DeactiveColliders(actionBuild.model);
                     
                     paste.result = (isOkay ? (paste.result & ~EBlueprintPasteResult.HasError) : (paste.result | EBlueprintPasteResult.HasError));
@@ -95,6 +96,7 @@ namespace BlueprintTweaks.FactoryUndo
                     undoData.notifyDismantleListeners.Add(this);
             }
 
+            paste.uiInspector._Close();
             paste.ResetStates();
             paste.blueprint = oldBlueprint;
             paste.blueprintPath = oldPath;
