@@ -25,7 +25,6 @@ namespace BlueprintTweaks.FactoryUndo
             {
                 tool.factory.ReadObjectConn(objId, i, out bool isOutput, out int otherObjId, out int _);
                 
-                BlueprintTweaksPlugin.logger.LogInfo($"Checking belt {objId}, slot {i}:  {isOutput}, {otherObjId}");
                 if (otherObjId <= 0) continue;
                 
                 results.Add(otherObjId);
@@ -55,13 +54,10 @@ namespace BlueprintTweaks.FactoryUndo
 
                 var connectedIds = GetBeltConnectedObjectIds(__instance, objectId);
                 if (connectedIds.Count <= 0) continue;
-                
-                BlueprintTweaksPlugin.logger.LogInfo($"Belt {objectId} is connected to {string.Join(", ", connectedIds)}");
 
                 foreach (var connectedId in connectedIds)
                 {
                     if (results.Contains(connectedId)) continue;
-                    BlueprintTweaksPlugin.logger.LogInfo($"Adding to list {connectedId}");
                     results.Add(connectedId);
                 }
             }
@@ -105,6 +101,25 @@ namespace BlueprintTweaks.FactoryUndo
                             .InsertAndAdvance(new CodeInstruction(OpCodes.Ldarg_0));
                     });
 
+                // Replace calls to DismantleQueryConfirm() with delegate
+                matcher
+                    .Start()
+                    .MatchForward(false,
+                        new CodeMatch(OpCodes.Call, AccessTools.Method(typeof(BuildTool_Dismantle), nameof(BuildTool_Dismantle.DismantleQueryConfirm))))
+                    .Repeat(codeMatcher =>
+                    {
+                        codeMatcher.SetInstructionAndAdvance(Transpilers.EmitDelegate<Action<BuildTool_Dismantle>>(toolReal =>
+                        {
+                            if (toolReal.dismantleQueryObjectIds.Count <= 0) return;
+                            if (GameMain.localPlanet == null) return;
+                            
+                            foreach (int num in toolReal.dismantleQueryObjectIds)
+                            {
+                                objectIds.Add(num);
+                            }
+                        }));
+                    });
+                
                 // Replace DoDismantle calls with delegate
                 matcher
                     .Start()
