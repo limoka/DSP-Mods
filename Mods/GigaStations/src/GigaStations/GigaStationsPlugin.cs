@@ -160,6 +160,7 @@ namespace GigaStations
             harmony.PatchAll(typeof(BlueprintBuilding_Patch));
             harmony.PatchAll(typeof(UIEntityBriefInfo_Patch));
             harmony.PatchAll(typeof(UIControlPanelStationInspector_Patch));
+            harmony.PatchAll(typeof(UIControlPanelWindow_Patch));
 
             foreach (var pluginInfo in BepInEx.Bootstrap.Chainloader.PluginInfos)
             {

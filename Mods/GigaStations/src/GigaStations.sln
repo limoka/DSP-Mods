@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GigaStations", "GigaStations\GigaStations.csproj", "{2F467B11-D771-401D-B430-3DD819572469}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GigaStationsPatcher", "GigaStationsPatcher\GigaStationsPatcher.csproj", "{739E98A9-2966-4F4F-84FC-F2FEB0FB6B28}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{2F467B11-D771-401D-B430-3DD819572469}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2F467B11-D771-401D-B430-3DD819572469}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2F467B11-D771-401D-B430-3DD819572469}.Release|Any CPU.Build.0 = Release|Any CPU
+		{739E98A9-2966-4F4F-84FC-F2FEB0FB6B28}.Debug|Any CPU.ActiveCfg = Release|Any CPU
+		{739E98A9-2966-4F4F-84FC-F2FEB0FB6B28}.Debug|Any CPU.Build.0 = Release|Any CPU
+		{739E98A9-2966-4F4F-84FC-F2FEB0FB6B28}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{739E98A9-2966-4F4F-84FC-F2FEB0FB6B28}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
