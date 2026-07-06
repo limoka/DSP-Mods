@@ -3,5 +3,12 @@
   <ItemGroup>
     <PackageReference Update="DysonSphereProgram.GameLibs" Version="0.10.30.23430-r.0" PrivateAssets="all" IncludeAssets="compile" />
   </ItemGroup>
+
+  <Target Name="CopyToStaging" AfterTargets="Build">
+    <Copy
+            SourceFiles="$(IntermediateOutputPath)$(TargetName).dll"
+            DestinationFolder="$(ProjectDir)/Staging/plugins"
+            SkipUnchangedFiles="true" />
+  </Target>
 </Project>
 

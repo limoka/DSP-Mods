@@ -10,9 +10,9 @@ websiteUrl = "https://github.com/kremnev8/DSP-Mods/tree/master/Mods/GigaStations
 containsNsfwContent = false
 
   [package.dependencies]
-  xiaoye97-LDBTool = "3.0.1"
+  xiaoye97-LDBTool = "3.0.3"
   xiaoye97-BepInEx = "5.4.17"
-  CommonAPI-CommonAPI = "1.6.2"
+  CommonAPI-CommonAPI = "1.6.7"
 
 [build]
 icon = "./icon.png"
