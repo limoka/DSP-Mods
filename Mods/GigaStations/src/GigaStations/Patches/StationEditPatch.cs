@@ -176,6 +176,9 @@ namespace GigaStations
         public static void StationComponentInitPostfix(StationComponent __instance, ref int _id, ref int _entityId, ref int _pcId, ref PrefabDesc _desc, ref EntityData[] _entityPool) // Do when LDB is done
         {
             __instance.needs = new int[13];
+            
+            var maxCount = Math.Max(5, Math.Max(GigaStationsPlugin.plsMaxSlots, GigaStationsPlugin.ilsMaxSlots));
+            __instance.priorityLocks = new StationPriorityLock[maxCount];
 
             var protoId = _entityPool[_entityId].protoId;
             if (protoId != GigaStationsPlugin.ils.ID && protoId != GigaStationsPlugin.pls.ID && protoId != GigaStationsPlugin.collector.ID) // not my stations
@@ -188,7 +191,6 @@ namespace GigaStations
                 _desc.stationMaxEnergyAcc = Convert.ToInt64(GigaStationsPlugin.plsMaxAcuMJ * 1000000);
                 __instance.energyMax = GigaStationsPlugin.plsMaxAcuMJ * 1000000;
                 __instance.storage = new StationStore[GigaStationsPlugin.plsMaxSlots];
-                __instance.priorityLocks = new StationPriorityLock[GigaStationsPlugin.plsMaxSlots];
                 __instance.energyPerTick = 1000000;
             }
             else if (__instance.isStellar && !__instance.isCollector)
@@ -198,7 +200,6 @@ namespace GigaStations
                 __instance.energyMax = GigaStationsPlugin.ilsMaxAcuGJ * 1000000000;
                 __instance.warperMaxCount = GigaStationsPlugin.ilsMaxWarps;
                 __instance.storage = new StationStore[GigaStationsPlugin.ilsMaxSlots];
-                __instance.priorityLocks = new StationPriorityLock[GigaStationsPlugin.ilsMaxSlots];
                 __instance.energyPerTick = 1000000;
             }   
         }
@@ -208,20 +209,51 @@ namespace GigaStations
         [HarmonyPatch(typeof(StationComponent), "Import")]
         public static IEnumerable<CodeInstruction> StationImportTranspiler(IEnumerable<CodeInstruction> instructions)
         {
+            var matcher = new CodeMatcher(instructions);
 
-            return new CodeMatcher(instructions)
+            var storageField = AccessTools.Field(typeof(StationComponent), nameof(StationComponent.storage));
+            var priorityLocksField = AccessTools.Field(typeof(StationComponent), nameof(StationComponent.priorityLocks));
+            var needsField = AccessTools.Field(typeof(StationComponent), nameof(StationComponent.needs));
+
+            matcher.MatchForward(false,
+                new CodeMatch(OpCodes.Ldarg_0),
+                new CodeMatch(instruction => instruction.IsLdloc()),
+                new CodeMatch(OpCodes.Newarr, typeof(StationPriorityLock)),
+                new CodeMatch(OpCodes.Stfld, priorityLocksField)
+            )
+            .Advance(2)
+            .InsertAndAdvance(Transpilers.EmitDelegate<Func<int, int>>(GetLocksCount));
+            
+            matcher.MatchForward(false,
+                    new CodeMatch(OpCodes.Ldarg_0),
+                    new CodeMatch(OpCodes.Ldfld, storageField),
+                    new CodeMatch(OpCodes.Ldlen),
+                    new CodeMatch(OpCodes.Conv_I4),
+                    new CodeMatch(OpCodes.Newarr, typeof(StationPriorityLock)),
+                    new CodeMatch(OpCodes.Stfld, priorityLocksField)
+                )
+                .Advance(4)
+                .InsertAndAdvance(Transpilers.EmitDelegate<Func<int, int>>(GetLocksCount));
+            
+            matcher
                 .MatchForward(false, // false = move at the start of the match, true = move at the end of the match
-            new CodeMatch(OpCodes.Ldarg_0),
+                    new CodeMatch(OpCodes.Ldarg_0),
                     new CodeMatch(OpCodes.Ldc_I4_6),
                     new CodeMatch(OpCodes.Newarr),
-                    new CodeMatch(i => i.opcode == OpCodes.Stfld && ((FieldInfo)i.operand).Name == nameof(StationComponent.needs)))
+                    new CodeMatch(OpCodes.Stfld, needsField))
                 .Advance(1)
-                .Set(OpCodes.Ldc_I4, 13)
-                .InstructionEnumeration();
+                .Set(OpCodes.Ldc_I4, 13);
 
+            return matcher.InstructionEnumeration();
         }
-        
-        
+
+        private static int GetLocksCount(int prevCount)
+        {
+            var maxCount = Math.Max(prevCount, Math.Max(GigaStationsPlugin.plsMaxSlots, GigaStationsPlugin.ilsMaxSlots));
+            return maxCount;
+        }
+
+
         [HarmonyTranspiler]
         [HarmonyPatch(typeof(PlanetTransport), "Import")]
         [HarmonyDebug]
