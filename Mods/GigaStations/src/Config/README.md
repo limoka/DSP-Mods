@@ -1,15 +1,9 @@
-| [Screenshots](#giga-stations) | [ReadMe](#read-me) | [Settings](#settings) | [Installation](#installation) | [Feedback and Bug Reports](#feedback-and-bug-report) | [Changelog](#changelog) |
-|---|---|---|---|---|---|
-
-## Important
-`As v2 is using its own Items now --> IF YOU WANT TO KEEP YOUR SAVE, PLEASE DELETE OLD GigaStations first with the OLD VERSION (1.0.x) ENABLED BEFORE YOU MOVE TO v2! ALSO VANILLA ONES WITH MORE THAN 5 ITEMSLOTS OCCUPIED`
-
 # Giga-Stations
 ![GigaStations](https://raw.githubusercontent.com/kremnev8/DSP-Mods/master/Mods/GigaStations/GigaStations.png)
 ![GigaStations](https://raw.githubusercontent.com/WaGi-Coding/gifs/main/recipes.png)
 ![GigaStations](https://raw.githubusercontent.com/WaGi-Coding/gifs/main/GS.gif)
 
-## Read me!
+## About the mod
 This is a updated version of the mod. If you have not loaded your save without this mod, your save can be safely loaded. Mod originally made by [Taki7o7](https://dsp.thunderstore.io/package/Taki7o7/)
 
 Up to 12 Item Slots per Station.
@@ -86,5 +80,5 @@ Install CommonAPI from [here](https://dsp.thunderstore.io/package/CommonAPI/Comm
 Then unzip all files into `Dyson Sphere Program/BepInEx/plugins/GigaStationsUpdated/`. (Create folder named `GigaStationsUpdated`)
 
 ## Feedback and Bug Report
-Feel free to contact me via Discord (Kremnev8#3756) for any feedback, bug-reports or suggestions.
+Feel free to contact me via Discord (limoka8) for any feedback, bug-reports or suggestions.
 Original author no longer has time to support this mod, so don't message him if this breaks.
