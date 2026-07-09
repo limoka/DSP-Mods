@@ -1,8 +1,13 @@
-### v2.3.8
-- Updated to work with game version 0.10.30.23272 or higher
+### v2.4.0
+- Control Panel UI now shows all 12 slots
+- Added recipes to upgrade ILS and Orbital Collector to giga variants. Recipes have the same cost as previous ones
+- Fixed errors in DetermineDispatch method
 
 <details>
 <summary>Changelog</summary>
+
+### v2.3.8
+- Updated to work with game version 0.10.30.23272 or higher
 
 ### v2.3.7
 - Removed debug logs
