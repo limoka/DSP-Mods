@@ -141,6 +141,11 @@ namespace GigaStations
                 new[] {1}, "ILS_Desc", 1605);
             ProtoRegistry.RegisterRecipe(412, ERecipeType.Assemble, 3600, new[] { 2111, 1205, 1406, 2207 }, new[] { 1, 50, 20, 20 }, new[] {collector.ID},
                 new[] {1}, "Collector_Desc", 1606);
+            
+            ProtoRegistry.RegisterRecipe(413, ERecipeType.Assemble, 3600, new[] { 2104, 1303, 1107, 1206 }, new[] { 1, 40, 40, 20 }, new[] {ils.ID},
+                new[] {1}, "ILS_Desc", 1605, 2704, "ILS_NameAltRecipe", "");
+            ProtoRegistry.RegisterRecipe(414, ERecipeType.Assemble, 3600, new[] { 2105, 1303, 1107, 1206 }, new[] { 1, 40, 40, 20 }, new[] {collector.ID},
+                new[] {1}, "Collector_Desc", 1606, 2705, "Collector_NameAltRecipe", "");
 
 
             plsModel = ProtoRegistry.RegisterModel(460, pls, "Entities/Prefabs/logistic-station", null, new[] {24, 38, 12, 10, 1}, 606, 2, new []{2103, 0});
